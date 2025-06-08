@@ -1,0 +1,58 @@
+
+{
+  "welcome": {
+    "title": "Willkommen bei Alprax",
+    "subtitle": "KI-gestützte sichere Geldüberweisungen",
+    "description": "Erleben Sie die Zukunft globaler Überweisungen mit unserer KI-gesteuerten, Blockchain-gesicherten Plattform. Profitieren Sie von verbesserter Sicherheit, niedrigeren Gebühren und blitzschnellen Transaktionen.",
+    "tagline": "Finanzsicherheit der nächsten Generation"
+  },
+  "features": {
+    "fees": {
+      "title": "Web3-Überweisungstechnologie",
+      "description": "Nutzen Sie Blockchain-Technologie für sichere, transparente und kostengünstige internationale Überweisungen"
+    },
+    "instant": {
+      "title": "KI-beschleunigte Überweisungen",
+      "description": "Unsere Machine-Learning-Algorithmen optimieren das Routing für nahezu sofortige globale Überweisungen mit vollständiger Verschlüsselung"
+    },
+    "support": {
+      "title": "Cybersicherheitsschutz",
+      "description": "Fortschrittliche mehrschichtige Sicherheit mit Echtzeit-Bedrohungserkennung und Präventionssystemen"
+    }
+  },
+  "benefits": {
+    "global": {
+      "title": "Weltweite Abdeckung",
+      "description": "Sichere Überweisungen in über 200 Länder"
+    },
+    "recipient": {
+      "title": "Erweiterter Schutz",
+      "description": "Transaktionsverifizierung mit KI-Sicherheitsüberwachung"
+    },
+    "rates": {
+      "title": "Marktführende Wechselkurse",
+      "description": "Blockchain-optimierte Kurse für maximalen Wert"
+    }
+  },
+  "revenue": {
+    "title": "Unser Technologie-Stack",
+    "description": "Wie wir modernste Technologie für sichere, effiziente Überweisungen einsetzen",
+    "exchange": {
+      "title": "KI-Transaktionsoptimierung",
+      "description": "Machine-Learning-Algorithmen, die sich mit jeder Überweisung verbessern"
+    },
+    "premium": {
+      "title": "Web3-Infrastruktur",
+      "description": "Blockchain-Technologie für unveränderliche Transaktionsaufzeichnungen"
+    },
+    "partnerships": {
+      "title": "Cybersicherheits-Framework",
+      "description": "Mehrschichtiger Schutz gegen neue Bedrohungen"
+    }
+  },
+  "common": {
+    "language": "Sprache",
+    "loading": "Wird geladen...",
+    "error": "Ein Fehler ist aufgetreten"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "test-transaction-flow",
+  "script": "npx vite-node src/tests/transactionFlow.test.ts",
+  "dependencies": {
+    "test-transaction-flow": "file:"
+  }
+}

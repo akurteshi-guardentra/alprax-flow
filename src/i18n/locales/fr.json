@@ -1,0 +1,42 @@
+
+{
+  "welcome": {
+    "title": "Bienvenue sur Alprax",
+    "subtitle": "Envoyez de l'Argent chez Vous en Quelques Secondes",
+    "description": "Découvrez l'avenir des transferts internationaux avec Alprax. Soutenez votre famille avec des transferts quasi instantanés et économisez jusqu'à 90% sur les frais grâce à la technologie blockchain Stellar.",
+    "tagline": "Soutenez Vos Proches à l'International"
+  },
+  "features": {
+    "fees": {
+      "title": "Frais de Transfert Quasi Nuls",
+      "description": "Envoyez de l'argent à l'étranger avec des frais quasi nuls grâce à la blockchain Stellar, économisez jusqu'à 90% par rapport aux services traditionnels"
+    },
+    "instant": {
+      "title": "Transferts Internationaux Instantanés",
+      "description": "Soutenez vos proches instantanément - transferts effectués en quelques secondes, pas en jours, grâce au réseau Stellar"
+    },
+    "support": {
+      "title": "Soutenez Vos Proches",
+      "description": "Envoyez de l'argent chez vous facilement et à moindre coût pour soutenir votre famille, en toute transparence et sans frais cachés"
+    }
+  },
+  "benefits": {
+    "global": {
+      "title": "Couverture Mondiale",
+      "description": "Envoyez de l'argent vers plus de 200 pays"
+    },
+    "recipient": {
+      "title": "Gestion Facile des Bénéficiaires",
+      "description": "Enregistrez et organisez vos bénéficiaires fréquents"
+    },
+    "rates": {
+      "title": "Taux de Change Compétitifs",
+      "description": "Obtenez les meilleurs taux grâce à Stellar"
+    }
+  },
+  "common": {
+    "language": "Langue",
+    "loading": "Chargement...",
+    "error": "Une erreur s'est produite"
+  }
+}

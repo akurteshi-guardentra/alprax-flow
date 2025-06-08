@@ -1,0 +1,37 @@
+
+{
+  "welcome": {
+    "tagline": "Transfer të shpejtë dhe të sigurt në mbarë botën",
+    "title": "Transferta të menjëhershme globale",
+    "subtitle": "me shpërblime të shkëlqyera",
+    "description": "Dërgo para në mbarë botën menjëherë, pa komisione dhe fito shpërblime në çdo transfertë."
+  },
+  "features": {
+    "fees": {
+      "title": "Zero Komisione",
+      "description": "Transferta pa komisione të fshehura apo tarifa shtesë"
+    },
+    "instant": {
+      "title": "Transfer i Menjëhershëm",
+      "description": "Paratë mbërrijnë në destinacion brenda sekondash"
+    },
+    "support": {
+      "title": "Mbështetje 24/7",
+      "description": "Ekipi ynë është këtu për të ndihmuar në çdo moment"
+    }
+  },
+  "benefits": {
+    "global": {
+      "title": "Mbulim Global",
+      "description": "Dërgo para kudo në botë"
+    },
+    "recipient": {
+      "title": "Shpërblime në Çdo Transfertë",
+      "description": "Fito deri në 5% cashback"
+    },
+    "rates": {
+      "title": "Kursi më i Mirë",
+      "description": "Kurse të favorshme këmbimi"
+    }
+  }
+}

@@ -1,0 +1,58 @@
+
+{
+  "welcome": {
+    "title": "Welcome to Alprax",
+    "subtitle": "AI-Powered Secure Money Transfers",
+    "description": "Experience the future of global transfers with our AI-driven, blockchain-secured platform. Benefit from enhanced security, lower fees, and lightning-fast transactions.",
+    "tagline": "Next-Generation Financial Security"
+  },
+  "features": {
+    "fees": {
+      "title": "Web3 Transfer Technology",
+      "description": "Leverage blockchain technology for secure, transparent, and low-fee international transfers"
+    },
+    "instant": {
+      "title": "AI-Accelerated Transfers",
+      "description": "Our machine learning algorithms optimize routing for near-instant global transfers with full encryption"
+    },
+    "support": {
+      "title": "Cybersecurity Protection",
+      "description": "Advanced multi-layer security with real-time threat detection and prevention systems"
+    }
+  },
+  "benefits": {
+    "global": {
+      "title": "Global Coverage",
+      "description": "Secure transfers to over 200 countries"
+    },
+    "recipient": {
+      "title": "Advanced Protection",
+      "description": "Transaction verification with AI security monitoring"
+    },
+    "rates": {
+      "title": "Market-Leading Exchange Rates",
+      "description": "Blockchain-optimized rates for maximum value"
+    }
+  },
+  "revenue": {
+    "title": "Our Technology Stack",
+    "description": "How we leverage cutting-edge technology for secure, efficient transfers",
+    "exchange": {
+      "title": "AI Transaction Optimization",
+      "description": "Machine learning algorithms that improve with each transfer"
+    },
+    "premium": {
+      "title": "Web3 Infrastructure",
+      "description": "Blockchain technology for immutable transaction records"
+    },
+    "partnerships": {
+      "title": "Cybersecurity Framework",
+      "description": "Multi-layered protection against emerging threats"
+    }
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading...",
+    "error": "An error occurred"
+  }
+}

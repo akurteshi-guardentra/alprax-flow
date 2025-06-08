@@ -12,7 +12,6 @@ import { Profile as ProfileType } from "@/types/profile";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileCompletionCard } from "@/components/profile/ProfileCompletionCard";
-import { ProgressDemo } from "@/components/demo/ProgressDemo";
 import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
 import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 
@@ -131,13 +130,6 @@ const Profile = () => {
               </div>              <div ref={formRef}>
                 <ProfileForm profile={profile} setProfile={setProfile} />
               </div>
-              
-              {/* Progress component demo for testing - remove in production */}
-              {process.env.NODE_ENV !== 'production' && (
-                <div className="mt-6">
-                  <ProgressDemo />
-                </div>
-              )}
             </CardContent>
           </Card>
         </motion.div>

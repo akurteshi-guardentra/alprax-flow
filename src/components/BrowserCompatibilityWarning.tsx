@@ -1,6 +1,6 @@
 import React from 'react';
 import { useBrowserSupport } from '@/hooks/use-browser-support';
-import { AlertTriangle, X, Chrome, Firefox } from 'lucide-react';
+import { AlertTriangle, X, Chrome, Globe } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -63,14 +63,13 @@ export function BrowserCompatibilityWarning({
               >
                 <Chrome className="h-4 w-4 mr-1" />
                 <span>Chrome</span>
-              </a>
-              <a 
+              </a>              <a 
                 href="https://www.mozilla.org/firefox/" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="hidden sm:flex items-center space-x-1 bg-white/20 hover:bg-white/30 text-white rounded-md px-3 py-1 text-sm"
               >
-                <Firefox className="h-4 w-4 mr-1" />
+                <Globe className="h-4 w-4 mr-1" />
                 <span>Firefox</span>
               </a>
               <Button 

@@ -50,14 +50,12 @@ export const ProfileCompletionCard = ({
           <h3 className="font-medium text-white">Profile Completion</h3>
         </div>
         <span className="text-sm font-medium text-white">{percentage}%</span>
-      </div>
-        <Progress 
+      </div>      <Progress 
         value={percentage} 
         className="h-2 bg-white/10" 
         indicatorClassName={getProgressColor()}
-        variant={percentage < 100 ? "default" : "striped"}
+        variant={percentage === 100 ? "striped" : "default"}
         label="Profile completion progress"
-        isLowEndDevice={!shouldAnimate}
       />
       
       {!compact && (

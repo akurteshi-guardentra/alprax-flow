@@ -14,9 +14,7 @@ import { Shield, ExternalLink, AlertTriangle } from "lucide-react";
 import { useKYC } from "@/hooks/useKYC";
 import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
 import { motion } from "framer-motion";
-import { withResilience } from "@/utils/network-resilience";
 import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
-import { requestOptimize } from "@/utils/request-optimization";
 import { useMobile } from "@/hooks/use-mobile";
 import { useDataSaverMode } from "@/hooks/use-data-saver";
 
@@ -26,7 +24,8 @@ interface ProfileFormProps {
 }
 
 export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
-  const navigate = useNavigate();  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
   const { status: kycStatus, documents } = useKYC();
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { isMobile } = useMobile();
@@ -43,6 +42,7 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
       setOriginalProfile({...profile});
     }
   }, [profile]);
+
   // Detect changes between current and original profile
   useEffect(() => {
     if (profile && originalProfile) {
@@ -107,35 +107,19 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
     }
   };
 
-  // Use resilient API for profile updates
-  const updateProfile = withResilience(
-    async (profileData: Partial<Profile>) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+  // Simple profile update function
+  const updateProfile = async (profileData: Partial<Profile>) => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("Not authenticated");
 
-      // Optimize network request
-      return requestOptimize(
-        async () => {
-          const { error } = await supabase
-            .from('profiles')
-            .update(profileData)
-            .eq('id', user.id);
+    const { error } = await supabase
+      .from('profiles')
+      .update(profileData)
+      .eq('id', user.id);
 
-          if (error) throw error;
-          return { success: true };
-        },
-        { 
-          key: `profile_update_${user.id}`, 
-          deduplicate: true 
-        }
-      );
-    },
-    { 
-      maxRetries: 3, 
-      retryDelay: 1000,
-      cacheTime: 0 // Don't cache profile updates
-    }
-  );
+    if (error) throw error;
+    return { success: true };
+  };
 
   const handleSave = async () => {
     if (!profile) return;
@@ -185,7 +169,9 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
           <AlertTriangle className="h-4 w-4" />
           <span>You have unsaved changes</span>
         </motion.div>
-      )}      <div className="pt-2">
+      )}
+
+      <div className="pt-2">
         <Button 
           onClick={handleSave}
           disabled={loading || autoSaving || !hasUnsavedChanges}

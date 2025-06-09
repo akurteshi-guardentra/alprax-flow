@@ -92,7 +92,7 @@ const AdminKYCVerification = () => {
         );
       }
       
-      setVerifications(filteredData);
+      setVerifications(filteredData as KYCVerification[]);
     } catch (error: any) {
       console.error('Error fetching KYC verifications:', error);
       toast.error('Failed to load KYC verifications');
@@ -122,16 +122,8 @@ const AdminKYCVerification = () => {
       const timestamp = new Date().toISOString();
       
       // Update verification status
-      let status: 'pending' | 'verified' | 'rejected';
-      let notes: string;
-      
-      if (approved) {
-        status = 'verified';
-        notes = 'Verification approved';
-      } else {
-        status = 'rejected';
-        notes = reason || 'Verification rejected';
-      }
+      const status: 'pending' | 'verified' | 'rejected' = approved ? 'verified' : 'rejected';
+      const notes: string = approved ? 'Verification approved' : reason || 'Verification rejected';
       
       const { error: verificationError } = await supabase
         .from('kyc_verifications')
@@ -150,7 +142,7 @@ const AdminKYCVerification = () => {
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          kyc_level: approved ? status : 'basic',
+          kyc_level: approved ? 'verified' : 'basic',
           kyc_verified_at: approved ? timestamp : null
         })
         .eq('id', userId);
@@ -223,7 +215,7 @@ const AdminKYCVerification = () => {
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
-  
+
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -238,6 +230,7 @@ const AdminKYCVerification = () => {
       </div>
     );
   }
+
   return (
     <div className="space-y-6">
       <motion.div 

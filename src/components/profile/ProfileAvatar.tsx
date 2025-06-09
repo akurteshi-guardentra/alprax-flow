@@ -9,7 +9,6 @@ import { motion } from "framer-motion";
 import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
 import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 import { useDataSaverMode } from "@/hooks/use-data-saver";
-import { withResilience } from "@/utils/network-resilience";
 
 interface ProfileAvatarProps {
   profile: Profile | null;
@@ -21,7 +20,7 @@ export const ProfileAvatar = ({ profile }: ProfileAvatarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { isDataSaverEnabled, isLowEndDevice } = useDataSaverMode();
-  const { networkStatus } = useNetworkAwareLoading(false);
+  const { networkStatus } = useNetworkAwareLoading();
 
   // Determine image size based on network status and data saver mode
   const getImageQuality = (): string => {
@@ -47,42 +46,39 @@ export const ProfileAvatar = ({ profile }: ProfileAvatarProps) => {
     return url;
   };
 
-  const uploadAvatar = withResilience(
-    async (file: File) => {
-      if (!file) throw new Error("No file selected");
+  const uploadAvatar = async (file: File) => {
+    if (!file) throw new Error("No file selected");
 
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("User not authenticated");
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error("User not authenticated");
 
-      // Generate file path
-      const fileExt = file.name.split('.').pop();
-      const filename = `${user.id}/${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${filename}`;
+    // Generate file path
+    const fileExt = file.name.split('.').pop();
+    const filename = `${user.id}/${Date.now()}.${fileExt}`;
+    const filePath = `avatars/${filename}`;
 
-      // Upload image
-      const { error: uploadError } = await supabase.storage
-        .from('profile')
-        .upload(filePath, file);
+    // Upload image
+    const { error: uploadError } = await supabase.storage
+      .from('profile')
+      .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+    if (uploadError) throw uploadError;
 
-      // Get public URL
-      const { data: urlData } = await supabase.storage
-        .from('profile')
-        .getPublicUrl(filePath);
+    // Get public URL
+    const { data: urlData } = await supabase.storage
+      .from('profile')
+      .getPublicUrl(filePath);
 
-      // Update profile
-      const { error: updateError } = await supabase
-        .from('profiles')
-        .update({ avatar_url: urlData.publicUrl })
-        .eq('id', user.id);
+    // Update profile
+    const { error: updateError } = await supabase
+      .from('profiles')
+      .update({ avatar_url: urlData.publicUrl })
+      .eq('id', user.id);
 
-      if (updateError) throw updateError;
+    if (updateError) throw updateError;
 
-      return urlData.publicUrl;
-    },
-    { maxRetries: 3, retryDelay: 1000 }
-  );
+    return urlData.publicUrl;
+  };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (!e.target.files || e.target.files.length === 0) return;

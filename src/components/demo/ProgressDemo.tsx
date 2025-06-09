@@ -39,9 +39,7 @@ export const ProgressDemo = ({ className = "" }: ProgressDemoProps) => {
               value < 70 ? "bg-yellow-500" : 
               "bg-green-500"
             }
-            showValueLabel={showLabel}
             variant={variant}
-            isLowEndDevice={!shouldAnimate}
           />
           <div className="flex items-center justify-between text-sm text-white/70">
             <span>Current value: {value}%</span>

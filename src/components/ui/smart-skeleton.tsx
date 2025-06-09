@@ -1,49 +1,19 @@
+
 import React, { useState, useEffect } from 'react';
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNetworkConditions } from '@/hooks/use-network-conditions';
 import { motion } from 'framer-motion';
 
 interface SmartSkeletonProps {
-  /**
-   * Number of skeleton items to display
-   */
   count?: number;
-  
-  /**
-   * Whether to use staggered animation for the skeletons
-   */
   staggered?: boolean;
-  
-  /**
-   * Whether to show simplified skeletons for better performance
-   */
   reduced?: boolean;
-  
-  /**
-   * Function to check if data is being loaded from cache
-   */
   isCached?: boolean;
-  
-  /**
-   * Custom loading time estimate in ms (overrides automatic calculation)
-   */
   estimatedLoadTime?: number;
-  
-  /**
-   * When true, shows estimated remaining time
-   */
   showEstimate?: boolean;
-  
-  /**
-   * Class name for styling
-   */
   className?: string;
 }
 
-/**
- * Smart skeleton loading component that adapts to network conditions
- * and provides estimated loading times
- */
 export function SmartSkeleton({
   count = 3,
   staggered = true,
@@ -53,38 +23,22 @@ export function SmartSkeleton({
   showEstimate = true,
   className = ''
 }: SmartSkeletonProps) {
-  const { effectiveConnectionType, rtt } = useNetworkConditions();
+  const { rtt } = useNetworkConditions();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   
-  // Calculate estimated loading time based on network conditions
   const calculatedEstimatedTime = (() => {
     if (estimatedLoadTime) return estimatedLoadTime;
-    if (isCached) return 300; // Cached data loads quickly
-    
-    // Base estimates on connection type and RTT
-    switch (effectiveConnectionType) {
-      case '4g':
-        return 1500 + (rtt || 0);
-      case '3g':
-        return 3000 + (rtt || 0) * 1.5;
-      case '2g':
-        return 5000 + (rtt || 0) * 2;
-      case 'slow-2g':
-        return 8000 + (rtt || 0) * 3;
-      default:
-        return 2500 + (rtt || 0); // Default for unknown connection
-    }
+    if (isCached) return 300;
+    return 2500 + (rtt || 0);
   })();
   
-  // Update elapsed time
   useEffect(() => {
     const startTime = Date.now();
     const interval = setInterval(() => {
       const newElapsed = Date.now() - startTime;
       setElapsedTime(newElapsed);
       
-      // Auto hide after 2x the estimated time (something likely went wrong)
       if (newElapsed > calculatedEstimatedTime * 2) {
         setIsVisible(false);
       }
@@ -93,21 +47,17 @@ export function SmartSkeleton({
     return () => clearInterval(interval);
   }, [calculatedEstimatedTime]);
   
-  // Calculate remaining time in seconds
   const remainingTimeSeconds = Math.max(
     0, 
     Math.round((calculatedEstimatedTime - elapsedTime) / 1000)
   );
   
-  // Determine how complete the loading is (for progress indicator)
   const loadingProgress = Math.min(100, (elapsedTime / calculatedEstimatedTime) * 100);
   
-  // Don't render if not visible
   if (!isVisible) return null;
   
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Progress indicator */}
       {showEstimate && (
         <div className="flex items-center justify-between px-4 py-2">
           <div className="text-sm text-gray-500">
@@ -127,7 +77,6 @@ export function SmartSkeleton({
         </div>
       )}
       
-      {/* Skeleton items */}
       {Array(count).fill(0).map((_, i) => (
         <motion.div
           key={i}

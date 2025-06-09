@@ -53,7 +53,6 @@ const AdminKYCVerification = () => {
     try {
       setIsLoading(true);
       
-      // Build the query based on active tab
       let query = supabase
         .from('kyc_verifications')
         .select(`
@@ -61,27 +60,22 @@ const AdminKYCVerification = () => {
           profiles:profiles (full_name, username, country)
         `);
       
-      // Filter by status based on active tab
       if (activeTab !== "all") {
         query = query.eq('status', activeTab);
       }
       
-      // Apply sort order
       query = query.order('submitted_at', { ascending: sortOrder === "oldest" });
       
       const { data, error } = await query;
 
       if (error) throw error;
       
-      // Apply client-side filtering
       let filteredData = data || [];
       
-      // Filter by document type if selected
       if (selectedDocType !== "all") {
         filteredData = filteredData.filter(v => v.document_type === selectedDocType);
       }
       
-      // Filter by search query if present
       if (searchQuery) {
         const query = searchQuery.toLowerCase();
         filteredData = filteredData.filter(v => 
@@ -105,7 +99,6 @@ const AdminKYCVerification = () => {
     fetchVerifications();
   }, [activeTab, selectedDocType, sortOrder]);
   
-  // Debounce search to avoid too many refreshes
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchVerifications();
@@ -121,8 +114,7 @@ const AdminKYCVerification = () => {
       
       const timestamp = new Date().toISOString();
       
-      // Update verification status
-      const status: 'pending' | 'verified' | 'rejected' = approved ? 'verified' : 'rejected';
+      const status: 'verified' | 'rejected' = approved ? 'verified' : 'rejected';
       const notes: string = approved ? 'Verification approved' : reason || 'Verification rejected';
       
       const { error: verificationError } = await supabase
@@ -138,7 +130,6 @@ const AdminKYCVerification = () => {
 
       if (verificationError) throw verificationError;
 
-      // Update profile KYC level
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
@@ -149,7 +140,6 @@ const AdminKYCVerification = () => {
 
       if (profileError) throw profileError;
       
-      // Close dialogs if open
       setIsDialogOpen(false);
       setIsRejectionDialogOpen(false);
       
@@ -165,7 +155,7 @@ const AdminKYCVerification = () => {
     try {
       const { data, error } = await supabase.storage
         .from('kyc_documents')
-        .createSignedUrl(path, 300); // 5 minutes expiry
+        .createSignedUrl(path, 300);
 
       if (error) throw error;
       window.open(data.signedUrl, '_blank');
@@ -359,11 +349,6 @@ const AdminKYCVerification = () => {
                             </div>
                             
                             <div className="ml-8 space-y-1 mt-1">
-                              {verification.profiles?.email && (
-                                <p className="text-sm text-white/70">
-                                  {verification.profiles.email}
-                                </p>
-                              )}
                               <div className="flex items-center text-xs text-white/50 gap-4">
                                 <span className="flex items-center">
                                   <Calendar className="h-3 w-3 mr-1" />

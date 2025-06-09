@@ -15,7 +15,6 @@ interface CountryFieldProps {
 export const CountryField = ({ profile, setProfile }: CountryFieldProps) => {
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { isDataSaverEnabled, isLowEndDevice } = useDataSaverMode();
-  const { networkStatus } = useNetworkAwareLoading();
 
   const handleCountryChange = (countryCode: string) => {
     if (profile) {
@@ -47,12 +46,6 @@ export const CountryField = ({ profile, setProfile }: CountryFieldProps) => {
       {isDataSaverEnabled && (
         <div className="text-xs text-white/50 mt-1">
           Data saver mode: Country list optimized
-        </div>
-      )}
-      
-      {networkStatus === 'poor' && (
-        <div className="text-xs text-yellow-400 mt-1">
-          Slow connection detected
         </div>
       )}
     </motion.div>

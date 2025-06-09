@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import { TransactionDetail } from './transaction/TransactionDetail';
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion, AnimatePresence } from "framer-motion";
 import { VirtualizedList } from "@/components/ui/virtualized-list";
-import { usePullToRefresh } from "@/hooks/use-pull-to-refresh";
 import { PullToRefreshIndicator } from "@/components/ui/pull-to-refresh-indicator";
 import { hapticFeedback } from "@/lib/haptics";
 import { SwipeableTransactionItem } from "@/components/ui/swipeable-transaction-item";
@@ -27,7 +27,6 @@ import { useNetworkConditions } from "@/hooks/use-network-conditions";
 import { usePerformanceMetrics } from "@/hooks/use-performance-metrics";
 import { safeGetItem, safeSetItem } from "@/utils/storage-utils";
 import { PerformanceInfo } from "@/components/ui/performance-info";
-// New imports for enhanced mobile optimization
 import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
 import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 import { transactionCache } from "@/utils/transaction-cache";
@@ -93,7 +92,7 @@ export function TransactionHistory() {
   
   // Handler for manual refresh
   const handleRefresh = useCallback(async () => {
-    if (trackInteractionStart) trackInteractionStart(); // Start tracking the interaction
+    if (trackInteractionStart) trackInteractionStart();
     setRefreshing(true);
     hapticFeedback('medium');
     
@@ -104,16 +103,9 @@ export function TransactionHistory() {
       hapticFeedback('error');
     } finally {
       setRefreshing(false);
-      if (trackInteractionEnd) trackInteractionEnd(); // End tracking the interaction
+      if (trackInteractionEnd) trackInteractionEnd();
     }
   }, [refetch, trackInteractionStart, trackInteractionEnd]);
-  
-  // Pull-to-refresh functionality for mobile
-  const { isPulling, pullProgress, isRefreshing } = usePullToRefresh(contentRef, {
-    onRefresh: handleRefresh,
-    disabled: !isMobile || isLoading || refreshing,
-    pullDistance: 80,
-  });
 
   // Filter transactions based on search term
   useEffect(() => {
@@ -146,23 +138,17 @@ export function TransactionHistory() {
   
   // Helper function to load more data for infinite scrolling (for mobile view)
   const loadMoreTransactions = useCallback(() => {
-    // Implement load more logic if needed
     console.log('Loading more transactions...');
-    // Could fetch more transactions from API here
   }, []);
 
   // Helper function to format amounts with appropriate prefix
   const formatAmount = (transaction) => {
-    // Ensure fiatRate is a valid number before calculation
     if (typeof fiatRate !== 'number' || isNaN(fiatRate) || fiatRate === null || fiatRate === undefined) {
-      // Return a placeholder or loading text if fiatRate is not available
-      // defaultFiat should be available as it's typically initialized directly
       return `Loading... ${defaultFiat}`;
     }
 
     const numericAmount = parseFloat(transaction.amount);
     if (isNaN(numericAmount)) {
-      // Handle cases where transaction.amount is not a valid number
       console.warn(`Invalid amount for transaction (ID: ${transaction.id || 'unknown'}), amount: ${transaction.amount}`);
       return `Invalid Data ${defaultFiat}`;
     }

@@ -12,9 +12,9 @@
     "preview": "vite preview",
     "test:transaction": "npx vite-node src/tests/transactionFlowTest.ts",
     "test:transaction:fixed": "npx vite-node src/tests/transactionFlowTest.fixed.ts",
-    "test:direct-transaction": "npx vite-node src/tests/directTransactionTest.ts",
-    "predeploy": "npm run build:github-pages",
-    "deploy": "gh-pages -d dist",
+    "test:direct-transaction": "npx vite-node src/tests/directTransactionTest.ts",    "predeploy": "npm run build:github-pages",
+    "deploy": "gh-pages -d dist -r https://github.com/atdheekurteshi/alprax-flow.git --verbose",
+    "deploy:advanced": "node deploy-github-pages.js",
     "deploy:ci": "cross-env CI=true npm run deploy",
     "check": "npm run lint && npm run build"
   },

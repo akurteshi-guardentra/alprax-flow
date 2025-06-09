@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 const MOBILE_BREAKPOINT = 768
@@ -87,6 +86,12 @@ export function useIsMobile() {
 
   return !!isMobile
 }
+
+// Export useMobile alias for compatibility
+export const useMobile = () => {
+  const isMobile = useIsMobile();
+  return { isMobile };
+};
 
 // For specific tablet detection if needed
 export function useIsTablet() {

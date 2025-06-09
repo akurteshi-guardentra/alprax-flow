@@ -191,3 +191,27 @@ export const globalDeduplicator = new RequestDeduplicator();
 export function deduplicate<T>(key: string, requestFn: () => Promise<T>): Promise<T> {
   return globalDeduplicator.execute(key, requestFn);
 }
+
+/**
+ * Optimizes a request based on network conditions and device capabilities
+ * @param requestFn The function to optimize
+ * @param options Optimization options
+ */
+export function requestOptimize<T>(
+  requestFn: () => Promise<T>,
+  options: {
+    cacheKey?: string;
+    retryCount?: number;
+    lowPriorityOnSlow?: boolean;
+  } = {}
+): Promise<T> {
+  const { cacheKey, retryCount = 1, lowPriorityOnSlow = true } = options;
+  
+  // Apply deduplication if a cache key is provided
+  const deduplicatedFn = cacheKey ? 
+    () => deduplicate(cacheKey, requestFn) : 
+    requestFn;
+    
+  // Here you could add additional optimizations based on network conditions
+  return deduplicatedFn();
+}

@@ -29,7 +29,6 @@ export function useNetworkConditions(): NetworkConditions {  const [networkCondi
     connectionType: null,
     effectiveType: null,
     downlinkSpeed: null,
-    isOnline: navigator.onLine,
     rtt: null,
     isOffline: !navigator.onLine,
     isOnline: navigator.onLine,
@@ -94,9 +93,9 @@ export function useNetworkConditions(): NetworkConditions {  const [networkCondi
             rtt: typeof rtt === 'number' ? rtt : null,
             isOffline,
             isOnline
-          });
-        } else {
-          // Fallback for browsers without connection API          setNetworkConditions(prev => ({
+          });        } else {
+          // Fallback for browsers without connection API
+          setNetworkConditions(prev => ({
             ...prev,
             connectionQuality: navigator.onLine ? 'moderate' : 'poor',
             isOffline,

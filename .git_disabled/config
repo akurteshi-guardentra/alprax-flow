@@ -12,8 +12,7 @@
 	remote = origin
 	merge = refs/heads/main
 	vscode-merge-base = origin/main
-	vscode-merge-base = origin/main
-	vscode-merge-base = origin/main
+
+
 [branch "alprax-flow-dev"]
-	vscode-merge-base = origin/main
 	vscode-merge-base = origin/main

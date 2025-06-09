@@ -1,4 +1,3 @@
-
 import { useEffect, useState, useRef } from 'react';
 
 export function useWelcomePerformance() {
@@ -90,8 +89,30 @@ export function useWelcomePerformance() {
     perfMarksRef.current[name] = performance.now();
   };
 
+  // Track page load metrics
+  const trackPageLoad = () => {
+    const loadTime = performance.now();
+    perfMarksRef.current.pageLoad = loadTime;
+    console.log('Page load tracked:', loadTime);
+    
+    // Mark additional page load metrics
+    markPerformanceTimestamp('welcome-page-load');
+  };
+
+  // Track user interactions
+  const trackUserInteraction = (action: string) => {
+    const interactionTime = performance.now();
+    perfMarksRef.current[`interaction-${action}`] = interactionTime;
+    console.log('User interaction tracked:', action, interactionTime);
+    
+    // Mark the specific interaction
+    markPerformanceTimestamp(`user-interaction-${action}`);
+  };
+
   return {
     isHighPerformanceDevice,
-    markPerformanceTimestamp
+    markPerformanceTimestamp,
+    trackPageLoad,
+    trackUserInteraction
   };
 }

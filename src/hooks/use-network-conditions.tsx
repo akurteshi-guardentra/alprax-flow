@@ -79,12 +79,11 @@ export function useNetworkConditions(): NetworkConditions {  const [networkCondi
         // Set offline status
         const isOffline = !navigator.onLine;
         const isOnline = navigator.onLine;
-        
-        // @ts-ignore - Navigator connection API
+          // @ts-ignore - Navigator connection API
         if ('connection' in navigator && navigator.connection) {
           // @ts-ignore
           const { effectiveType, type, saveData, downlink, rtt } = navigator.connection;
-            setNetworkConditions({
+          setNetworkConditions({
             connectionQuality: determineConnectionQuality(),
             isDataSaverEnabled: !!saveData,
             connectionType: type || null,
@@ -93,7 +92,8 @@ export function useNetworkConditions(): NetworkConditions {  const [networkCondi
             rtt: typeof rtt === 'number' ? rtt : null,
             isOffline,
             isOnline
-          });        } else {
+          });
+        } else {
           // Fallback for browsers without connection API
           setNetworkConditions(prev => ({
             ...prev,

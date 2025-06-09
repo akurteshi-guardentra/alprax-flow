@@ -1,8 +1,25 @@
-# Welcome to your Lovable project
+# Alprax Flow
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/68de21be-8dfb-45ac-88dd-2da960ee8f93
+**URL**: https://lovable.dev/projects/68de21be-8dfb-45ac-88dd-2da960ee8f93  
+**Live Demo**: https://atdheekurteshi.github.io/alprax-flow/
+
+## Deployment & Documentation
+
+This project is deployed to GitHub Pages and has comprehensive documentation:
+
+### Deployment Information
+- [GitHub Pages Guide](GITHUB-PAGES-GUIDE.md) - Complete guide to GitHub Pages deployment
+- [CI/CD Guide](CI-CD-GUIDE.md) - Information about the CI/CD setup
+- [Deployment Checklist](DEPLOYMENT-CHECKLIST.md) - Step-by-step deployment checklist
+
+### Development Workflow
+- [PR Instructions](PR-INSTRUCTIONS.md) - How to submit pull requests
+- [Lovable Guide](LOVABLE-GUIDE.md) - How to use Lovable with this project
+
+### General Documentation
+- [Deployment General Guide](DEPLOYMENT.md) - Overall deployment strategies
 
 ## How can I edit this code?
 

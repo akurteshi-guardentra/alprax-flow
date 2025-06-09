@@ -6,7 +6,7 @@
  * and CI/CD pipelines.
  */
 
-type DeploymentPlatform = 'vercel' | 'netlify' | 'custom';
+type DeploymentPlatform = 'vercel' | 'netlify' | 'github-pages' | 'custom';
 type DeploymentEnvironment = 'development' | 'staging' | 'production';
 
 interface DeploymentConfig {
@@ -16,11 +16,16 @@ interface DeploymentConfig {
   buildTime: string;
   deployUrl: string;
   baseUrl: string;
+  basePath: string;
+  isGitHubPages: boolean;
 }
 
 // Detect deployment platform
 const detectPlatform = (): DeploymentPlatform => {
-  if (import.meta.env.VITE_VERCEL_ENV) {
+  if (import.meta.env.VITE_GITHUB_PAGES === 'true' || 
+      window.location.hostname.includes('github.io')) {
+    return 'github-pages';
+  } else if (import.meta.env.VITE_VERCEL_ENV) {
     return 'vercel';
   } else if (import.meta.env.VITE_NETLIFY) {
     return 'netlify';
@@ -69,6 +74,22 @@ const getBaseUrl = (): string => {
   }
 };
 
+// Get base path for the application
+const getBasePath = (): string => {
+  const platform = detectPlatform();
+  
+  if (platform === 'github-pages') {
+    return import.meta.env.VITE_GITHUB_PAGES_PATH || '/alprax-flow/';
+  } else {
+    return import.meta.env.VITE_BASE_PATH || '/';
+  }
+};
+
+// Is GitHub Pages deployment?
+const isGitHubPages = (): boolean => {
+  return detectPlatform() === 'github-pages';
+};
+
 // Export deployment configuration
 export const deploymentConfig: DeploymentConfig = {
   platform: detectPlatform(),
@@ -77,6 +98,8 @@ export const deploymentConfig: DeploymentConfig = {
   buildTime: import.meta.env.VITE_BUILD_TIME || new Date().toISOString(),
   deployUrl: getDeployUrl(),
   baseUrl: getBaseUrl(),
+  basePath: getBasePath(),
+  isGitHubPages: isGitHubPages()
 };
 
 // Netlify-specific configuration

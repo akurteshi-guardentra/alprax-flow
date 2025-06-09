@@ -1,0 +1,79 @@
+# filepath: c:\Users\a.kurteshi\Repo\alprax-flow\.github\workflows\pull-request.yml
+name: Pull Request Checks
+
+on:
+  pull_request:
+    branches:
+      - main
+      - deployment-updates
+
+jobs:
+  validate:
+    name: 🔍 Validate PR
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: 'npm'
+      
+      - name: Install Dependencies
+        run: npm ci
+      
+      - name: Lint
+        run: npm run lint || echo "Linting warnings found, but continuing"
+        continue-on-error: true
+      
+      - name: Build
+        run: npm run build
+      
+      - name: Verify Build Output
+        run: |
+          if [ ! -d "dist" ]; then
+            echo "::error::Build failed - dist directory not created"
+            exit 1
+          fi
+          echo "✅ Build successful"
+
+  check-404-page:
+    name: 🔄 Check SPA Routing
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      
+      - name: Verify 404.html
+        run: |
+          if [ ! -f "public/404.html" ]; then
+            echo "::warning::Missing 404.html file needed for SPA routing on GitHub Pages"
+          else
+            echo "✅ 404.html file present for SPA routing"
+          fi
+      
+      - name: Check Base Path
+        run: |
+          if ! grep -q "base.*alprax-flow" vite.config.ts; then
+            echo "::warning::vite.config.ts may not have proper base path configured for GitHub Pages"
+          else
+            echo "✅ Base path properly configured in vite.config.ts"
+          fi
+
+  summarize:
+    name: 📝 PR Summary
+    needs: [validate, check-404-page]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Summary
+        run: |
+          echo "## Pull Request Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ Code builds successfully" >> $GITHUB_STEP_SUMMARY
+          echo "✅ SPA routing configuration checked" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This PR is ready for review and can be merged once approved." >> $GITHUB_STEP_SUMMARY

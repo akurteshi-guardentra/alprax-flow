@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +14,14 @@ interface ProgressDemoProps {
 export const ProgressDemo = ({ className = "" }: ProgressDemoProps) => {
   const [value, setValue] = useState(45);
   const [showLabel, setShowLabel] = useState(false);
-  const [variant, setVariant] = useState<"default" | "striped" | "indeterminate">("default");
+  const [variant, setVariant] = useState<"default" | "striped">("default");
   const { shouldAnimate } = useOptimizedAnimations();
 
   const increment = () => setValue(prev => Math.min(prev + 10, 100));
   const decrement = () => setValue(prev => Math.max(prev - 10, 0));
   
   const cycleVariant = () => {
-    if (variant === "default") setVariant("striped");
-    else if (variant === "striped") setVariant("indeterminate");
-    else setVariant("default");
+    setVariant(variant === "default" ? "striped" : "default");
   };
 
   return (
@@ -33,7 +32,7 @@ export const ProgressDemo = ({ className = "" }: ProgressDemoProps) => {
       <CardContent className="space-y-4">
         <div className="space-y-2">
           <Progress 
-            value={variant === "indeterminate" ? undefined : value} 
+            value={value} 
             className="h-4" 
             indicatorClassName={
               value < 30 ? "bg-red-500" : 
@@ -64,7 +63,7 @@ export const ProgressDemo = ({ className = "" }: ProgressDemoProps) => {
             onClick={decrement} 
             variant="outline" 
             size="sm"
-            disabled={value === 0 || variant === "indeterminate"}
+            disabled={value === 0}
             className="border-white/10 text-white"
           >
             Decrease
@@ -73,7 +72,7 @@ export const ProgressDemo = ({ className = "" }: ProgressDemoProps) => {
             onClick={increment} 
             variant="outline" 
             size="sm"
-            disabled={value === 100 || variant === "indeterminate"}
+            disabled={value === 100}
             className="border-white/10 text-white"
           >
             Increase

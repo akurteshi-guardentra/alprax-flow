@@ -1,3 +1,4 @@
+
 // Enhanced Signup Component with Automatic Stellar Account Setup
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -7,8 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { completeUserOnboarding, resetPassword } from "@/lib/auth-enhanced";
-import { FaLock, FaUser, FaEnvelope } from "react-icons/fa";
-import { CgSpinner } from "react-icons/cg";
+import { Lock, User, Mail, Loader2 } from "lucide-react";
 
 export function EnhancedSignup() {
   const navigate = useNavigate();
@@ -88,7 +88,7 @@ export function EnhancedSignup() {
                 Email
               </Label>
               <div className="relative">
-                <FaEnvelope className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
                 <Input
                   id="email"
                   type="email"
@@ -106,7 +106,7 @@ export function EnhancedSignup() {
                 Password
               </Label>
               <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
                 <Input
                   id="password"
                   type="password"
@@ -124,7 +124,7 @@ export function EnhancedSignup() {
                 Confirm Password
               </Label>
               <div className="relative">
-                <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-white/50" />
                 <Input
                   id="confirmPassword"
                   type="password"
@@ -158,9 +158,9 @@ export function EnhancedSignup() {
               disabled={isLoading}
             >
               {isLoading ? (
-                <CgSpinner className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <FaUser className="mr-2 h-4 w-4" />
+                <User className="mr-2 h-4 w-4" />
               )}
               Sign Up
             </Button>

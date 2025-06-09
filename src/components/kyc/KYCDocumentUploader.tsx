@@ -8,7 +8,6 @@ import { DocumentType } from "@/hooks/useKYC";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useNetworkConditions } from "@/hooks/use-network-conditions";
-import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 
 interface KYCDocumentUploaderProps {
   documentType: DocumentType | "";
@@ -31,7 +30,6 @@ export const KYCDocumentUploader = ({
   const { isDataSaverEnabled, isLowEndDevice } = useDataSaverMode();
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { connectionQuality } = useNetworkConditions();
-  const { isLoading } = useNetworkAwareLoading(isUploading);
 
   // Adjust max file size based on data saver mode and network conditions
   const adjustedMaxSize = isDataSaverEnabled || connectionQuality === 'poor' ? 
@@ -207,7 +205,7 @@ export const KYCDocumentUploader = ({
                 isLowEndDevice ? "h-9 text-xs" : ""
               )}
             >
-              {isLoading ? (
+              {isUploading ? (
                 <>
                   <span className="h-4 w-4 border-2 border-white/20 border-t-white rounded-full animate-spin"></span>
                   Uploading...

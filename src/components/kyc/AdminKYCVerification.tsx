@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,20 +12,17 @@ import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
 import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
-import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
-import { withResilience } from "@/utils/network-resilience";
 
 interface Profile {
   full_name: string | null;
   username: string | null;
   country: string | null;
-  email: string | null;
 }
 
 interface KYCVerification {
   id: string;
   user_id: string;
-  status: 'basic' | 'pending' | 'verified' | 'rejected';
+  status: 'pending' | 'verified' | 'rejected';
   submitted_at: string;
   document_type: string;
   document_url: string;
@@ -52,8 +48,8 @@ const AdminKYCVerification = () => {
   const [sortOrder, setSortOrder] = useState<"newest" | "oldest">("newest");
   
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
-  const { isLoadingWithFallback } = useNetworkAwareLoading(isLoading);
-  const fetchVerifications = withResilience(async () => {
+  
+  const fetchVerifications = async () => {
     try {
       setIsLoading(true);
       
@@ -62,7 +58,7 @@ const AdminKYCVerification = () => {
         .from('kyc_verifications')
         .select(`
           *,
-          profiles:profiles (full_name, username, country, email)
+          profiles:profiles (full_name, username, country)
         `);
       
       // Filter by status based on active tab
@@ -91,7 +87,6 @@ const AdminKYCVerification = () => {
         filteredData = filteredData.filter(v => 
           (v.profiles?.full_name?.toLowerCase().includes(query)) ||
           (v.profiles?.username?.toLowerCase().includes(query)) ||
-          (v.profiles?.email?.toLowerCase().includes(query)) ||
           (v.document_type?.toLowerCase().includes(query)) ||
           (v.profiles?.country?.toLowerCase().includes(query))
         );
@@ -104,7 +99,7 @@ const AdminKYCVerification = () => {
     } finally {
       setIsLoading(false);
     }
-  }, { maxRetries: 2, retryDelay: 1000 });
+  };
 
   useEffect(() => {
     fetchVerifications();
@@ -118,7 +113,8 @@ const AdminKYCVerification = () => {
     
     return () => clearTimeout(timer);
   }, [searchQuery]);
-  const handleVerification = withResilience(async (id: string, userId: string, approved: boolean, reason?: string) => {
+
+  const handleVerification = async (id: string, userId: string, approved: boolean, reason?: string) => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Admin not authenticated");
@@ -126,7 +122,7 @@ const AdminKYCVerification = () => {
       const timestamp = new Date().toISOString();
       
       // Update verification status
-      let status: string;
+      let status: 'pending' | 'verified' | 'rejected';
       let notes: string;
       
       if (approved) {
@@ -161,18 +157,6 @@ const AdminKYCVerification = () => {
 
       if (profileError) throw profileError;
       
-      // Log the verification action
-      await supabase
-        .from('kyc_verification_logs')
-        .insert({
-          verification_id: id,
-          user_id: userId,
-          admin_id: user.id,
-          action: approved ? 'approved' : 'rejected',
-          reason: !approved ? reason : null,
-          performed_at: timestamp
-        });
-
       // Close dialogs if open
       setIsDialogOpen(false);
       setIsRejectionDialogOpen(false);
@@ -183,8 +167,9 @@ const AdminKYCVerification = () => {
       console.error('Error updating KYC verification:', error);
       toast.error('Failed to update KYC verification');
     }
-  }, { maxRetries: 2, retryDelay: 1000 });
-  const getDocumentUrl = withResilience(async (path: string) => {
+  };
+
+  const getDocumentUrl = async (path: string) => {
     try {
       const { data, error } = await supabase.storage
         .from('kyc_documents')
@@ -196,7 +181,7 @@ const AdminKYCVerification = () => {
       console.error('Error getting document URL:', error);
       toast.error('Failed to access document');
     }
-  }, { maxRetries: 1, retryDelay: 500 });
+  };
   
   const viewVerificationDetails = (verification: KYCVerification) => {
     setSelectedVerification(verification);
@@ -239,7 +224,7 @@ const AdminKYCVerification = () => {
     ).join(' ');
   };
   
-  if (isLoadingWithFallback) {
+  if (isLoading) {
     return (
       <div className="space-y-4">
         <div className="flex justify-between items-center">

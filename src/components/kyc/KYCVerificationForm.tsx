@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,6 @@ import { useDataSaverMode } from "@/hooks/use-data-saver";
 import { useMobile } from "@/hooks/use-mobile";
 import KYCDocumentUploader from "./KYCDocumentUploader";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 
 interface KYCVerificationFormProps {
   onSubmit?: (documentType: DocumentType, file: File, additionalInfo: Record<string, any>) => Promise<any>;
@@ -25,7 +23,6 @@ const KYCVerificationForm = ({ onSubmit }: KYCVerificationFormProps) => {
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { isDataSaverEnabled, isLowEndDevice } = useDataSaverMode();
   const { isMobile } = useMobile();
-  const { isLoadingWithFallback } = useNetworkAwareLoading(isSubmitting);
   const [activeTab, setActiveTab] = useState<string>("id");
 
   // Document type maps for different tabs
@@ -63,7 +60,9 @@ const KYCVerificationForm = ({ onSubmit }: KYCVerificationFormProps) => {
     } finally {
       setIsSubmitting(false);
     }
-  };  return (
+  };
+
+  return (
     <motion.div
       initial={shouldAnimate ? { opacity: 0, y: 10 } : undefined}
       animate={{ opacity: 1, y: 0 }}

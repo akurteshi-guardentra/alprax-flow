@@ -1,3 +1,3 @@
-Need to install the following packages:
-supabase@2.23.4
-Ok to proceed? (y) 
+
+// Re-export types from the integration directory
+export * from '@/integrations/supabase/types';

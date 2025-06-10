@@ -1,58 +1,63 @@
 
 import React from 'react';
-import { OptimizedImage } from './optimized-image';
-import { User } from 'lucide-react';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { OptimizedImage } from '@/components/ui/optimized-image';
 import { cn } from '@/lib/utils';
 
-interface TransactionAvatarProps {
+export interface TransactionAvatarProps {
   src?: string;
-  alt: string;
+  name?: string;
+  type: 'sender' | 'recipient';
   size?: 'sm' | 'md' | 'lg';
   className?: string;
 }
 
-const sizeMap = {
-  sm: { width: 32, height: 32, className: 'w-8 h-8' },
-  md: { width: 48, height: 48, className: 'w-12 h-12' },
-  lg: { width: 64, height: 64, className: 'w-16 h-16' }
-};
-
 export const TransactionAvatar = ({ 
   src, 
-  alt, 
+  name = '', 
+  type, 
   size = 'md', 
   className 
 }: TransactionAvatarProps) => {
-  const { width, height, className: sizeClassName } = sizeMap[size];
-  
-  const fallbackElement = (
-    <div className={cn(
-      'flex items-center justify-center bg-gray-200 rounded-full',
-      sizeClassName,
-      className
-    )}>
-      <User className="w-1/2 h-1/2 text-gray-500" />
-    </div>
-  );
+  const sizeClasses = {
+    sm: 'w-8 h-8',
+    md: 'w-10 h-10',
+    lg: 'w-12 h-12'
+  };
 
-  if (!src) {
-    return fallbackElement;
-  }
+  const getInitials = (name: string) => {
+    return name
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
+  };
+
+  const typeColors = {
+    sender: 'bg-blue-500/20 text-blue-400',
+    recipient: 'bg-green-500/20 text-green-400'
+  };
 
   return (
-    <div className={cn('rounded-full overflow-hidden', sizeClassName, className)}>
-      <OptimizedImage
-        src={src}
-        alt={alt}
-        width={width}
-        height={height}
-        className="rounded-full"
-        lazyLoad={true}
-        placeholderColor="#f3f4f6"
-        onError={() => {
-          // Handle error by showing fallback
-        }}
-      />
-    </div>
+    <Avatar className={cn(sizeClasses[size], className)}>
+      {src ? (
+        <OptimizedImage
+          src={src}
+          alt={name}
+          width={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
+          height={size === 'sm' ? 32 : size === 'md' ? 40 : 48}
+          className="w-full h-full object-cover"
+          lazyLoad
+          placeholderColor="rgba(255, 255, 255, 0.1)"
+        />
+      ) : (
+        <AvatarFallback className={cn(typeColors[type], 'text-xs font-medium')}>
+          {name ? getInitials(name) : type === 'sender' ? 'S' : 'R'}
+        </AvatarFallback>
+      )}
+    </Avatar>
   );
 };
+
+export default TransactionAvatar;

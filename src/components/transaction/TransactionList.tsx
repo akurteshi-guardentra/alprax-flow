@@ -142,20 +142,22 @@ export function TransactionList({
       } else {
         return 'bg-accent/10 text-accent dark:bg-accent/20 dark:text-accent-light';
       }
-    };    // If there's a profile picture, use the optimized TransactionAvatar
+    };
+
+    // If there's a profile picture, use the optimized TransactionAvatar
     if (transaction.recipient_avatar || transaction.sender_avatar) {
       const avatarSrc = transaction.transaction_type === 'sent' 
         ? transaction.recipient_avatar 
         : transaction.sender_avatar;
       
-      const name = transaction.transaction_type === 'sent'
+      const avatarName = transaction.transaction_type === 'sent'
         ? transaction.recipient_name
         : transaction.sender_name;
       
       return (
         <TransactionAvatar
           src={avatarSrc}
-          name={name || ''}
+          name={avatarName || ''}
           type={transaction.transaction_type === 'sent' ? 'recipient' : 'sender'}
           size="md"
         />

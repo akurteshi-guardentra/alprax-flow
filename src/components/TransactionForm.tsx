@@ -11,7 +11,7 @@ import { CreditCard, QrCode } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { QRCodePayment } from "./payment/QRCodePayment";
 import { TransactionConfirmation } from "./transaction/TransactionConfirmation";
-import { TransactionSuccess } from "./transaction/TransactionSuccess";
+import TransactionSuccess from "./transaction/TransactionSuccess";
 
 export function TransactionForm() {
   const {

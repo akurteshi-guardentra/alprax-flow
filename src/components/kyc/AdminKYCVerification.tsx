@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -59,11 +58,14 @@ const AdminKYCVerification = () => {
         .from('kyc_verifications')
         .select(`
           *,
-          profiles:profiles (full_name, username, country, email)
+          profiles:profiles (full_name, username, country)
         `);
       
       if (activeTab !== "all") {
-        query = query.eq('status', activeTab as 'pending' | 'verified' | 'rejected');
+        // Map UI status to database status
+        const dbStatus = activeTab === "verified" ? "verified" : 
+                        activeTab === "rejected" ? "rejected" : "pending";
+        query = query.eq('status', dbStatus);
       }
       
       query = query.order('submitted_at', { ascending: sortOrder === "oldest" });
@@ -84,8 +86,7 @@ const AdminKYCVerification = () => {
           (v.profiles?.full_name?.toLowerCase().includes(query)) ||
           (v.profiles?.username?.toLowerCase().includes(query)) ||
           (v.document_type?.toLowerCase().includes(query)) ||
-          (v.profiles?.country?.toLowerCase().includes(query)) ||
-          (v.profiles?.email?.toLowerCase().includes(query))
+          (v.profiles?.country?.toLowerCase().includes(query))
         );
       }
       
@@ -133,6 +134,7 @@ const AdminKYCVerification = () => {
 
       if (verificationError) throw verificationError;
 
+      // Map verification status to profile kyc_level
       const profileKycLevel = approved ? 'verified' : 'basic';
       const { error: profileError } = await supabase
         .from('profiles')

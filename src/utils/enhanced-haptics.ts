@@ -22,6 +22,18 @@ interface CapacitorHaptics {
   selectionEnd: () => Promise<void>;
 }
 
+// Extend Window interface to include Capacitor
+declare global {
+  interface Window {
+    Capacitor?: {
+      isNativePlatform: () => boolean;
+      Plugins: {
+        Haptics: CapacitorHaptics;
+      };
+    };
+  }
+}
+
 // Check if we're in a Capacitor environment
 const isCapacitorAvailable = (): boolean => {
   return typeof window !== 'undefined' && 
@@ -34,7 +46,7 @@ const getCapacitorHaptics = (): CapacitorHaptics | null => {
   if (!isCapacitorAvailable()) return null;
   
   try {
-    return window.Capacitor.Plugins.Haptics as CapacitorHaptics;
+    return window.Capacitor!.Plugins.Haptics as CapacitorHaptics;
   } catch {
     return null;
   }

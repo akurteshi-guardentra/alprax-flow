@@ -24,10 +24,9 @@ export function useKYCVerifications() {
 
       if (error) throw error;
       
-      // Transform the data to match our KYCVerification type
       return data?.map(item => ({
         ...item,
-        status: item.status === 'basic' ? 'pending' : item.status as KYCVerificationStatus,
+        status: mapDbStatusToFrontend(item.status),
         submitted_at: item.submitted_at || new Date().toISOString(),
         verified_at: item.verified_at || undefined,
         notes: item.notes || undefined,
@@ -44,8 +43,7 @@ export function useKYCVerifications() {
       status: KYCVerificationStatus;
       notes?: string;
     }) => {
-      // Map our status to database status
-      const dbStatus = status === 'rejected' ? 'basic' : status === 'not_submitted' ? 'pending' : status;
+      const dbStatus = mapFrontendStatusToDb(status);
       
       const { data, error } = await supabase
         .from('kyc_verifications')
@@ -61,7 +59,6 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Update the user's profile kyc_level based on verification status
       const profileKycLevel: ProfileKYCLevel = getProfileKycLevel(status);
       
       const { error: profileError } = await supabase
@@ -88,4 +85,32 @@ export function useKYCVerifications() {
     updateVerification: handleStatusUpdate,
     isUpdating: updateVerificationMutation.isPending
   };
+}
+
+function mapDbStatusToFrontend(dbStatus: string): KYCVerificationStatus {
+  switch (dbStatus) {
+    case 'basic':
+      return 'rejected';
+    case 'pending':
+      return 'pending';
+    case 'verified':
+      return 'verified';
+    default:
+      return 'not_submitted';
+  }
+}
+
+function mapFrontendStatusToDb(status: KYCVerificationStatus): string {
+  switch (status) {
+    case 'rejected':
+      return 'basic';
+    case 'pending':
+      return 'pending';
+    case 'verified':
+      return 'verified';
+    case 'not_submitted':
+      return 'pending';
+    default:
+      return 'pending';
+  }
 }

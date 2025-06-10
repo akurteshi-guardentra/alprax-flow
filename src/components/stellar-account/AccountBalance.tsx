@@ -1,7 +1,8 @@
+
 import { useStellarAccount } from "@/hooks/useStellarAccount";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, DollarSign, RefreshCcw } from "lucide-react";
+import { Loader2, DollarSign, RefreshCcw, Check } from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
@@ -12,12 +13,12 @@ import { Info } from "lucide-react";
 import { useState, useEffect } from "react";
 import { hapticFeedback } from "@/lib/haptics";
 import { motion } from "framer-motion";
-import { CurrencySymbol } from "@/components/CurrencyDisplay"; // Import CurrencySymbol
-import { useTransactionSubmission } from "@/hooks/useTransactionSubmission"; // Import for fiat rate
+import { CurrencySymbol } from "@/components/CurrencyDisplay";
+import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
 
 export function AccountBalance() {
   const { balance, fundAccount, isFunding } = useStellarAccount();
-  const { fiatRate, defaultFiat } = useTransactionSubmission(); // Get fiat rate and default currency
+  const { fiatRate, defaultFiat } = useTransactionSubmission();
   const [showSuccess, setShowSuccess] = useState(false);
   
   // Effect to show success animation after funding
@@ -104,10 +105,11 @@ export function AccountBalance() {
       <div className="mt-4">
         <Button
           onClick={handleFundAccount}
-          disabled={isFunding || fiatRate === 0} // Disable if rate not fetched
+          disabled={isFunding || fiatRate === 0}
           variant="outline"
           className="w-full bg-green-500/20 hover:bg-green-500/30 text-green-300 hover:text-green-200 border border-green-500/30"
-        >          {isFunding ? (
+        >
+          {isFunding ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               Adding Funds...
@@ -126,6 +128,3 @@ export function AccountBalance() {
     </div>
   );
 }
-
-// Fix missing Check icon import
-import { Check } from "lucide-react";

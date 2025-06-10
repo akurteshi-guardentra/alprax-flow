@@ -4,9 +4,11 @@ import { LoginForm } from "@/components/auth/LoginForm";
 import { TwoFactorForm } from "@/components/auth/TwoFactorForm";
 import { NumberAuthForm } from "@/components/auth/NumberAuthForm";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
-import { LoginContainer } from "@/components/auth/LoginContainer";
 import { useLogin } from "@/hooks/useLogin";
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
+import { motion } from "framer-motion";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -88,13 +90,35 @@ const Login = () => {
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
       </div>
-      
-      <LoginContainer 
-        onBack={handleBackNavigation}
-        hideBackButton={false}
-      >
-        {renderAuthContent()}
-      </LoginContainer>
+
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-md mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={handleBackNavigation}
+              className="glass-card-hover text-white border-none"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-2xl font-bold text-gradient-modern">AlpraxFlow</h1>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="glass-card modern-shadow p-8"
+          >
+            {renderAuthContent()}
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

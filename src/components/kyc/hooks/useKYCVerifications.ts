@@ -117,13 +117,13 @@ function mapFrontendStatusToDb(status: KYCVerificationStatus): string {
 function mapStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
   switch (status) {
     case 'verified':
-      return 'verified' as const;
+      return 'verified';
     case 'pending':
     case 'not_submitted':
-      return 'pending' as const;
+      return 'pending';
     case 'rejected':
-      return 'basic' as const;
+      return 'basic';
     default:
-      return 'pending' as const;
+      return 'pending';
   }
 }

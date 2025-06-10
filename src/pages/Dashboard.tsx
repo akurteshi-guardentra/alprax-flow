@@ -8,16 +8,22 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Shield, TrendingUp, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { FiatDisplay } from "@/components/currency/FiatDisplay";
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { balance } = useStellarAccount();
   const [showTestAccounts, setShowTestAccounts] = React.useState(false);
+
+  // Get real account balance
+  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
 
   const quickStats = [
     {
       title: "Total Balance",
-      value: "$2,450.00",
+      value: <FiatDisplay xlmAmount={accountBalance} currency="USD" />,
       icon: DollarSign,
       change: "+12%",
       changeType: "positive"
@@ -69,7 +75,7 @@ export default function Dashboard() {
             className="glass-card-hover text-white border-white/20"
           >
             <Settings className="h-4 w-4 mr-1" />
-            Test Accounts
+            {showTestAccounts ? 'Hide' : 'Show'} Test Accounts
           </Button>
         </motion.div>
         
@@ -120,7 +126,12 @@ export default function Dashboard() {
               <div className="lg:col-span-1">
                 <Card className="glass-card modern-shadow">
                   <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Test Accounts</h3>
+                    <h3 className="text-white font-semibold mb-4">Test Accounts (Development Only)</h3>
+                    <div className="bg-yellow-500/10 p-3 rounded border border-yellow-500/20 mb-4">
+                      <p className="text-yellow-300 text-xs">
+                        ⚠️ These are test accounts for development purposes only
+                      </p>
+                    </div>
                     <TestAccountView />
                   </CardContent>
                 </Card>
@@ -138,6 +149,7 @@ export default function Dashboard() {
           ) : (
             <Card className="glass-card modern-shadow">
               <CardContent className="p-6">
+                <h3 className="text-white font-semibold mb-4">Send Money</h3>
                 <SimplifiedPaymentFlow isMobile={isMobile} />
               </CardContent>
             </Card>

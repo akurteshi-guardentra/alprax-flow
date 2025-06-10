@@ -5,11 +5,14 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModernCard, ModernCardContent } from "@/components/ui/modern-card";
 import { FiatDisplay } from "@/components/currency/FiatDisplay";
-import { useTestAccounts } from "@/hooks/useTestAccounts";
+import { useStellarAccount } from "@/hooks/useStellarAccount";
 
 export function BalanceCard() {
   const navigate = useNavigate();
-  const { activeAccount } = useTestAccounts();
+  const { balance } = useStellarAccount();
+
+  // Get the first balance entry (typically XLM) or default to "0"
+  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
 
   return (
     <motion.div
@@ -25,7 +28,7 @@ export function BalanceCard() {
               <p className="text-white/70 text-sm mb-2">Available Balance</p>
               <div className="text-3xl font-bold text-white">
                 <FiatDisplay 
-                  xlmAmount={activeAccount?.balance || "0"} 
+                  xlmAmount={accountBalance} 
                   currency="USD"
                 />
               </div>

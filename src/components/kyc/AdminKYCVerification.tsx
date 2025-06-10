@@ -121,7 +121,7 @@ const AdminKYCVerification = () => {
       if (verification) {
         const profileKycLevel = getProfileKycLevel(newStatus);
         
-        const profileUpdate: { kyc_level: ProfileKYCLevel; kyc_verified_at: string | null } = {
+        const profileUpdate = {
           kyc_level: profileKycLevel,
           kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
         };

@@ -1,6 +1,7 @@
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ForgotPasswordForm } from '@/components/auth/ForgotPasswordForm';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { toast } from 'sonner';
 
 // Mock supabase client and toast

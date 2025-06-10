@@ -1,6 +1,7 @@
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { LoginForm } from '@/components/auth/LoginForm';
-import { vi } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import { BrowserRouter } from 'react-router-dom';
 
 // Mock useNavigate

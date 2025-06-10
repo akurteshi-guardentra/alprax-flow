@@ -1,14 +1,16 @@
+
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { TransactionHistory } from '../components/TransactionHistory';
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { BrowserRouter } from 'react-router-dom';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 
 // Mock required hooks
-jest.mock('@/hooks/useTransactionHistory');
-jest.mock('@/hooks/use-mobile');
-jest.mock('framer-motion', () => ({
+vi.mock('@/hooks/useTransactionHistory');
+vi.mock('@/hooks/use-mobile');
+vi.mock('framer-motion', () => ({
   motion: {
     div: ({ children, ...props }: any) => <div {...props}>{children}</div>,
   },
@@ -16,10 +18,13 @@ jest.mock('framer-motion', () => ({
 }));
 
 // Mock route navigation
-jest.mock('react-router-dom', () => ({
-  ...jest.requireActual('react-router-dom'),
-  useNavigate: () => jest.fn(),
-}));
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    useNavigate: () => vi.fn(),
+  };
+});
 
 describe('TransactionHistory Component', () => {
   // Set up mock data
@@ -46,16 +51,16 @@ describe('TransactionHistory Component', () => {
 
   beforeEach(() => {
     // Reset mocks before each test
-    (useTransactionHistory as jest.Mock).mockReturnValue({
+    (useTransactionHistory as any).mockReturnValue({
       transactions: mockTransactions,
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
       fiatRate: 1.2,
       defaultFiat: 'USD'
     });
     
-    (useIsMobile as jest.Mock).mockReturnValue(false);
+    (useIsMobile as any).mockReturnValue(false);
   });
 
   it('renders transaction list correctly', () => {
@@ -82,11 +87,11 @@ describe('TransactionHistory Component', () => {
   });
 
   it('shows loading skeletons when loading', () => {
-    (useTransactionHistory as jest.Mock).mockReturnValue({
+    (useTransactionHistory as any).mockReturnValue({
       transactions: [],
       isLoading: true,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
       fiatRate: 1.2,
       defaultFiat: 'USD'
     });
@@ -102,11 +107,11 @@ describe('TransactionHistory Component', () => {
   });
 
   it('shows error state when there is an error', () => {
-    (useTransactionHistory as jest.Mock).mockReturnValue({
+    (useTransactionHistory as any).mockReturnValue({
       transactions: [],
       isLoading: false,
       error: new Error('Failed to load transactions'),
-      refetch: jest.fn(),
+      refetch: vi.fn(),
       fiatRate: 1.2,
       defaultFiat: 'USD'
     });
@@ -123,11 +128,11 @@ describe('TransactionHistory Component', () => {
   });
 
   it('shows empty state when there are no transactions', () => {
-    (useTransactionHistory as jest.Mock).mockReturnValue({
+    (useTransactionHistory as any).mockReturnValue({
       transactions: [],
       isLoading: false,
       error: null,
-      refetch: jest.fn(),
+      refetch: vi.fn(),
       fiatRate: 1.2,
       defaultFiat: 'USD'
     });

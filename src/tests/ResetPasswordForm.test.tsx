@@ -1,6 +1,7 @@
+
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { ResetPasswordForm } from '@/components/auth/ResetPasswordForm';
-import { vi } from 'vitest';
+import { vi, describe, it, expect, beforeEach } from 'vitest';
 import { toast } from 'sonner';
 
 // Mock dependencies

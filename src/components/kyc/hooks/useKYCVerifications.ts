@@ -14,7 +14,7 @@ export function useKYCVerifications() {
         .from('kyc_verifications')
         .select(`
           *,
-          profiles!kyc_verifications_user_id_fkey (
+          profiles!inner(
             full_name,
             username,
             country

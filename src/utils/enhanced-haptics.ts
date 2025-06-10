@@ -1,4 +1,3 @@
-
 import { HapticFeedbackType } from '@capacitor/haptics';
 
 // Enhanced haptic feedback types

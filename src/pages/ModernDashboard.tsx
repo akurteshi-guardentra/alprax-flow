@@ -1,98 +1,131 @@
 
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
-import { AlpraxBrandHeader } from '@/components/brand/AlpraxLogo';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
-import { SetupAccount } from '@/components/stellar-account/SetupAccount';
-import { Button } from '@/components/ui/button';
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from "@/components/ui/modern-card";
+import { FiatDisplay } from "@/components/currency/FiatDisplay";
+import { AlpraxBrandHeader } from "@/components/brand/AlpraxLogo";
 import { 
-  Wallet, 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Plus, 
   Send, 
-  TrendingUp, 
-  Shield, 
-  Users, 
-  CreditCard,
-  Plus,
-  ArrowUpRight,
-  ArrowDownLeft
-} from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { hapticFeedback } from '@/lib/haptics';
-import { Badge } from '@/components/ui/badge';
+  CreditCard, 
+  TrendingUp,
+  Globe,
+  Shield,
+  Zap,
+  Users
+} from "lucide-react";
+import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useTestAccounts } from "@/hooks/useTestAccounts";
 
-interface QuickActionProps {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  onClick: () => void;
-  variant?: 'default' | 'success' | 'warning';
-}
+const quickActions = [
+  {
+    icon: Send,
+    title: "Send Money",
+    description: "Transfer funds globally",
+    color: "from-blue-500 to-purple-600",
+    route: "/payments"
+  },
+  {
+    icon: ArrowDownLeft,
+    title: "Request Money",
+    description: "Generate payment request",
+    color: "from-green-500 to-teal-600",
+    route: "/request"
+  },
+  {
+    icon: CreditCard,
+    title: "Add Funds",
+    description: "Top up your balance",
+    color: "from-purple-500 to-pink-600",
+    route: "/add-funds"
+  },
+  {
+    icon: Users,
+    title: "Contacts",
+    description: "Manage recipients",
+    color: "from-orange-500 to-red-600",
+    route: "/contacts"
+  }
+];
 
-function QuickAction({ icon, title, description, onClick, variant = 'default' }: QuickActionProps) {
-  const variantClasses = {
-    default: 'from-blue-500/20 to-purple-500/20',
-    success: 'from-green-500/20 to-blue-500/20',
-    warning: 'from-orange-500/20 to-red-500/20'
-  };
+const stats = [
+  {
+    icon: TrendingUp,
+    title: "Total Saved",
+    value: "$2,847",
+    change: "+12.5%",
+    color: "text-green-400"
+  },
+  {
+    icon: Globe,
+    title: "Countries Served",
+    value: "120+",
+    change: "Growing",
+    color: "text-blue-400"
+  },
+  {
+    icon: Zap,
+    title: "Avg. Transfer Time",
+    value: "8 sec",
+    change: "Instant",
+    color: "text-purple-400"
+  }
+];
 
-  return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      whileTap={{ scale: 0.98 }}
-      onClick={onClick}
-      className="cursor-pointer"
-    >
-      <ModernCard variant="glass" className="h-full transition-all duration-300 hover:bg-white/15">
-        <ModernCardContent className="p-4">
-          <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${variantClasses[variant]} flex items-center justify-center mb-3`}>
-            {icon}
-          </div>
-          <h3 className="font-semibold text-white mb-1">{title}</h3>
-          <p className="text-white/70 text-sm">{description}</p>
-        </ModernCardContent>
-      </ModernCard>
-    </motion.div>
-  );
-}
-
-const ModernDashboard = () => {
-  const { account, balance, isLoading, fundAccount, isFunding } = useStellarAccount();
+export default function ModernDashboard() {
   const navigate = useNavigate();
+  const { account, isLoading } = useStellarAccount();
+  const { activeAccount } = useTestAccounts();
+  
+  const [greeting, setGreeting] = useState("Good morning");
 
-  const handleNavigation = (path: string) => {
-    hapticFeedback('light');
-    navigate(path);
-  };
+  useEffect(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) setGreeting("Good morning");
+    else if (hour < 18) setGreeting("Good afternoon");
+    else setGreeting("Good evening");
+  }, []);
 
-  const handleFundAccount = () => {
-    hapticFeedback('medium');
-    fundAccount();
-  };
-
-  // Show setup if no account
-  if (!account && !isLoading) {
-    return <SetupAccount />;
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/20 flex items-center justify-center">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-white/10 rounded w-48 mx-auto"></div>
+          <div className="h-4 bg-white/10 rounded w-32 mx-auto"></div>
+        </div>
+      </div>
+    );
   }
 
-  const xlmBalance = balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0;
-  const usdBalance = xlmBalance * 0.12; // Mock conversion rate
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/20 p-4">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900/20 to-purple-900/20">
+      {/* Header */}
+      <div className="p-4 sm:p-6">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center"
+          className="flex items-center justify-between mb-8"
         >
-          <AlpraxBrandHeader size="md" showTagline={false} />
+          <div>
+            <AlpraxBrandHeader size="sm" />
+            <motion.h1 
+              className="text-2xl font-bold text-white mt-2"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+            >
+              {greeting}
+            </motion.h1>
+            <p className="text-white/70">Welcome back to Alprax Flow</p>
+          </div>
           <Button
             variant="outline"
-            size="sm"
-            onClick={() => handleNavigation('/profile')}
-            className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            className="border-white/20 text-white hover:bg-white/10"
+            onClick={() => navigate("/profile")}
           >
             Profile
           </Button>
@@ -102,42 +135,34 @@ const ModernDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
+          transition={{ delay: 0.3 }}
+          className="mb-8"
         >
-          <ModernCard variant="gradient" size="lg">
-            <ModernCardContent className="text-center">
-              <div className="mb-4">
-                <Badge variant="outline" className="bg-white/10 text-white border-white/30">
-                  Total Balance
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="text-4xl font-bold text-white">
-                  ${usdBalance.toFixed(2)}
+          <ModernCard variant="glass" className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/10">
+            <ModernCardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-white/70 text-sm mb-2">Available Balance</p>
+                  <div className="text-3xl font-bold text-white">
+                    <FiatDisplay 
+                      xlmAmount={activeAccount?.balance || "0"} 
+                      currency="USD"
+                    />
+                  </div>
+                  <p className="text-white/60 text-sm mt-1">
+                    Alprax Flow Account
+                  </p>
                 </div>
-                <div className="text-white/60 text-sm">
-                  ≈ {xlmBalance.toFixed(2)} XLM
+                <div className="text-right">
+                  <Button
+                    size="sm"
+                    className="bg-white/10 hover:bg-white/20 text-white border-none"
+                    onClick={() => navigate("/add-funds")}
+                  >
+                    <Plus className="w-4 h-4 mr-2" />
+                    Add Funds
+                  </Button>
                 </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <Button
-                  onClick={() => handleNavigation('/payments')}
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Send Money
-                </Button>
-                <Button
-                  onClick={handleFundAccount}
-                  disabled={isFunding}
-                  variant="outline"
-                  className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Add Funds
-                </Button>
               </div>
             </ModernCardContent>
           </ModernCard>
@@ -147,87 +172,104 @@ const ModernDashboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+          transition={{ delay: 0.4 }}
+          className="mb-8"
         >
-          <QuickAction
-            icon={<Send className="w-6 h-6 text-blue-400" />}
-            title="Send Payment"
-            description="Transfer money instantly"
-            onClick={() => handleNavigation('/payments')}
-          />
-          <QuickAction
-            icon={<TrendingUp className="w-6 h-6 text-green-400" />}
-            title="Analytics"
-            description="View your spending"
-            onClick={() => handleNavigation('/analytics')}
-            variant="success"
-          />
-          <QuickAction
-            icon={<CreditCard className="w-6 h-6 text-purple-400" />}
-            title="Cards"
-            description="Manage payment methods"
-            onClick={() => handleNavigation('/cards')}
-          />
-          <QuickAction
-            icon={<Shield className="w-6 h-6 text-orange-400" />}
-            title="Security"
-            description="Account protection"
-            onClick={() => handleNavigation('/settings')}
-            variant="warning"
-          />
+          <h2 className="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            {quickActions.map((action, index) => (
+              <motion.div
+                key={action.title}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5 + index * 0.1 }}
+              >
+                <ModernCard 
+                  variant="glass" 
+                  className="cursor-pointer hover:scale-105 transition-transform duration-200 bg-white/5 border border-white/10"
+                  onClick={() => navigate(action.route)}
+                >
+                  <ModernCardContent className="p-4 text-center">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center mx-auto mb-3`}>
+                      <action.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-white text-sm mb-1">{action.title}</h3>
+                    <p className="text-white/60 text-xs">{action.description}</p>
+                  </ModernCardContent>
+                </ModernCard>
+              </motion.div>
+            ))}
+          </div>
         </motion.div>
 
-        {/* Recent Activity */}
+        {/* Stats */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
+          transition={{ delay: 0.7 }}
+          className="mb-8"
         >
-          <ModernCard variant="glass">
-            <ModernCardHeader>
-              <ModernCardTitle className="flex items-center justify-between">
-                Recent Activity
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleNavigation('/payments')}
-                  className="text-white/80 hover:text-white hover:bg-white/10"
-                >
-                  View All
-                </Button>
-              </ModernCardTitle>
-            </ModernCardHeader>
-            <ModernCardContent>
-              <div className="space-y-4">
-                {/* Mock transaction items */}
-                <div className="flex items-center justify-between p-3 rounded-lg bg-white/5">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <ArrowDownLeft className="w-5 h-5 text-green-400" />
+          <h2 className="text-lg font-semibold text-white mb-4">Your Impact</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {stats.map((stat, index) => (
+              <motion.div
+                key={stat.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.8 + index * 0.1 }}
+              >
+                <ModernCard variant="glass" className="bg-white/5 border border-white/10">
+                  <ModernCardContent className="p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
+                        <stat.icon className={`w-5 h-5 ${stat.color}`} />
+                      </div>
+                      <div>
+                        <p className="text-white/70 text-xs">{stat.title}</p>
+                        <p className="text-white font-bold text-lg">{stat.value}</p>
+                        <p className={`text-xs ${stat.color}`}>{stat.change}</p>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-white font-medium">Welcome Bonus</div>
-                      <div className="text-white/60 text-sm">Account funded</div>
-                    </div>
-                  </div>
-                  <div className="text-green-400 font-semibold">+$1,200.00</div>
-                </div>
+                  </ModernCardContent>
+                </ModernCard>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
 
-                <div className="text-center py-8 text-white/60">
-                  <Wallet className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                  <p>Start sending money to see your activity here</p>
-                </div>
+        {/* Recent Activity Placeholder */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 1.0 }}
+        >
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-white">Recent Activity</h2>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-white/70 hover:text-white hover:bg-white/10"
+              onClick={() => navigate("/history")}
+            >
+              View All
+            </Button>
+          </div>
+          <ModernCard variant="glass" className="bg-white/5 border border-white/10">
+            <ModernCardContent className="p-6 text-center">
+              <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mx-auto mb-4">
+                <ArrowUpRight className="w-8 h-8 text-white/60" />
               </div>
+              <p className="text-white/70 mb-4">No recent transactions</p>
+              <Button
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white border-none"
+                onClick={() => navigate("/payments")}
+              >
+                Send Your First Payment
+              </Button>
             </ModernCardContent>
           </ModernCard>
         </motion.div>
-
-        {/* Bottom Navigation Space */}
-        <div className="h-20" />
       </div>
     </div>
   );
-};
-
-export default ModernDashboard;
+}

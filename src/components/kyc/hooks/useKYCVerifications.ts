@@ -89,13 +89,13 @@ export function useKYCVerifications() {
 function mapDbStatusToFrontend(dbStatus: string): KYCVerificationStatus {
   switch (dbStatus) {
     case 'basic':
-      return 'rejected';
+      return 'rejected' as const;
     case 'pending':
-      return 'pending';
+      return 'pending' as const;
     case 'verified':
-      return 'verified';
+      return 'verified' as const;
     default:
-      return 'not_submitted';
+      return 'not_submitted' as const;
   }
 }
 

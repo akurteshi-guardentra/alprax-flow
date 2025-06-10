@@ -7,7 +7,7 @@ export const getProfileKycLevel = (status: KYCVerificationStatus): ProfileKYCLev
     case 'verified':
       return 'verified';
     case 'rejected':
-      return 'basic';
+      return 'basic'; // Map rejected to basic level
     case 'pending':
     default:
       return 'pending';

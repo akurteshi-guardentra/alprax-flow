@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
@@ -186,7 +185,8 @@ export default function ModernDashboard() {
               >
                 <ModernCard 
                   variant="glass" 
-                  className="cursor-pointer hover:scale-105 transition-transform duration-200 bg-white/5 border border-white/10"
+                  className="bg-white/5 border border-white/10"
+                  interactive={true}
                   onClick={() => navigate(action.route)}
                 >
                   <ModernCardContent className="p-4 text-center">

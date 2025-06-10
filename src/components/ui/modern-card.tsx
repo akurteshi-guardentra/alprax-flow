@@ -10,6 +10,7 @@ interface ModernCardProps {
   size?: 'sm' | 'md' | 'lg';
   interactive?: boolean;
   animate?: boolean;
+  onClick?: () => void;
 }
 
 export function ModernCard({ 
@@ -19,6 +20,7 @@ export function ModernCard({
   size = 'md',
   interactive = false,
   animate = true,
+  onClick,
   ...props 
 }: ModernCardProps) {
   const baseClasses = "rounded-xl border backdrop-blur-sm transition-all duration-250";
@@ -36,7 +38,7 @@ export function ModernCard({
     lg: "p-8"
   };
   
-  const interactiveClasses = interactive 
+  const interactiveClasses = (interactive || onClick) 
     ? "cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]" 
     : "";
 
@@ -56,6 +58,7 @@ export function ModernCard({
         interactiveClasses,
         className
       )}
+      onClick={onClick}
       {...animationProps}
       {...props}
     >

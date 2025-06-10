@@ -1,4 +1,10 @@
-import { supabase } from '@/lib/supabase';
+
+import { supabase } from '@/integrations/supabase/client';
+import { Profile } from '@/types/profile';
+
+export interface UserProfile extends Profile {
+  email?: string;
+}
 
 export class UserProfileService {
   static async getProfile(userId: string): Promise<any> {
@@ -60,7 +66,7 @@ export class UserProfileService {
     }
   }
 
-  static async findUserByIdentifier(identifier: string): Promise<any[]> {
+  static async findUserByIdentifier(identifier: string): Promise<UserProfile[]> {
     try {
       const { data, error } = await supabase
         .from('profiles')
@@ -71,6 +77,32 @@ export class UserProfileService {
       return data || [];
     } catch (error) {
       console.error('Error finding user by identifier:', error);
+      throw error;
+    }
+  }
+
+  static async addToFavorites(userProfile: UserProfile): Promise<any> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const { data, error } = await supabase
+        .from('favorite_recipients')
+        .insert({
+          user_id: user.id,
+          recipient_name: userProfile.full_name || userProfile.username || 'Unknown',
+          stellar_address: userProfile.id, // Use profile ID as placeholder
+          country: userProfile.country || 'Unknown',
+          currency: 'EUR',
+          relationship: 'Contact'
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Error adding to favorites:', error);
       throw error;
     }
   }

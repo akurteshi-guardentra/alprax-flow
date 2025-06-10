@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -27,6 +26,8 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 // Define valid KYC statuses that match the database enum
 type KYCStatus = 'pending' | 'verified' | 'rejected';
+
+// Define valid profile KYC levels that match the profiles table
 type ProfileKYCLevel = 'pending' | 'verified' | 'basic';
 
 interface KYCVerification {
@@ -110,10 +111,8 @@ const AdminKYCVerification = () => {
         if (newStatus === 'verified') {
           profileKycLevel = 'verified';
         } else if (newStatus === 'rejected') {
-          // For rejected verifications, set profile kyc_level back to 'basic'
           profileKycLevel = 'basic';
         } else {
-          // For pending status
           profileKycLevel = 'pending';
         }
         

@@ -55,110 +55,110 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return <Splash />;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
         <div className="min-h-screen bg-background">
-          <Routes>
-            {/* Public routes */}
-            <Route path="/" element={<Navigate to="/welcome" replace />} />
-            <Route path="/welcome" element={<ModernWelcome />} />
-            <Route path="/welcome-old" element={<Welcome />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/reset-password" element={<ResetPassword />} />
-            <Route path="/help" element={<Help />} />
-            <Route path="/terms" element={<Terms />} />
-            
-            {/* Protected routes */}
-            <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <ModernDashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/dashboard-old" element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } />
-            <Route path="/payments" element={
-              <ProtectedRoute>
-                <ModernPayments />
-              </ProtectedRoute>
-            } />
-            <Route path="/payments-old" element={
-              <ProtectedRoute>
-                <Payments />
-              </ProtectedRoute>
-            } />
-            <Route path="/profile" element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            } />
-            <Route path="/settings" element={
-              <ProtectedRoute>
-                <Settings />
-              </ProtectedRoute>
-            } />
-            <Route path="/analytics" element={
-              <ProtectedRoute>
-                <Analytics />
-              </ProtectedRoute>
-            } />
-            <Route path="/cards" element={
-              <ProtectedRoute>
-                <Cards />
-              </ProtectedRoute>
-            } />
-            <Route path="/kyc" element={
-              <ProtectedRoute>
-                <KYC />
-              </ProtectedRoute>
-            } />
-            <Route path="/verification-success" element={
-              <ProtectedRoute>
-                <VerificationSuccess />
-              </ProtectedRoute>
-            } />
-            <Route path="/verify" element={
-              <ProtectedRoute>
-                <Verify />
-              </ProtectedRoute>
-            } />
-            <Route path="/verify-document" element={
-              <ProtectedRoute>
-                <VerifyDocument />
-              </ProtectedRoute>
-            } />
-            <Route path="/payment-test" element={
-              <ProtectedRoute>
-                <PaymentTest />
-              </ProtectedRoute>
-            } />
-            <Route path="/setup-2fa" element={
-              <ProtectedRoute>
-                <Setup2FA />
-              </ProtectedRoute>
-            } />
-            <Route path="/biometric-setup" element={
-              <ProtectedRoute>
-                <BiometricAuthSetup />
-              </ProtectedRoute>
-            } />
-            <Route path="/notifications" element={
-              <ProtectedRoute>
-                <Notifications />
-              </ProtectedRoute>
-            } />
-            
-            {/* Fallback */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          {loading ? (
+            <Splash />
+          ) : (
+            <Routes>
+              {/* Public routes */}
+              <Route path="/" element={<Navigate to="/welcome" replace />} />
+              <Route path="/welcome" element={<ModernWelcome />} />
+              <Route path="/welcome-old" element={<Welcome />} />
+              <Route path="/login" element={<Login />} />
+              <Route path="/signup" element={<Signup />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
+              <Route path="/help" element={<Help />} />
+              <Route path="/terms" element={<Terms />} />
+              
+              {/* Protected routes */}
+              <Route path="/dashboard" element={
+                <ProtectedRoute>
+                  <ModernDashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/dashboard-old" element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              } />
+              <Route path="/payments" element={
+                <ProtectedRoute>
+                  <ModernPayments />
+                </ProtectedRoute>
+              } />
+              <Route path="/payments-old" element={
+                <ProtectedRoute>
+                  <Payments />
+                </ProtectedRoute>
+              } />
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
+              <Route path="/settings" element={
+                <ProtectedRoute>
+                  <Settings />
+                </ProtectedRoute>
+              } />
+              <Route path="/analytics" element={
+                <ProtectedRoute>
+                  <Analytics />
+                </ProtectedRoute>
+              } />
+              <Route path="/cards" element={
+                <ProtectedRoute>
+                  <Cards />
+                </ProtectedRoute>
+              } />
+              <Route path="/kyc" element={
+                <ProtectedRoute>
+                  <KYC />
+                </ProtectedRoute>
+              } />
+              <Route path="/verification-success" element={
+                <ProtectedRoute>
+                  <VerificationSuccess />
+                </ProtectedRoute>
+              } />
+              <Route path="/verify" element={
+                <ProtectedRoute>
+                  <Verify />
+                </ProtectedRoute>
+              } />
+              <Route path="/verify-document" element={
+                <ProtectedRoute>
+                  <VerifyDocument />
+                </ProtectedRoute>
+              } />
+              <Route path="/payment-test" element={
+                <ProtectedRoute>
+                  <PaymentTest />
+                </ProtectedRoute>
+              } />
+              <Route path="/setup-2fa" element={
+                <ProtectedRoute>
+                  <Setup2FA />
+                </ProtectedRoute>
+              } />
+              <Route path="/biometric-setup" element={
+                <ProtectedRoute>
+                  <BiometricAuthSetup />
+                </ProtectedRoute>
+              } />
+              <Route path="/notifications" element={
+                <ProtectedRoute>
+                  <Notifications />
+                </ProtectedRoute>
+              } />
+              
+              {/* Fallback */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          )}
           <Toaster />
         </div>
       </Router>

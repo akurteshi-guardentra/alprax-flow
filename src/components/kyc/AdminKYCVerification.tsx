@@ -117,7 +117,7 @@ const AdminKYCVerification = () => {
           profileKycLevel = 'pending';
         }
         
-        const profileUpdate: any = {
+        const profileUpdate = {
           kyc_level: profileKycLevel,
           kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
         };

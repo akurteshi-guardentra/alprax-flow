@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,7 +24,25 @@ import {
 } from "@/components/ui/dialog"
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertTriangle } from 'lucide-react';
-import { KYCVerification, KYCStatus } from '@/types/profile';
+
+// Define valid KYC statuses that match the database enum
+type KYCStatus = 'pending' | 'verified' | 'rejected';
+
+interface KYCVerification {
+  id: string;
+  user_id: string;
+  document_type: string;
+  document_url: string;
+  status: KYCStatus;
+  submitted_at: string;
+  verified_at?: string;
+  notes?: string;
+  profiles?: {
+    full_name?: string;
+    username?: string;
+    country?: string;
+  };
+}
 
 const AdminKYCVerification = () => {
   const [verifications, setVerifications] = useState<KYCVerification[]>([]);

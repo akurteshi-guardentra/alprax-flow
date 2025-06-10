@@ -14,9 +14,10 @@ export function useKYCVerifications() {
         .from('kyc_verifications')
         .select(`
           *,
-          profiles:user_id (
+          profiles!kyc_verifications_user_id_fkey (
             full_name,
-            email
+            username,
+            country
           )
         `)
         .order('created_at', { ascending: false });
@@ -26,7 +27,13 @@ export function useKYCVerifications() {
       // Transform the data to match our KYCVerification type
       return data?.map(item => ({
         ...item,
-        status: item.status === 'basic' ? 'pending' : item.status as KYCVerificationStatus
+        status: item.status === 'basic' ? 'pending' : item.status as KYCVerificationStatus,
+        submitted_at: item.submitted_at || new Date().toISOString(),
+        verified_at: item.verified_at || undefined,
+        notes: item.notes || undefined,
+        rejection_reason: item.rejection_reason || undefined,
+        verification_type: item.verification_type || undefined,
+        additional_documents: item.additional_documents || undefined
       })) || [];
     }
   });
@@ -37,10 +44,13 @@ export function useKYCVerifications() {
       status: KYCVerificationStatus;
       notes?: string;
     }) => {
+      // Map our status to database status
+      const dbStatus = status === 'rejected' ? 'basic' : status;
+      
       const { data, error } = await supabase
         .from('kyc_verifications')
         .update({ 
-          status,
+          status: dbStatus,
           admin_notes: notes,
           reviewed_at: new Date().toISOString(),
           reviewed_by: (await supabase.auth.getUser()).data.user?.id

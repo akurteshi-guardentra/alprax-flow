@@ -11,9 +11,12 @@ export interface KYCVerification {
   submitted_at: string;
   verified_at?: string;
   notes?: string;
+  rejection_reason?: string;
+  verification_type?: string;
+  additional_documents?: any;
   profiles?: {
     full_name?: string;
     username?: string;
     country?: string;
-  };
+  } | null;
 }

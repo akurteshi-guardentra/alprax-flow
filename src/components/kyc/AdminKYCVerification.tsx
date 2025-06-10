@@ -119,7 +119,7 @@ const AdminKYCVerification = () => {
           }
         };
         
-        const profileKycLevel: ProfileKYCLevel = getProfileKycLevel(newStatus);
+        const profileKycLevel = getProfileKycLevel(newStatus);
         
         const profileUpdate = {
           kyc_level: profileKycLevel,

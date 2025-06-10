@@ -69,6 +69,7 @@ const AdminKYCVerification = () => {
 
   const handleStatusUpdate = async (verificationId: string, newStatus: KYCStatus, notes?: string) => {
     try {
+      // Update the KYC verification record
       const { error } = await supabase
         .from('kyc_verifications')
         .update({ 
@@ -88,13 +89,13 @@ const AdminKYCVerification = () => {
         
         if (newStatus === 'verified') {
           profileUpdate = {
-            kyc_level: 'verified' as const,
+            kyc_level: 'verified',
             kyc_verified_at: new Date().toISOString()
           };
         } else if (newStatus === 'rejected') {
           // For rejected verifications, keep kyc_level as 'basic' and clear verified_at
           profileUpdate = {
-            kyc_level: 'basic' as const,
+            kyc_level: 'basic',
             kyc_verified_at: null
           };
         }

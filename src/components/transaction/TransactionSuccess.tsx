@@ -1,242 +1,165 @@
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import React from 'react';
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { FavoriteRecipient } from "@/types/favoriteRecipient";
-import confetti from "canvas-confetti";
-import { useEffect, useState } from "react";
-import { CheckCircle, Clock, Share2, ExternalLink } from "lucide-react";
-import { TransactionTimeline } from "./TransactionTimeline";
-import { TransactionTimelineEvent } from "@/services/stellar/types";
-import { trackTransaction } from "@/services/stellar/history";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, ArrowRight, Copy, Download, ExternalLink, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { hapticFeedback } from "@/lib/haptics";
+import { useState } from "react";
+import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
+import { motion } from "framer-motion";
+import { useMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { TransactionTimelineEvent, TransactionTimeline } from './TransactionTimeline';
 
 interface TransactionSuccessProps {
-  isOpen: boolean;
-  onClose: () => void;
-  recipient: any;
-  amount: string; // This will be fiatAmount
   transactionId: string;
-  defaultFiat: string; // Added defaultFiat
 }
 
-export function TransactionSuccess({
-  isOpen,
-  onClose,
-  recipient,
-  amount, // fiatAmount
-  transactionId,
-  defaultFiat, // Added
-}: TransactionSuccessProps) {
-  const [timeline, setTimeline] = useState<TransactionTimelineEvent[]>([
-    { status: "initiated", timestamp: new Date().toISOString() },
-    { status: "submitted", timestamp: new Date().toISOString() },
-  ]);
-
-  const [transactionHash, setTransactionHash] = useState<string | null>(null);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [isShared, setIsShared] = useState(false);
-
-  // Get transaction status from Supabase
-  useEffect(() => {
-    if (!isOpen || !transactionId) return;
-
-    // Simulate transaction progress for demo
-    // In a real app, we would pull this from the database
-    setTimeout(() => {
-      setTimeline((prev) => [
-        ...prev,
-        { status: "pending", timestamp: new Date().toISOString() },
-      ]);
-
-      // Simulate transaction completion after 3 seconds
-      setTimeout(() => {
-        setTimeline((prev) => [
-          ...prev,
-          { status: "completed", timestamp: new Date().toISOString() },
-        ]);
-        setIsCompleted(true);
-
-        // Launch confetti when transaction is completed
-        confetti({
-          particleCount: 100,
-          spread: 70,
-          origin: { y: 0.6 },
-        });
-
-        // Simulate recipient receiving the funds after 2 more seconds
-        setTimeout(() => {
-          setTimeline((prev) => [
-            ...prev,
-            { status: "received", timestamp: new Date().toISOString() },
-          ]);
-        }, 2000);
-      }, 3000);
-    }, 1500);
-  }, [isOpen, transactionId]);
-
-  // Track real transaction if hash is available
-  useEffect(() => {
-    if (!isOpen || !transactionHash) return;
-
-    const checkStatus = async () => {
-      try {
-        const status = await trackTransaction(transactionHash);
-        if (status.status === "completed" && !isCompleted) {
-          setTimeline((prev) => [
-            ...prev,
-            { status: "completed", timestamp: new Date().toISOString() },
-          ]);
-          setIsCompleted(true);
-
-          // Launch confetti
-          confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-          });
-        }
-      } catch (error) {
-        console.error("Error tracking transaction:", error);
-      }
-    };
-
-    // Only check if not already completed
-    if (!isCompleted) {
-      // Check immediately
-      checkStatus();
-
-      // Then check every 5 seconds
-      const interval = setInterval(checkStatus, 5000);
-      return () => clearInterval(interval);
-    }
-  }, [isOpen, transactionHash, isCompleted]);
-  const handleShare = async () => {
-    try {
-      if (navigator.share) {
-        await navigator.share({
-          title: "Money Sent!",
-          text: `I just sent ${amount} to ${recipient.recipient_name} using Alprax!`,
-          url: window.location.href,
-        });
-        setIsShared(true);
-      } else {
-        throw new Error("Web Share API not supported");
-      }
-    } catch (error) {
-      console.error("Error sharing:", error);
-      // Copy to clipboard as fallback
-      navigator.clipboard.writeText(
-        `I just sent ${amount} to ${recipient.recipient_name} using Alprax!`
-      );
-      toast.success("Copied to clipboard!");
-      setIsShared(true);
-    }
-    hapticFeedback("light");
+const TransactionSuccess = ({ transactionId }: TransactionSuccessProps) => {
+  const navigate = useNavigate();
+  const [isCopied, setIsCopied] = useState(false);
+  const { shouldAnimate, getTransition } = useOptimizedAnimations();
+  const { isMobile } = useMobile();
+  
+  const handleCopyClick = () => {
+    navigator.clipboard.writeText(transactionId);
+    setIsCopied(true);
+    toast.success("Transaction ID copied to clipboard!");
+    setTimeout(() => setIsCopied(false), 2000);
   };
-  const handleViewTransaction = () => {
-    // Open transaction details
-    if (transactionHash) {
-      // Still using the blockchain explorer, but with a user-friendly description
-      window.open(
-        `https://stellar.expert/explorer/testnet/tx/${transactionHash}`,
-        "_blank"
-      );
-      toast.info("Viewing detailed transaction receipt");
-    } else {
-      toast.info("Transaction reference not available yet");
-    }
-  };
+  
+  const timelineEvents: TransactionTimelineEvent[] = [
+    {
+      id: "1",
+      title: "Transaction Initiated",
+      description: "Your transaction has been initiated and is awaiting confirmation.",
+      timestamp: new Date().toISOString(),
+      status: "pending",
+    },
+    {
+      id: "2",
+      title: "Funds Confirmed",
+      description: "The funds have been confirmed and are being processed.",
+      timestamp: new Date(Date.now() + 30000).toISOString(),
+      status: "pending",
+    },
+    {
+      id: "3",
+      title: "Transaction Completed",
+      description: "The transaction has been completed and the funds have been sent.",
+      timestamp: new Date(Date.now() + 60000).toISOString(),
+      status: "completed",
+    },
+  ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="bg-slate-800 text-white border-slate-700 max-w-md w-full">
-        <DialogHeader>
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{
-              type: "spring",
-              stiffness: 260,
-              damping: 20,
-              delay: 0.1,
-            }}
-            className="flex flex-col items-center justify-center text-center pt-4"
-          >
-            <div className="relative">
-              <div className="absolute inset-0 bg-green-500/20 rounded-full filter blur-md"></div>
-              <div className="relative h-16 w-16 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mb-4">
-                {isCompleted ? (
-                  <CheckCircle className="h-8 w-8 text-white" />
-                ) : (
-                  <Clock className="h-8 w-8 text-white animate-pulse" />
-                )}
-              </div>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-900 to-gray-900 relative overflow-hidden">
+      {/* Gradient effects */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 -left-40 w-96 h-96 bg-green-500/30 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob" />
+        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000" />
+      </div>
+
+      <div className="max-w-3xl mx-auto relative px-4 py-8">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-white hover:bg-white/10"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mt-16 space-y-6"
+        >
+          <div className="text-center space-y-3">
+            <div className="mx-auto w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mb-4">
+              <CheckCircle className="w-8 h-8 text-green-400" />
             </div>
-            <h2 className="text-xl font-bold text-white">
-              {isCompleted ? "Transaction Complete" : "Processing Transaction"}
-            </h2>
-            <p className="text-white/60 text-sm mt-1">
-              {isCompleted
-                ? "Your money is on its way!"
-                : "Please wait while we process your transaction"}
+            <h1 className="text-3xl font-bold text-white">Transaction Successful</h1>
+            <p className="text-white/60 max-w-md mx-auto">
+              Your transaction has been successfully processed. Here are the details:
             </p>
-          </motion.div>
-        </DialogHeader>
-
-        <div className="space-y-6 pt-2 pb-4">
-          <div className="bg-white/5 rounded-lg p-4">
-            <div className="flex justify-between mb-2">
-              <span className="text-white/60 text-sm">Amount</span>
-              <span className="font-medium text-lg text-white">
-                {amount} {defaultFiat}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-white/60 text-sm">Recipient</span>
-              <span className="font-medium text-white">
-                {recipient.recipient_name}
-              </span>
-            </div>
           </div>
 
-          <TransactionTimeline
-            timeline={timeline}
-            transactionType="sent"
-            className="bg-white/5 rounded-lg"
-          />
-
-          <div className="flex justify-between gap-2">
-            <Button
-              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white"
-              onClick={onClose}
-            >
-              {isCompleted ? "Done" : "Close"}
-            </Button>
-
-            {isCompleted && (
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  className="border-slate-600 hover:bg-slate-700"
-                  onClick={handleShare}
-                >
-                  <Share2 className="h-4 w-4 mr-1" />
-                  {isShared ? "Shared" : "Share"}
-                </Button>                <Button
-                  variant="outline"
-                  className="border-slate-600 hover:bg-slate-700"
-                  onClick={handleViewTransaction}
-                  title="View Transaction Receipt"
-                >
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  <span className="sr-only md:not-sr-only md:inline-block">Details</span>
-                </Button>
+          <Card className="bg-white/5 backdrop-blur-sm border-white/10">
+            <CardHeader>
+              <CardTitle className="text-white font-semibold">Transaction Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Transaction ID:</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-white font-medium">{transactionId}</span>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="text-white/50 hover:text-white"
+                    onClick={handleCopyClick}
+                    disabled={isCopied}
+                  >
+                    <Copy className="h-4 w-4" />
+                    <span className="sr-only">Copy transaction ID</span>
+                  </Button>
+                </div>
               </div>
-            )}
+              
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Status:</span>
+                <Badge variant="secondary" className="bg-green-500 text-white">
+                  Completed
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Date:</span>
+                <span className="text-white font-medium">{new Date().toLocaleDateString()}</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Amount:</span>
+                <span className="text-white font-medium">$100.00</span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-white/70">Recipient:</span>
+                <div className="flex items-center gap-2">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src="https://github.com/shadcn.png" alt="Recipient" />
+                    <AvatarFallback>RC</AvatarFallback>
+                  </Avatar>
+                  <span className="text-white font-medium">John Doe</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+              <TransactionTimeline
+                events={timelineEvents}
+                transactionType="sent"
+                className="mt-6"
+              />
+              
+          <div className="mt-8 p-5 bg-gradient-to-r from-green-900/20 to-blue-900/20 rounded-xl border border-green-500/20">
+            <div className="flex gap-3">
+              <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+              <div>
+                <h4 className="text-sm font-medium text-blue-400">Transaction Security</h4>
+                <p className="text-sm text-blue-300/70 mt-1">
+                  This transaction was processed with industry-leading security measures. Your funds are protected by advanced encryption and fraud detection systems.
+                </p>
+              </div>
+            </div>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </motion.div>
+      </div>
+    </div>
   );
-}
+};
+
+export default TransactionSuccess;

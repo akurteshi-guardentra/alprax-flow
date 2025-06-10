@@ -1,8 +1,7 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, FileText, Check, Clock, AlertTriangle, Shield } from "lucide-react";
+import { ArrowLeft, FileText, Check, Clock, AlertTriangle, Shield, Info } from "lucide-react";
 import KYCVerificationForm from "@/components/kyc/KYCVerificationForm";
 import KYCStatus from "@/components/kyc/KYCStatus";
 import AdminKYCVerification from "@/components/kyc/AdminKYCVerification";
@@ -38,7 +37,9 @@ const KYC = () => {
     };
     
     checkAdminStatus();
-  }, []);  const getStatusDisplay = () => {
+  }, []);
+
+  const getStatusDisplay = () => {
     switch (status) {
       case 'approved':
         return (
@@ -155,7 +156,7 @@ const KYC = () => {
                 <p className="text-white/80">
                   {documents.length > 0 && documents[0].rejection_reason ? 
                     documents[0].rejection_reason : 
-                    "Your verification was not approved. Please try again with valid documents."
+                    "Your verification was rejected. Please try again with valid documents."
                   }
                 </p>
               </div>

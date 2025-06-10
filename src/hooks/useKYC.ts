@@ -2,22 +2,34 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 
+export type DocumentType = 'passport' | 'drivers_license' | 'id_card' | 'utility_bill' | 'bank_statement';
+
+export type KYCStatusType = 'pending' | 'approved' | 'rejected' | 'not_submitted';
+
+export interface KYCDocument {
+  id: string;
+  type: DocumentType;
+  url: string;
+  status: KYCStatusType;
+  submitted_at: string;
+  rejection_reason?: string;
+}
+
 export interface KYCStatus {
-  status: 'pending' | 'verified' | 'rejected';
-  documents: any[];
+  status: KYCStatusType;
+  documents: KYCDocument[];
   canSubmit: boolean;
 }
 
 export const useKYC = () => {
   const [status, setStatus] = useState<KYCStatus>({
-    status: 'pending',
+    status: 'not_submitted',
     documents: [],
     canSubmit: true
   });
 
   const submitDocuments = async (documents: File[]) => {
     try {
-      // Simplified submission - would need proper backend integration
       toast.info('Document submission requires backend setup');
       return { success: false, message: 'Backend setup required' };
     } catch (error) {
@@ -26,9 +38,18 @@ export const useKYC = () => {
     }
   };
 
+  const uploadDocument = async (documentType: DocumentType, file: File, additionalInfo: Record<string, any>) => {
+    try {
+      toast.info('Document upload requires backend setup');
+      return { success: false, message: 'Backend setup required' };
+    } catch (error) {
+      console.error('KYC upload error:', error);
+      return { success: false, message: 'Failed to upload document' };
+    }
+  };
+
   const checkStatus = async () => {
     try {
-      // Simplified status check - would need proper backend integration
       return status;
     } catch (error) {
       console.error('KYC status check error:', error);
@@ -36,10 +57,28 @@ export const useKYC = () => {
     }
   };
 
+  const refreshKYCStatus = () => {
+    // Reset to allow retry
+    setStatus(prev => ({ ...prev, status: 'not_submitted' }));
+  };
+
+  const cancelVerification = (documentId: string) => {
+    // Remove document and reset status
+    setStatus(prev => ({
+      ...prev,
+      documents: prev.documents.filter(doc => doc.id !== documentId),
+      status: 'not_submitted'
+    }));
+  };
+
   return {
-    status,
+    status: status.status,
+    documents: status.documents,
     submitDocuments,
+    uploadDocument,
     checkStatus,
+    refreshKYCStatus,
+    cancelVerification,
     isLoading: false,
     error: null
   };

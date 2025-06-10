@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,19 +54,28 @@ const Profile = () => {
             phone_number: null,
             country: null,
             preferred_language: null,
-            kyc_level: 'basic'
+            kyc_level: 'basic' as const,
+            username: null,
+            email: null
           }])
           .select()
           .single();
 
         if (createError) throw createError;
-        setProfile(newProfile);
+        setProfile(newProfile as ProfileType);
       } else {
-        setProfile(data);
+        // Ensure kyc_level is properly typed
+        const profileData = {
+          ...data,
+          kyc_level: (data.kyc_level as 'pending' | 'verified' | 'basic') || 'basic'
+        };
+        setProfile(profileData as ProfileType);
       }
     } catch (error) {
       console.error('Error fetching profile:', error);
       toast.error('Failed to load profile');
+    } finally {
+      setLoading(false);
     }
   };
 

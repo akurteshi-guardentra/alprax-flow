@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,7 +25,7 @@ interface ProfileFormProps {
 export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
-  const { status: kycStatus, documents } = useKYC();
+  const { status: kycStatus } = useKYC();
   const { shouldAnimate, getTransition } = useOptimizedAnimations();
   const { isMobile } = useMobile();
   const { isLowEndDevice } = useDataSaverMode();
@@ -215,7 +214,7 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
           onClick={() => navigate('/kyc')}
         >
           <Shield className="h-4 w-4" />
-          {isMobile ? 'KYC Verification' : `KYC Status: ${kycStatus ? kycStatus.charAt(0).toUpperCase() + kycStatus.slice(1) : 'Not Started'}`}
+          {isMobile ? 'KYC Verification' : `KYC Status: ${kycStatus ? kycStatus.toString().charAt(0).toUpperCase() + kycStatus.toString().slice(1) : 'Not Started'}`}
         </Button>
         
         <Button 

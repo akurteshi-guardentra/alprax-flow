@@ -59,7 +59,7 @@ const AdminKYCVerification = () => {
         .from('kyc_verifications')
         .select(`
           *,
-          profiles:profiles (full_name, username, country)
+          profiles:profiles (full_name, username, country, email)
         `);
       
       if (activeTab !== "all") {
@@ -84,7 +84,8 @@ const AdminKYCVerification = () => {
           (v.profiles?.full_name?.toLowerCase().includes(query)) ||
           (v.profiles?.username?.toLowerCase().includes(query)) ||
           (v.document_type?.toLowerCase().includes(query)) ||
-          (v.profiles?.country?.toLowerCase().includes(query))
+          (v.profiles?.country?.toLowerCase().includes(query)) ||
+          (v.profiles?.email?.toLowerCase().includes(query))
         );
       }
       

@@ -1,8 +1,9 @@
+
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, CheckCircle, Clock, AlertTriangle, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useKYC, KYCStatus as KYCStatusType } from "@/hooks/useKYC";
+import { useKYC, KYCStatusType } from "@/hooks/useKYC";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";

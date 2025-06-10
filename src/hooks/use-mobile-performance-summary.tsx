@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { useNetworkConditions, ConnectionQuality } from './use-network-conditions';
 import { useDataSaverMode } from './use-data-saver';
@@ -33,7 +34,7 @@ export function useMobilePerformanceSummary(componentName: string): PerformanceS
       trackInteractions: true,
       trackRenders: true,
       trackMemory: true,
-      samplingRate: 0.5 // Only measure half of renders to reduce overhead
+      sampleRate: 0.5 // Only measure half of renders to reduce overhead
     }
   );
   

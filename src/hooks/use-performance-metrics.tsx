@@ -14,6 +14,8 @@ interface PerformanceMetrics {
   averageRenderTime: number | null;
   trackInteractionStart: (() => void) | null;
   trackInteractionEnd: (() => void) | null;
+  interactionDelay?: number | null;
+  memoryUsage?: number | null;
 }
 
 export function usePerformanceMetrics(
@@ -22,6 +24,8 @@ export function usePerformanceMetrics(
 ): PerformanceMetrics {
   const [lastRenderTime, setLastRenderTime] = useState<number | null>(null);
   const [averageRenderTime, setAverageRenderTime] = useState<number | null>(null);
+  const [interactionDelay, setInteractionDelay] = useState<number | null>(null);
+  const [memoryUsage, setMemoryUsage] = useState<number | null>(null);
   const renderTimes = useRef<number[]>([]);
   const interactionStartTime = useRef<number | null>(null);
   
@@ -38,6 +42,7 @@ export function usePerformanceMetrics(
     if (!enabled || !trackInteractions || !interactionStartTime.current) return;
     
     const duration = performance.now() - interactionStartTime.current;
+    setInteractionDelay(duration);
     console.log(`${config.componentName} interaction took ${duration.toFixed(2)}ms`);
     interactionStartTime.current = null;
   }, [enabled, trackInteractions, config.componentName]);
@@ -61,10 +66,28 @@ export function usePerformanceMetrics(
     };
   });
 
+  useEffect(() => {
+    if (!enabled || !trackMemory) return;
+
+    const updateMemoryUsage = () => {
+      if ('memory' in performance) {
+        const memInfo = (performance as any).memory;
+        setMemoryUsage(memInfo.usedJSHeapSize / 1024 / 1024); // Convert to MB
+      }
+    };
+
+    updateMemoryUsage();
+    const interval = setInterval(updateMemoryUsage, 5000);
+    
+    return () => clearInterval(interval);
+  }, [enabled, trackMemory]);
+
   return {
     lastRenderTime,
     averageRenderTime,
     trackInteractionStart: trackInteractions ? trackInteractionStart : null,
-    trackInteractionEnd: trackInteractions ? trackInteractionEnd : null
+    trackInteractionEnd: trackInteractions ? trackInteractionEnd : null,
+    interactionDelay,
+    memoryUsage
   };
 }

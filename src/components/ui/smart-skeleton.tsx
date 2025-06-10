@@ -23,14 +23,18 @@ export function SmartSkeleton({
   showEstimate = true,
   className = ''
 }: SmartSkeletonProps) {
-  const { rtt } = useNetworkConditions();
+  const { rtt, connectionQuality } = useNetworkConditions();
   const [elapsedTime, setElapsedTime] = useState(0);
   const [isVisible, setIsVisible] = useState(true);
   
   const calculatedEstimatedTime = (() => {
     if (estimatedLoadTime) return estimatedLoadTime;
     if (isCached) return 300;
-    return 2500 + (rtt || 0);
+    
+    // Use connectionQuality instead of effectiveConnectionType
+    const baseTime = connectionQuality === 'poor' ? 5000 : 
+                    connectionQuality === 'moderate' ? 3000 : 2000;
+    return baseTime + (rtt || 0);
   })();
   
   useEffect(() => {

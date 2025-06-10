@@ -1,13 +1,14 @@
+
 import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
-import { Check, X, Eye, AlertCircle, FileText, Search, Filter, RefreshCw, User, Calendar, Shield, ChevronDown } from "lucide-react";
+import { Check, X, Eye, AlertCircle, FileText, Search, RefreshCw, User, Calendar } from "lucide-react";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion } from "framer-motion";
@@ -17,6 +18,7 @@ interface Profile {
   full_name: string | null;
   username: string | null;
   country: string | null;
+  email?: string | null;
 }
 
 interface KYCVerification {
@@ -61,7 +63,7 @@ const AdminKYCVerification = () => {
         `);
       
       if (activeTab !== "all") {
-        query = query.eq('status', activeTab);
+        query = query.eq('status', activeTab as 'pending' | 'verified' | 'rejected');
       }
       
       query = query.order('submitted_at', { ascending: sortOrder === "oldest" });
@@ -130,10 +132,11 @@ const AdminKYCVerification = () => {
 
       if (verificationError) throw verificationError;
 
+      const profileKycLevel = approved ? 'verified' : 'basic';
       const { error: profileError } = await supabase
         .from('profiles')
         .update({ 
-          kyc_level: approved ? 'verified' : 'basic',
+          kyc_level: profileKycLevel,
           kyc_verified_at: approved ? timestamp : null
         })
         .eq('id', userId);
@@ -436,9 +439,9 @@ const AdminKYCVerification = () => {
                         </p>
                       </div>
                       <div>
-                        <p className="text-sm text-white/50">Email</p>
+                        <p className="text-sm text-white/50">Username</p>
                         <p className="font-medium">
-                          {selectedVerification.profiles?.email || 'Not provided'}
+                          {selectedVerification.profiles?.username || 'Not provided'}
                         </p>
                       </div>
                       <div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -121,14 +120,12 @@ const AdminKYCVerification = () => {
       if (verification) {
         const profileKycLevel = getProfileKycLevel(newStatus);
         
-        const profileUpdate = {
-          kyc_level: profileKycLevel,
-          kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
-        };
-        
         const { error: profileError } = await supabase
           .from('profiles')
-          .update(profileUpdate)
+          .update({
+            kyc_level: profileKycLevel,
+            kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
+          })
           .eq('id', verification.user_id);
 
         if (profileError) throw profileError;

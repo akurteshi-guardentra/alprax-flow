@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { TransactionHistory } from "@/components/TransactionHistory";
-import { StellarAccount } from "@/components/stellar-account"; // <-- Updated import path
+import { StellarAccount } from "@/components/stellar-account";
 import { TransactionForm } from "@/components/TransactionForm";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { signOut } from "@/lib/auth";
@@ -69,13 +69,12 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900 to-black p-2 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8 relative">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 right-0 h-64 bg-gradient-to-b from-blue-600/10 to-transparent pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-purple-600/10 to-transparent pointer-events-none"></div>
+    <div className="min-h-screen modern-gradient p-2 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8 relative overflow-hidden">
+      {/* Enhanced decorative elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/10 rounded-full mix-blend-multiply filter blur-[120px] opacity-30 animate-blob animation-delay-2000"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-cyan-500/15 rounded-full blur-2xl animate-modern-pulse"></div>
       </div>
 
       {/* Content Container */}
@@ -91,9 +90,9 @@ const Index = () => {
           className="flex justify-between items-center mb-6 sm:mb-8 px-2"
         >
           <motion.h1 
-            className="text-xl sm:text-2xl md:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70"
+            className="text-xl sm:text-2xl md:text-3xl font-bold text-gradient-modern"
           >
-            Money Transfer
+            Alprax Flow
           </motion.h1>
           <div className="flex gap-2">
             {!isMobile && (
@@ -101,7 +100,7 @@ const Index = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => navigateTo('/profile')}
-                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-sm"
+                  className="glass-card-hover text-white border-none"
                 >
                   <User className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Profile
@@ -109,7 +108,7 @@ const Index = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => navigateTo('/analytics')}
-                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-sm"
+                  className="glass-card-hover text-white border-none"
                 >
                   <BarChart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Analytics
@@ -117,7 +116,7 @@ const Index = () => {
                 <Button 
                   variant="ghost" 
                   onClick={() => navigateTo('/settings')}
-                  className="bg-white/5 hover:bg-white/10 text-white border border-white/10 backdrop-blur-sm"
+                  className="glass-card-hover text-white border-none"
                 >
                   <Settings className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Settings
@@ -126,7 +125,7 @@ const Index = () => {
               </>
             )}
             <Card 
-              className="cursor-pointer bg-white/5 hover:bg-white/10 transition-colors border-white/10 backdrop-blur-sm"
+              className="cursor-pointer glass-card-hover modern-shadow"
               onClick={handleLogout}
             >
               <CardContent className="p-2 sm:p-3 flex items-center justify-center gap-2">

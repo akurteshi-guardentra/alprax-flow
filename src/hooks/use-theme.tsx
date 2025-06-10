@@ -19,7 +19,7 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "system",
+  defaultTheme = "dark", // Default to dark theme
   storageKey = "theme",
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => {
@@ -53,6 +53,11 @@ export function ThemeProvider({
     
     const activeTheme = theme === "system" ? systemTheme : theme;
     root.classList.add(activeTheme);
+    
+    // Always apply dark class since we're defaulting to dark theme
+    if (activeTheme === "dark" || theme === "system") {
+      root.classList.add("dark");
+    }
   }, [theme, systemTheme]);
 
   const value = {

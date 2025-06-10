@@ -1,5 +1,5 @@
 
-export type KYCVerificationStatus = 'pending' | 'verified' | 'rejected';
+export type KYCVerificationStatus = 'pending' | 'verified' | 'rejected' | 'not_submitted';
 export type ProfileKYCLevel = 'pending' | 'verified' | 'basic';
 
 export interface KYCVerification {

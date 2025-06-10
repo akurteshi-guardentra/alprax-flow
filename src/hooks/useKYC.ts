@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 
 export type DocumentType = 'passport' | 'drivers_license' | 'id_card' | 'utility_bill' | 'bank_statement';
 
-export type KYCStatusType = 'pending' | 'approved' | 'rejected' | 'not_submitted';
+export type KYCStatusType = 'pending' | 'verified' | 'rejected' | 'not_submitted';
 
 export interface KYCDocument {
   id: string;
@@ -58,12 +58,10 @@ export const useKYC = () => {
   };
 
   const refreshKYCStatus = () => {
-    // Reset to allow retry
     setStatus(prev => ({ ...prev, status: 'not_submitted' }));
   };
 
   const cancelVerification = (documentId: string) => {
-    // Remove document and reset status
     setStatus(prev => ({
       ...prev,
       documents: prev.documents.filter(doc => doc.id !== documentId),

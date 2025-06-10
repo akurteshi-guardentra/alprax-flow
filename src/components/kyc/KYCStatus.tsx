@@ -7,9 +7,7 @@ import { useKYC, KYCStatusType } from "@/hooks/useKYC";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
 import { cn } from "@/lib/utils";
-import { useMobile } from "@/hooks/use-mobile";
 
 interface KYCStatusProps {
   compact?: boolean;
@@ -24,27 +22,24 @@ export const KYCStatus = ({
 }: KYCStatusProps) => {
   const navigate = useNavigate();
   const { status, documents } = useKYC();
-  const { shouldAnimate, getTransition } = useOptimizedAnimations();
-  const { isMobile } = useMobile();
-  
   const [isExpanded, setIsExpanded] = useState(!compact);
   
   const getStatusIcon = (status: KYCStatusType) => {
     switch (status) {
-      case 'approved':
-        return <CheckCircle className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-green-500`} />;
+      case 'verified':
+        return <CheckCircle className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-green-400`} />;
       case 'pending':
-        return <Clock className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-yellow-500`} />;
+        return <Clock className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-yellow-400`} />;
       case 'rejected':
-        return <AlertTriangle className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-red-500`} />;
+        return <AlertTriangle className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-red-400`} />;
       default:
-        return <Shield className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-blue-500`} />;
+        return <Shield className={`${compact ? "h-4 w-4" : "h-5 w-5"} text-blue-400`} />;
     }
   };
   
   const getStatusBadgeColor = (status: KYCStatusType) => {
     switch (status) {
-      case 'approved':
+      case 'verified':
         return 'bg-green-500/20 text-green-300 border-green-500/30';
       case 'pending':
         return 'bg-yellow-500/20 text-yellow-300 border-yellow-500/30';
@@ -57,7 +52,7 @@ export const KYCStatus = ({
 
   const getStatusText = (status: KYCStatusType) => {
     switch (status) {
-      case 'approved':
+      case 'verified':
         return 'Verified';
       case 'pending':
         return 'Pending';
@@ -70,7 +65,7 @@ export const KYCStatus = ({
   
   const getStatusDescription = (status: KYCStatusType) => {
     switch (status) {
-      case 'approved':
+      case 'verified':
         return 'Your identity has been verified. You have access to all platform features.';
       case 'pending':
         return 'Your verification is being processed. This usually takes 1-2 business days.';
@@ -90,23 +85,23 @@ export const KYCStatus = ({
   return (
     <Card 
       className={cn(
-        "overflow-hidden border-white/10 bg-white/5 backdrop-blur-sm",
+        "glass-card modern-shadow border-white/10",
         compact ? "p-3" : "p-4",
         className
       )}
     >
       <motion.div
-        initial={shouldAnimate ? { opacity: 0 } : undefined}
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={getTransition({ duration: 0.3 })}
-        layout={shouldAnimate}
+        transition={{ duration: 0.3 }}
+        layout
       >
         <div className="flex items-center justify-between" onClick={toggleExpand}>
           <div className="flex items-center gap-3">
             <div className={cn(
               "rounded-full flex items-center justify-center",
               compact ? "p-1.5" : "p-2",
-              status === 'approved' ? "bg-green-500/20" :
+              status === 'verified' ? "bg-green-500/20" :
               status === 'pending' ? "bg-yellow-500/20" :
               status === 'rejected' ? "bg-red-500/20" :
               "bg-blue-500/20"
@@ -134,9 +129,9 @@ export const KYCStatus = ({
               {(!compact || isExpanded) && (
                 <motion.p 
                   className="text-xs text-white/70 mt-1 max-w-md"
-                  initial={shouldAnimate && compact ? { opacity: 0, height: 0 } : undefined}
+                  initial={compact ? { opacity: 0, height: 0 } : undefined}
                   animate={{ opacity: 1, height: 'auto' }}
-                  transition={getTransition({ duration: 0.2 })}
+                  transition={{ duration: 0.2 }}
                 >
                   {getStatusDescription(status)}
                 </motion.p>
@@ -162,18 +157,18 @@ export const KYCStatus = ({
               "mt-3",
               compact ? "ml-10" : "ml-12"
             )}
-            initial={shouldAnimate && compact ? { opacity: 0, height: 0 } : undefined}
+            initial={compact ? { opacity: 0, height: 0 } : undefined}
             animate={{ opacity: 1, height: 'auto' }}
-            transition={getTransition({ duration: 0.2, delay: 0.1 })}
+            transition={{ duration: 0.2, delay: 0.1 }}
           >
             <Button
               variant="outline"
-              size={compact || isMobile ? "sm" : "default"}
-              className="text-white border-white/20 hover:bg-white/10 text-xs sm:text-sm"
+              size={compact ? "sm" : "default"}
+              className="glass-card-hover text-white border-white/20"
               onClick={() => navigate('/kyc')}
             >
               {status === 'not_submitted' ? 'Complete Verification' :
-               status === 'approved' ? 'View Details' :
+               status === 'verified' ? 'View Details' :
                status === 'rejected' ? 'Try Again' :
                'Check Status'}
             </Button>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -107,20 +106,19 @@ const AdminKYCVerification = () => {
       const verification = verifications.find(v => v.id === verificationId);
       if (verification) {
         // Map KYC verification status to profile kyc_level
-        let profileKycLevel: ProfileKYCLevel;
+        const getProfileKycLevel = (status: KYCStatus): ProfileKYCLevel => {
+          switch (status) {
+            case 'verified':
+              return 'verified';
+            case 'rejected':
+              return 'basic';
+            case 'pending':
+            default:
+              return 'pending';
+          }
+        };
         
-        switch (newStatus) {
-          case 'verified':
-            profileKycLevel = 'verified';
-            break;
-          case 'rejected':
-            profileKycLevel = 'basic';
-            break;
-          case 'pending':
-          default:
-            profileKycLevel = 'pending';
-            break;
-        }
+        const profileKycLevel = getProfileKycLevel(newStatus);
         
         const profileUpdate = {
           kyc_level: profileKycLevel,

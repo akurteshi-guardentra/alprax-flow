@@ -27,6 +27,7 @@ import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 // Define valid KYC statuses that match the database enum
 type KYCStatus = 'pending' | 'verified' | 'rejected';
+type ProfileKYCLevel = 'pending' | 'verified' | 'basic';
 
 interface KYCVerification {
   id: string;
@@ -103,30 +104,30 @@ const AdminKYCVerification = () => {
       // Also update the user's profile KYC level
       const verification = verifications.find(v => v.id === verificationId);
       if (verification) {
-        // Only update profile kyc_level for verified status, or reset to basic for rejected
-        let profileUpdate: any = {};
+        // Map KYC verification status to profile kyc_level
+        let profileKycLevel: ProfileKYCLevel;
         
         if (newStatus === 'verified') {
-          profileUpdate = {
-            kyc_level: 'verified',
-            kyc_verified_at: new Date().toISOString()
-          };
+          profileKycLevel = 'verified';
         } else if (newStatus === 'rejected') {
-          // For rejected verifications, keep kyc_level as 'basic' and clear verified_at
-          profileUpdate = {
-            kyc_level: 'basic',
-            kyc_verified_at: null
-          };
+          // For rejected verifications, set profile kyc_level back to 'basic'
+          profileKycLevel = 'basic';
+        } else {
+          // For pending status
+          profileKycLevel = 'pending';
         }
         
-        if (Object.keys(profileUpdate).length > 0) {
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .update(profileUpdate)
-            .eq('id', verification.user_id);
+        const profileUpdate: any = {
+          kyc_level: profileKycLevel,
+          kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
+        };
+        
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update(profileUpdate)
+          .eq('id', verification.user_id);
 
-          if (profileError) throw profileError;
-        }
+        if (profileError) throw profileError;
       }
 
       toast.success(`Verification ${newStatus}`);

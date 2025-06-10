@@ -1,5 +1,3 @@
-import { HapticFeedbackType } from '@capacitor/haptics';
-
 // Enhanced haptic feedback types
 export type EnhancedHapticType = 
   | 'light' 

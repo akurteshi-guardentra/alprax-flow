@@ -1,0 +1,19 @@
+
+export type KYCVerificationStatus = 'pending' | 'verified' | 'rejected';
+export type ProfileKYCLevel = 'pending' | 'verified' | 'basic';
+
+export interface KYCVerification {
+  id: string;
+  user_id: string;
+  document_type: string;
+  document_url: string;
+  status: KYCVerificationStatus;
+  submitted_at: string;
+  verified_at?: string;
+  notes?: string;
+  profiles?: {
+    full_name?: string;
+    username?: string;
+    country?: string;
+  };
+}

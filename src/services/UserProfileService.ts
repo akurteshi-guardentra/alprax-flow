@@ -1,6 +1,6 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Profile } from '@/types/profile';
+import { Profile, KYCStatus } from '@/types/profile';
 
 export interface UserProfile extends Profile {
   email?: string;
@@ -74,7 +74,14 @@ export class UserProfileService {
         .or(`full_name.ilike.%${identifier}%,username.ilike.%${identifier}%,phone_number.ilike.%${identifier}%`);
 
       if (error) throw error;
-      return data || [];
+      
+      // Cast the data to UserProfile[] and ensure kyc_level is properly typed
+      const profiles = (data || []).map(profile => ({
+        ...profile,
+        kyc_level: profile.kyc_level as KYCStatus
+      })) as UserProfile[];
+      
+      return profiles;
     } catch (error) {
       console.error('Error finding user by identifier:', error);
       throw error;

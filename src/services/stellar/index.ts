@@ -3,7 +3,12 @@
 import { createAccount, getAccountDetails } from './account';
 import { sendPayment } from './payment';
 import { encryptSecretKey, decryptSecretKey } from './security';
-import { getTransactionHistory, getEnhancedTransactionHistory, trackTransaction, updateTransactionTimeline } from './history';
+import { 
+  getTransactionHistory, 
+  getEnhancedTransactionHistory, 
+  trackTransaction, 
+  updateTransactionTimeline 
+} from './history';
 import { server, network, config } from './config';
 import type { 
   StellarKeypair, 

@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 export const getStellarTransactions = async (userId: string) => {
@@ -35,7 +36,6 @@ export const transformStellarTransactionToTransaction = (stellarTx: any): any =>
     // Map recipient info from stellar transaction
     recipient_name: stellarTx.recipient_name,
     recipient_country: stellarTx.recipient_country,
-    // Remove recipient_id references since they don't exist in the database
     transfer_purpose: stellarTx.transfer_purpose,
     fees_saved: stellarTx.fees_saved || 0,
     stellar_tx_hash: stellarTx.stellar_tx_hash
@@ -49,6 +49,26 @@ export const getTransactionHistory = async (userId: string) => {
     return transactionHistory;
   } catch (error) {
     console.error('Error getting transaction history:', error);
+    return [];
+  }
+};
+
+// Add the missing enhanced transaction history function
+export const getEnhancedTransactionHistory = async (publicKey: string) => {
+  try {
+    const { data: transactions, error } = await supabase
+      .from('stellar_transactions')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error('Error fetching enhanced transaction history:', error);
+      return [];
+    }
+
+    return transactions || [];
+  } catch (error) {
+    console.error('Error getting enhanced transaction history:', error);
     return [];
   }
 };
@@ -78,7 +98,39 @@ export const getTransactionDetails = async (transactionId: string) => {
   }
 };
 
-// Fix the Transaction type reference
+// Add missing functions
+export const trackTransaction = async (transactionData: any) => {
+  try {
+    const { data, error } = await supabase
+      .from('stellar_transactions')
+      .insert(transactionData)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error tracking transaction:', error);
+    throw error;
+  }
+};
+
+export const updateTransactionTimeline = async (transactionId: string, timeline: any) => {
+  try {
+    const { error } = await supabase
+      .from('stellar_transactions')
+      .update({ timeline })
+      .eq('id', transactionId);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating transaction timeline:', error);
+    return false;
+  }
+};
+
+// Fix the StellarTransaction type reference
 export interface StellarTransaction {
   id: string;
   user_id: string;

@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { KYCVerificationStatus, ProfileKYCLevel } from "../types";
-import { getProfileKycLevel } from "../utils";
 
 export function useKYCVerifications() {
   const queryClient = useQueryClient();
@@ -59,8 +58,8 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Fix: Properly type the profile KYC level
-      const profileKycLevel: ProfileKYCLevel = mapStatusToProfileLevel(status);
+      // Fix: Use the correct mapping function
+      const profileKycLevel = mapStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')

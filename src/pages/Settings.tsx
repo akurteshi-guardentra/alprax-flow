@@ -1,153 +1,178 @@
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Shield, Bell, Palette, Zap, Smartphone } from "lucide-react";
+import { ArrowLeft, Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
-import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
-import { useDataSaverMode } from "@/hooks/use-data-saver";
+import { useState } from "react";
 
 const Settings = () => {
   const navigate = useNavigate();
-  const { shouldAnimate, getTransition } = useOptimizedAnimations();
-  const { isDataSaverEnabled, isLowEndDevice } = useDataSaverMode();
-  
-  // Local state for settings
-  const [settings, setSettings] = useState({
-    notifications: true,
-    two_factor_enabled: false,
-    dark_mode: false,
-    data_saver: isDataSaverEnabled,
-    reduced_animations: !shouldAnimate,
-    low_bandwidth_mode: false,
-    biometric_auth: false
+  const [notifications, setNotifications] = useState({
+    transfers: true,
+    security: true,
+    marketing: false,
+    updates: true
   });
 
-  const updateSetting = (key: string, value: boolean) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-    toast.success(`${key.replace('_', ' ')} ${value ? 'enabled' : 'disabled'}`);
-  };
+  const settingsCategories = [
+    {
+      title: "Account",
+      icon: User,
+      items: [
+        { label: "Profile Information", action: () => navigate('/profile') },
+        { label: "KYC Verification", action: () => navigate('/kyc') },
+        { label: "Payment Methods", action: () => navigate('/payments') }
+      ]
+    },
+    {
+      title: "Security",
+      icon: Shield,
+      items: [
+        { label: "Two-Factor Authentication", action: () => navigate('/setup-2fa') },
+        { label: "Biometric Login", action: () => navigate('/biometric-setup') },
+        { label: "Change Password", action: () => {} }
+      ]
+    },
+    {
+      title: "Preferences",
+      icon: Palette,
+      items: [
+        { label: "Language", action: () => {} },
+        { label: "Currency", action: () => {} },
+        { label: "Time Zone", action: () => {} }
+      ]
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kosovo-blue via-kosovo-blue/90 to-red-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto relative">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen modern-gradient relative overflow-hidden">
+      {/* Enhanced premium background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pt-20 space-y-6"
-        >
-          <div className="text-center">
-            <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-            <p className="text-white/70">Customize your experience</p>
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)}
+              className="glass-card-hover text-white border-none"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold text-gradient-modern flex items-center gap-3">
+              <SettingsIcon className="h-8 w-8" />
+              Settings
+            </h1>
+          </motion.div>
+
+          <div className="space-y-8">
+            {/* Settings Categories */}
+            {settingsCategories.map((category, index) => (
+              <motion.div
+                key={category.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.1 }}
+              >
+                <Card className="glass-card modern-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <category.icon className="h-5 w-5 text-blue-400" />
+                      {category.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {category.items.map((item, itemIndex) => (
+                      <div
+                        key={itemIndex}
+                        className="flex items-center justify-between p-3 glass-card-hover cursor-pointer"
+                        onClick={item.action}
+                      >
+                        <span className="text-white/90">{item.label}</span>
+                        <ArrowLeft className="h-4 w-4 text-white/60 rotate-180" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+
+            {/* Notifications */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="glass-card modern-shadow">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Bell className="h-5 w-5 text-blue-400" />
+                    Notifications
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {Object.entries(notifications).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-white/90 capitalize">{key}</p>
+                        <p className="text-white/60 text-sm">
+                          Receive notifications about {key}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={value}
+                        onCheckedChange={(checked) =>
+                          setNotifications(prev => ({ ...prev, [key]: checked }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Support & Legal */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="glass-card modern-shadow">
+                <CardHeader>
+                  <CardTitle className="text-white">Support & Legal</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { label: "Help Center", action: () => navigate('/help') },
+                    { label: "Contact Support", action: () => {} },
+                    { label: "Terms & Privacy", action: () => navigate('/terms') },
+                    { label: "About", action: () => {} }
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 glass-card-hover cursor-pointer"
+                      onClick={item.action}
+                    >
+                      <span className="text-white/90">{item.label}</span>
+                      <ArrowLeft className="h-4 w-4 text-white/60 rotate-180" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
-
-          <div className="grid gap-6">
-            <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Bell className="h-5 w-5" />
-                  Notifications
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Push Notifications</span>
-                  <Switch
-                    checked={settings.notifications}
-                    onCheckedChange={(value) => updateSetting('notifications', value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Security
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Two-Factor Authentication</span>
-                  <Switch
-                    checked={settings.two_factor_enabled}
-                    onCheckedChange={(value) => updateSetting('two_factor_enabled', value)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Biometric Authentication</span>
-                  <Switch
-                    checked={settings.biometric_auth}
-                    onCheckedChange={(value) => updateSetting('biometric_auth', value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Palette className="h-5 w-5" />
-                  Appearance
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Dark Mode</span>
-                  <Switch
-                    checked={settings.dark_mode}
-                    onCheckedChange={(value) => updateSetting('dark_mode', value)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Reduced Animations</span>
-                  <Switch
-                    checked={settings.reduced_animations}
-                    onCheckedChange={(value) => updateSetting('reduced_animations', value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-2">
-                  <Zap className="h-5 w-5" />
-                  Performance
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Data Saver Mode</span>
-                  <Switch
-                    checked={settings.data_saver}
-                    onCheckedChange={(value) => updateSetting('data_saver', value)}
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/80">Low Bandwidth Mode</span>
-                  <Switch
-                    checked={settings.low_bandwidth_mode}
-                    onCheckedChange={(value) => updateSetting('low_bandwidth_mode', value)}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

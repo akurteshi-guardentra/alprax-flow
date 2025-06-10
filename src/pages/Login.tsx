@@ -6,7 +6,6 @@ import { NumberAuthForm } from "@/components/auth/NumberAuthForm";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { LoginContainer } from "@/components/auth/LoginContainer";
 import { useLogin } from "@/hooks/useLogin";
-import { cn } from "@/lib/utils";
 import { useState } from "react";
 
 const Login = () => {
@@ -82,12 +81,21 @@ const Login = () => {
   };
 
   return (
-    <LoginContainer 
-      onBack={handleBackNavigation}
-      hideBackButton={false}
-    >
-      {renderAuthContent()}
-    </LoginContainer>
+    <div className="min-h-screen modern-gradient relative overflow-hidden">
+      {/* Enhanced premium background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
+      </div>
+      
+      <LoginContainer 
+        onBack={handleBackNavigation}
+        hideBackButton={false}
+      >
+        {renderAuthContent()}
+      </LoginContainer>
+    </div>
   );
 };
 

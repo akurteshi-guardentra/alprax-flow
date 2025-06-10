@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -92,55 +93,72 @@ const Profile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kosovo-blue via-kosovo-blue/90 to-red-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-4xl mx-auto relative">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 text-white hover:bg-white/10"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+    <div className="min-h-screen modern-gradient relative overflow-hidden">
+      {/* Enhanced premium background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
+      </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="pt-20"
-        >
-          <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-            <CardHeader className="text-center">
-              <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2">
-                <User className="h-6 w-6" />
-                Profile Management
-              </CardTitle>
-              {profile?.kyc_level && (
-                <Badge 
-                  variant="secondary"
-                  className={`${getKycBadgeColor(profile.kyc_level)} text-white`}
-                >
-                  <Shield className="h-4 w-4 mr-1" />
-                  KYC Level: {profile.kyc_level.charAt(0).toUpperCase() + profile.kyc_level.slice(1)}
-                </Badge>
-              )}
-            </CardHeader>            <CardContent>
-              <ProfileAvatar profile={profile} />
-              <div className="mb-6">
-                <ProfileCompletionCard 
-                  profile={profile}
-                  onAddMissing={(field) => {
-                    // Scroll to the form
-                    if (formRef.current) {
-                      formRef.current.scrollIntoView({ behavior: 'smooth' });
-                    }
-                  }}
-                />
-              </div>              <div ref={formRef}>
-                <ProfileForm profile={profile} setProfile={setProfile} />
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)}
+              className="glass-card-hover text-white border-none"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Card className="glass-card modern-shadow">
+              <CardHeader className="text-center">
+                <CardTitle className="text-2xl font-bold text-white flex items-center justify-center gap-2">
+                  <User className="h-6 w-6" />
+                  Profile Management
+                </CardTitle>
+                {profile?.kyc_level && (
+                  <Badge 
+                    variant="secondary"
+                    className={`${getKycBadgeColor(profile.kyc_level)} text-white`}
+                  >
+                    <Shield className="h-4 w-4 mr-1" />
+                    KYC Level: {profile.kyc_level.charAt(0).toUpperCase() + profile.kyc_level.slice(1)}
+                  </Badge>
+                )}
+              </CardHeader>
+              <CardContent>
+                <ProfileAvatar profile={profile} />
+                <div className="mb-6">
+                  <ProfileCompletionCard 
+                    profile={profile}
+                    onAddMissing={(field) => {
+                      // Scroll to the form
+                      if (formRef.current) {
+                        formRef.current.scrollIntoView({ behavior: 'smooth' });
+                      }
+                    }}
+                  />
+                </div>
+                <div ref={formRef}>
+                  <ProfileForm profile={profile} setProfile={setProfile} />
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
       </div>
     </div>
   );

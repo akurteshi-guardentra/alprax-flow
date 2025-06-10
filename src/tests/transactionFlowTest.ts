@@ -2,94 +2,10 @@
 // Transaction Flow Test Script
 // This script provides a step-by-step process to test the transaction flow
 
-import { fundTestAccount, sendPayment } from '../lib/stellar/payment';
 import { getEnhancedTransactionHistory } from '../services/stellar/history';
 import { server } from '../lib/stellar/config';
-import { supabase } from '../integrations/supabase/client';
 import { createTestAccount, fundTestAccountDirect } from './stellarTestUtils';
-
-// Test credentials - use environment variables for these in a real app
-const TEST_EMAIL = 'test@example.com';
-const TEST_PASSWORD = 'password123';
-
-async function authenticateTestUser() {
-  console.log('🔑 Authenticating test user...');
-  
-  // Check if already signed in
-  const { data: { user } } = await supabase.auth.getUser();
-  if (user) {
-    console.log('✅ Already authenticated as:', user.email);
-    return user;
-  }
-  // Try to sign in with test credentials
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email: TEST_EMAIL,
-    password: TEST_PASSWORD
-  });
-
-  if (error) {
-    console.error('❌ Authentication failed:', error.message);
-    
-    // Always try to sign up the test user if sign in fails
-    console.log('🔄 Attempting to sign up test user...');
-    
-    // First, check if the user already exists
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('email', TEST_EMAIL)
-      .maybeSingle();
-    
-    if (existingUser) {
-      // If the user exists but we couldn't log in, try to reset and create a new session
-      console.log('User exists but authentication failed, trying alternative authentication...');
-      
-      // Try admin auth method (in a real app this would be a secure admin API)
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: TEST_EMAIL,
-        password: TEST_PASSWORD
-      });
-      
-      if (signupError && !signupError.message.includes('already registered')) {
-        console.error('❌ Sign up failed:', signupError.message);
-        throw new Error('Could not authenticate test user');
-      }
-      
-      // Try one more signin attempt
-      const { data: retryData, error: retryError } = await supabase.auth.signInWithPassword({
-        email: TEST_EMAIL,
-        password: TEST_PASSWORD
-      });
-      
-      if (retryError) {
-        console.error('❌ Retry authentication failed:', retryError.message);
-        throw new Error('Could not authenticate test user after multiple attempts');
-      }
-      
-      console.log('✅ Test user authenticated through retry');
-      return retryData.user;
-    } else {
-      // Create a new user if they don't exist
-      const { data: signupData, error: signupError } = await supabase.auth.signUp({
-        email: TEST_EMAIL,
-        password: TEST_PASSWORD
-      });
-
-      if (signupError) {
-        console.error('❌ Sign up failed:', signupError.message);
-        throw new Error('Could not authenticate test user');
-      }
-
-      console.log('✅ Test user signed up successfully');
-      return signupData.user;
-    }
-    
-    throw new Error('Could not authenticate test user');
-  }
-
-  console.log('✅ Test user authenticated successfully');
-  return data.user;
-}
+import { ensureTestUser } from './helpers/testAuth';
 
 async function fetchAccountBalance(publicKey: string): Promise<string> {
   try {
@@ -102,22 +18,67 @@ async function fetchAccountBalance(publicKey: string): Promise<string> {
   }
 }
 
+async function sendPaymentDirect(senderKeypair: any, recipientPublicKey: string, amount: string) {
+  try {
+    const { TransactionBuilder, Operation, Asset, Memo } = await import('stellar-sdk');
+    const { networkPassphrase } = await import('../lib/stellar/config');
+    
+    // Get account details from network
+    const sourceAccount = await server.loadAccount(senderKeypair.publicKey());
+    
+    // Get the transaction fee
+    const fee = (await server.fetchBaseFee()).toString();
+    
+    // Build the transaction
+    const transaction = new TransactionBuilder(sourceAccount, {
+      fee,
+      networkPassphrase,
+    })
+      .addOperation(
+        Operation.payment({
+          destination: recipientPublicKey,
+          asset: Asset.native(),
+          amount: amount,
+        })
+      )
+      .addMemo(Memo.text('Test payment'))
+      .setTimeout(30)
+      .build();
+    
+    // Sign and submit transaction
+    transaction.sign(senderKeypair);
+    const result = await server.submitTransaction(transaction);
+    
+    return {
+      success: true,
+      hash: result.hash
+    };
+  } catch (error) {
+    console.error('Error sending payment:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    };
+  }
+}
+
 async function testTransactionFlow() {
   console.log('🧪 Starting Transaction Flow Test');
   console.log('---------------------------------');
 
   // Authentication step
   try {
-    await authenticateTestUser();
+    await ensureTestUser();
   } catch (error) {
     console.error('❌ Authentication failed, cannot continue with tests:', error);
     return;
   }
+
   // Step 1: Create a sender account
   console.log('Step 1: Creating sender account');
-  // Use createTestAccount which doesn't require authentication
   const senderAccount = createTestAccount();
   console.log(`✅ Created sender account: ${senderAccount.publicKey}`);
+
   // Step 2: Fund the sender account
   console.log('\nStep 2: Funding sender account');
   try {
@@ -131,10 +92,12 @@ async function testTransactionFlow() {
     console.error('❌ Failed to fund sender account:', error);
     return;
   }
+
   // Step 3: Create a recipient account
   console.log('\nStep 3: Creating recipient account');
   const recipientAccount = createTestAccount();
   console.log(`✅ Created recipient account: ${recipientAccount.publicKey}`);
+
   // Step 4: Fund the recipient account (to activate it)
   console.log('\nStep 4: Funding recipient account');
   try {
@@ -148,6 +111,7 @@ async function testTransactionFlow() {
     console.error('❌ Failed to fund recipient account:', error);
     return;
   }
+
   // Step 5: Send payment from sender to recipient
   console.log('\nStep 5: Sending payment from sender to recipient');
   try {
@@ -159,8 +123,6 @@ async function testTransactionFlow() {
     const { Keypair } = await import('stellar-sdk');
     const senderKeypair = Keypair.fromSecret(senderSecret);
     
-    // Use the direct payment method to avoid authentication issues
-    const { sendPaymentDirect } = await import('./directTransactionTest');
     const paymentResult = await sendPaymentDirect(
       senderKeypair,
       recipientAccount.publicKey,

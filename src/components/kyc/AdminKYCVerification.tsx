@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -83,17 +82,31 @@ const AdminKYCVerification = () => {
       
       // Also update the user's profile KYC level
       const verification = verifications.find(v => v.id === verificationId);
-      if (verification && (newStatus === 'verified' || newStatus === 'basic')) {
-        const kycLevel = newStatus === 'verified' ? 'verified' : 'basic';
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ 
-            kyc_level: kycLevel,
-            kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
-          })
-          .eq('id', verification.user_id);
+      if (verification) {
+        // Only update profile kyc_level for verified status, or reset to basic for rejected
+        let profileUpdate: any = {};
+        
+        if (newStatus === 'verified') {
+          profileUpdate = {
+            kyc_level: 'verified' as const,
+            kyc_verified_at: new Date().toISOString()
+          };
+        } else if (newStatus === 'rejected') {
+          // For rejected verifications, keep kyc_level as 'basic' and clear verified_at
+          profileUpdate = {
+            kyc_level: 'basic' as const,
+            kyc_verified_at: null
+          };
+        }
+        
+        if (Object.keys(profileUpdate).length > 0) {
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update(profileUpdate)
+            .eq('id', verification.user_id);
 
-        if (profileError) throw profileError;
+          if (profileError) throw profileError;
+        }
       }
 
       toast.success(`Verification ${newStatus}`);

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -119,7 +118,7 @@ const AdminKYCVerification = () => {
           }
         };
         
-        const profileKycLevel = getProfileKycLevel(newStatus);
+        const profileKycLevel: ProfileKYCLevel = getProfileKycLevel(newStatus);
         
         const profileUpdate = {
           kyc_level: profileKycLevel,

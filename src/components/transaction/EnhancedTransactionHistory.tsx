@@ -1,3 +1,4 @@
+
 // Enhanced transaction history with human-readable recipient information
 import { useState, useEffect } from "react";
 import { CalendarDays, Clock, Mail, User, ExternalLink, Search } from "lucide-react";
@@ -7,23 +8,36 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { StellarService } from '@/services/stellar';
-import type { TransactionWithAccount, TransactionStatus } from '@/services/stellar/types';
 import { formatDistanceToNow } from 'date-fns';
 import { useTransactionHistory } from '@/hooks/useTransactionHistory';
+
+// Define a simplified transaction interface for this component
+interface StellarTransactionRecord {
+  id: string;
+  amount: number;
+  from_asset: string;
+  memo?: string;
+  status: string;
+  transaction_type: string;
+  created_at: string;
+  stellar_tx_hash?: string;
+  recipient_name?: string;
+}
 
 interface EnhancedTransactionHistoryProps {
   publicKey: string;
 }
 
 export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHistoryProps) {
-  const [transactions, setTransactions] = useState<TransactionWithAccount[]>([]);
+  const [transactions, setTransactions] = useState<StellarTransactionRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const { fiatRate, defaultFiat } = useTransactionHistory();
+  
   // Format amount in fiat currency
   const formatAmount = (networkAmount: string) => {
-    const amount = parseFloat(networkAmount);
+    const amount = parseFloat(networkAmount.toString());
     if (fiatRate && fiatRate > 0) {
       const fiatAmount = amount * fiatRate;
       return `${fiatAmount.toFixed(2)} ${defaultFiat}`;
@@ -39,7 +53,8 @@ export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHis
       setError(null);
       try {
         const history = await StellarService.getEnhancedTransactionHistory(publicKey);
-        setTransactions(history);
+        // Cast to our simplified interface
+        setTransactions(history as StellarTransactionRecord[]);
       } catch (err) {
         console.error("Failed to load transaction history:", err);
         setError("Failed to load transaction history. Please try again.");
@@ -60,7 +75,7 @@ export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHis
     
     return (
       tx.recipient_name?.toLowerCase().includes(term) ||
-      tx.hash?.toLowerCase().includes(term) ||
+      tx.stellar_tx_hash?.toLowerCase().includes(term) ||
       tx.memo?.toLowerCase().includes(term) ||
       tx.amount?.toString().includes(term)
     );
@@ -73,7 +88,7 @@ export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHis
       setError(null);
       StellarService.getEnhancedTransactionHistory(publicKey)
         .then(history => {
-          setTransactions(history);
+          setTransactions(history as StellarTransactionRecord[]);
         })
         .catch(err => {
           console.error("Failed to refresh transaction history:", err);
@@ -189,7 +204,7 @@ export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHis
                   <div>
                     <div className="flex items-center gap-2 mb-1">
                       {getStatusBadge(tx.status, tx.transaction_type)}                      <h4 className={`font-medium ${tx.transaction_type === 'received' ? 'text-green-300' : 'text-white'}`}>
-                        {tx.transaction_type === 'received' ? 'Received' : 'Sent'} {formatAmount(tx.amount)}
+                        {tx.transaction_type === 'received' ? 'Received' : 'Sent'} {formatAmount(tx.amount.toString())}
                       </h4>
                     </div>
                     
@@ -221,7 +236,7 @@ export function EnhancedTransactionHistory({ publicKey }: EnhancedTransactionHis
                     variant="ghost"
                     size="sm"
                     className="h-8 text-white/50 hover:text-white hover:bg-white/10"
-                    onClick={() => window.open(`https://stellar.expert/explorer/testnet/tx/${tx.hash}`, '_blank')}
+                    onClick={() => window.open(`https://stellar.expert/explorer/testnet/tx/${tx.stellar_tx_hash}`, '_blank')}
                     aria-label="View transaction details"
                     title="View transaction details"
                   >

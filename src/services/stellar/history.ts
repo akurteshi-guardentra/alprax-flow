@@ -115,11 +115,16 @@ export const trackTransaction = async (transactionData: any) => {
   }
 };
 
-export const updateTransactionTimeline = async (transactionId: string, timeline: any) => {
+export const updateTransactionTimeline = async (transactionId: string, timelineData: any) => {
   try {
+    // Since timeline is not a column in the stellar_transactions table,
+    // we'll update the status and any other relevant fields instead
     const { error } = await supabase
       .from('stellar_transactions')
-      .update({ timeline })
+      .update({ 
+        status: timelineData.status || 'completed',
+        completed_at: timelineData.completed_at || new Date().toISOString()
+      })
       .eq('id', transactionId);
 
     if (error) throw error;

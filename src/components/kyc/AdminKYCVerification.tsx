@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -83,10 +84,11 @@ const AdminKYCVerification = () => {
       // Also update the user's profile KYC level
       const verification = verifications.find(v => v.id === verificationId);
       if (verification && (newStatus === 'verified' || newStatus === 'basic')) {
+        const kycLevel = newStatus === 'verified' ? 'verified' : 'basic';
         const { error: profileError } = await supabase
           .from('profiles')
           .update({ 
-            kyc_level: newStatus,
+            kyc_level: kycLevel,
             kyc_verified_at: newStatus === 'verified' ? new Date().toISOString() : null
           })
           .eq('id', verification.user_id);

@@ -304,3 +304,27 @@ export async function recordReceivedTransaction(
     console.error('Error recording received transaction:', error);
   }
 }
+
+export const transformStellarTransaction = (tx: any, userPublicKey: string): Transaction => {
+  const isReceived = tx.to === userPublicKey;
+  
+  return {
+    id: tx.stellar_tx_hash,
+    type: isReceived ? 'received' : 'sent',
+    amount: parseFloat(tx.amount),
+    currency: tx.from_asset || 'XLM',
+    date: new Date(tx.created_at),
+    status: tx.status as 'completed' | 'pending' | 'failed',
+    description: tx.memo || tx.transfer_purpose || '',
+    recipient_name: tx.recipient_name,
+    recipient_country: tx.recipient_country,
+    transfer_purpose: tx.transfer_purpose,
+    transfer_category: tx.transfer_category,
+    fee: tx.fee,
+    fees_saved: tx.fees_saved,
+    stellar_tx_hash: tx.stellar_tx_hash,
+    transaction_type: isReceived ? 'received' : 'sent',
+    created_at: tx.created_at,
+    completed_at: tx.completed_at
+  };
+};

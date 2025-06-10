@@ -1,19 +1,35 @@
 
+export type KYCStatus = "pending" | "verified" | "basic" | "rejected";
+
 export interface Profile {
   id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  phone_number: string | null;
-  country: string | null;
-  preferred_language: string | null;
-  kyc_level: 'pending' | 'verified' | 'basic';
-  username: string | null;
-  email: string | null;
+  full_name?: string;
+  username?: string;
+  avatar_url?: string;
+  country?: string;
+  phone_number?: string;
+  kyc_level: KYCStatus;
+  kyc_verified_at?: string;
+  onboarding_completed: boolean;
+  onboarding_step?: string;
+  preferred_language?: string;
+  notification_preferences?: any;
+  reward_tier_id?: number;
   created_at?: string;
   updated_at?: string;
-  kyc_verified_at?: string | null;
-  onboarding_completed?: boolean;
-  onboarding_step?: string;
-  notification_preferences?: any;
-  reward_tier_id?: number | null;
+}
+
+export interface KYCVerification {
+  id: string;
+  user_id: string;
+  document_type: string;
+  document_url: string;
+  status: KYCStatus;
+  submitted_at: string;
+  verified_at?: string;
+  rejection_reason?: string;
+  notes?: string;
+  verification_type?: string;
+  additional_documents?: any;
+  profiles?: Profile;
 }

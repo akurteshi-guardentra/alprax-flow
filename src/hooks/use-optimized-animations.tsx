@@ -15,20 +15,27 @@ export const useOptimizedAnimations = () => {
     return !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   }, []);
 
+  const reduceMotion = useMemo(() => {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }, []);
+
   const getTransition = (config: AnimationConfig = {}) => {
     if (!shouldAnimate) {
       return { duration: 0 };
     }
 
-    return {
+    const transition: any = {
       duration: config.duration || 0.3,
       delay: config.delay || 0,
-      type: config.type || 'tween',
-      ...(config.type === 'spring' && {
-        stiffness: config.stiffness || 400,
-        damping: config.damping || 25
-      })
+      type: config.type || 'tween' as const,
     };
+
+    if (config.type === 'spring') {
+      transition.stiffness = config.stiffness || 400;
+      transition.damping = config.damping || 25;
+    }
+
+    return transition;
   };
 
   const getItemVariants = (index = 0) => ({
@@ -43,6 +50,7 @@ export const useOptimizedAnimations = () => {
 
   return {
     shouldAnimate,
+    reduceMotion,
     getTransition,
     getItemVariants,
     maxConcurrentAnimations: 50

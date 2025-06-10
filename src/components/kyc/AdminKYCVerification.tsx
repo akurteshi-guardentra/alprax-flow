@@ -47,6 +47,19 @@ interface KYCVerification {
   };
 }
 
+// Map KYC verification status to profile kyc_level
+const getProfileKycLevel = (status: KYCVerificationStatus): ProfileKYCLevel => {
+  switch (status) {
+    case 'verified':
+      return 'verified';
+    case 'rejected':
+      return 'basic';
+    case 'pending':
+    default:
+      return 'pending';
+  }
+};
+
 const AdminKYCVerification = () => {
   const [verifications, setVerifications] = useState<KYCVerification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -106,19 +119,6 @@ const AdminKYCVerification = () => {
       // Also update the user's profile KYC level
       const verification = verifications.find(v => v.id === verificationId);
       if (verification) {
-        // Map KYC verification status to profile kyc_level
-        const getProfileKycLevel = (status: KYCVerificationStatus): ProfileKYCLevel => {
-          switch (status) {
-            case 'verified':
-              return 'verified';
-            case 'rejected':
-              return 'basic';
-            case 'pending':
-            default:
-              return 'pending';
-          }
-        };
-        
         const profileKycLevel = getProfileKycLevel(newStatus);
         
         const profileUpdate = {

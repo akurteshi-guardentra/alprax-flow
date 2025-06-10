@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import { ResponsiveAuthLayout } from '@/components/auth/ResponsiveAuthLayout';
-import { vi } from 'vitest';
+import { vi, describe, it, expect } from 'vitest';
 import * as hooks from '@/hooks/use-mobile';
 
 // Mock the useMediaQuery hook to test different viewport sizes

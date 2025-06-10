@@ -22,7 +22,12 @@ export function useKYCVerifications() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      
+      // Transform the data to match our KYCVerification type
+      return data?.map(item => ({
+        ...item,
+        status: item.status === 'basic' ? 'pending' : item.status as KYCVerificationStatus
+      })) || [];
     }
   });
 
@@ -63,10 +68,15 @@ export function useKYCVerifications() {
     }
   });
 
+  // Create a wrapper function that matches the expected signature
+  const handleStatusUpdate = (verificationId: string, status: KYCVerificationStatus, notes?: string) => {
+    updateVerificationMutation.mutate({ id: verificationId, status, notes });
+  };
+
   return {
     verifications,
     isLoading,
-    updateVerification: updateVerificationMutation.mutate,
+    updateVerification: handleStatusUpdate,
     isUpdating: updateVerificationMutation.isPending
   };
 }

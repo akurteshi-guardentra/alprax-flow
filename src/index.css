@@ -1,5 +1,5 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,7 +7,7 @@
  
 @layer base {
   :root {
-    /* Dark theme as default with signup page colors */
+    /* Modern Dark Design System */
     --background: 222 84% 4.9%;
     --foreground: 210 40% 98%;
     --card: 222 84% 4.9%;
@@ -43,12 +43,13 @@
 
   body {
     @apply bg-gradient-to-br from-blue-900 via-blue-800 to-purple-900 text-foreground font-sans antialiased min-h-screen;
+    font-family: 'Inter', system-ui, sans-serif;
     touch-action: manipulation;
     -webkit-touch-callout: none;
     overscroll-behavior-y: none;
   }
   
-  /* Modern scrollbar */
+  /* Premium scrollbar design */
   ::-webkit-scrollbar {
     width: 6px;
   }
@@ -66,7 +67,7 @@
     background: rgba(255, 255, 255, 0.3);
   }
   
-  /* Mobile-optimized scrolling and interactions */
+  /* Mobile-optimized interactions */
   @media (max-width: 768px) {
     html, body {
       overflow-x: hidden;
@@ -77,22 +78,7 @@
   }
 }
 
-/* Safe area insets */
-@supports (padding: max(0px)) {
-  .pt-safe {
-    padding-top: max(env(safe-area-inset-top), 1rem);
-  }
-  .pb-safe {
-    padding-bottom: max(env(safe-area-inset-bottom), 1rem);
-  }
-  .pl-safe {
-    padding-left: max(env(safe-area-inset-left), 1rem);
-  }
-  .pr-safe {
-    padding-right: max(env(safe-area-inset-right), 1rem);
-  }
-}
-
+/* Enhanced animations for premium feel */
 @keyframes modernFloat {
   0%, 100% {
     transform: translateY(0px);
@@ -142,14 +128,26 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 @layer utilities {
-  /* Modern glassmorphism components */
+  /* Premium glassmorphism design system */
   .glass-card {
-    @apply bg-white/10 backdrop-blur-xl border border-white/10 rounded-xl;
+    @apply bg-white/[0.08] backdrop-blur-xl border border-white/[0.08] rounded-xl;
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      inset 0 1px 0 rgba(255, 255, 255, 0.1);
   }
   
   .glass-card-hover {
-    @apply glass-card hover:bg-white/15 transition-all duration-300;
+    @apply glass-card hover:bg-white/[0.12] transition-all duration-300;
   }
   
   .modern-gradient {
@@ -161,14 +159,42 @@
   }
   
   .modern-shadow {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 
+      0 8px 32px rgba(0, 0, 0, 0.3),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset;
   }
   
   .modern-shadow-lg {
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+    box-shadow: 
+      0 20px 50px rgba(0, 0, 0, 0.4),
+      0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  }
+
+  .premium-button {
+    @apply glass-card-hover text-white font-medium px-6 py-3 transition-all duration-300;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(147, 51, 234, 0.3) 100%);
+  }
+
+  .premium-button:hover {
+    @apply scale-105;
+    background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(147, 51, 234, 0.4) 100%);
+  }
+
+  .security-card {
+    @apply glass-card bg-gradient-to-br from-green-500/10 to-emerald-600/10 border-green-500/20;
+  }
+
+  .metrics-card {
+    @apply glass-card bg-gradient-to-br from-blue-500/10 to-purple-600/10 border-blue-500/20;
+  }
+
+  .shimmer-effect {
+    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 2s infinite;
   }
   
-  /* Animation utilities */
+  /* Premium animation utilities */
   .animate-modern-float {
     animation: modernFloat 4s ease-in-out infinite;
   }
@@ -187,5 +213,9 @@
   
   .animate-modern-glow {
     animation: modernGlow 3s ease-in-out infinite;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
   }
 }

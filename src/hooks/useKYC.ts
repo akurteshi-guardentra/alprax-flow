@@ -3,7 +3,6 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 
 export type DocumentType = 'passport' | 'drivers_license' | 'id_card' | 'utility_bill' | 'bank_statement';
-
 export type KYCStatusType = 'pending' | 'verified' | 'rejected' | 'not_submitted';
 
 export interface KYCDocument {

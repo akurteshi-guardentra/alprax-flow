@@ -7,7 +7,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 
 export default function Dashboard() {
@@ -17,7 +16,7 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen modern-gradient p-4 sm:p-6 relative overflow-hidden">
-      {/* Enhanced background elements */}
+      {/* Premium background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
@@ -66,7 +65,6 @@ export default function Dashboard() {
         >
           {showTestAccounts ? (
             <>
-              {/* Test Account Management */}
               <div className="lg:col-span-1">
                 <Card className="glass-card modern-shadow">
                   <CardContent className="p-4">
@@ -75,7 +73,6 @@ export default function Dashboard() {
                 </Card>
               </div>
               
-              {/* Simplified Payment Flow */}
               <div className="lg:col-span-2">
                 <SimplifiedPaymentFlow isMobile={isMobile} />
               </div>

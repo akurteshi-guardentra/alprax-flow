@@ -5,7 +5,7 @@ import { StellarAccount } from "@/components/stellar-account";
 import { TransactionForm } from "@/components/TransactionForm";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { signOut } from "@/lib/auth";
-import { LogOut, User, Wallet, Bell, Settings, Globe, CreditCard, FileCheck, BarChart } from "lucide-react";
+import { LogOut, User, BarChart, Settings, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,15 +23,12 @@ const Index = () => {
   const isMobile = useIsMobile();
   const { theme } = useTheme();
 
-  // Initialize environment configuration
   useEffect(() => {
-    // Log environment configuration in development
     if (import.meta.env.DEV) {
       logEnvironmentConfig();
       console.info(getDeploymentInfo());
     }
     
-    // Validate environment configuration
     const configErrors = validateEnvironmentConfig();
     if (configErrors.length > 0) {
       configErrors.forEach(error => {
@@ -52,7 +49,6 @@ const Index = () => {
     navigate(path);
   };
 
-  // Animation variants
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -70,21 +66,20 @@ const Index = () => {
 
   return (
     <div className="min-h-screen modern-gradient p-2 sm:p-4 md:p-6 lg:p-8 pb-24 sm:pb-8 relative overflow-hidden">
-      {/* Enhanced decorative elements */}
+      {/* Premium background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
         <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-cyan-500/15 rounded-full blur-2xl animate-modern-pulse"></div>
       </div>
 
-      {/* Content Container */}
       <motion.div 
         initial="hidden"
         animate="visible"
         variants={containerVariants}
         className="relative z-10"
       >
-        {/* Header with Navigation */}
+        {/* Modern Header */}
         <motion.div 
           variants={itemVariants}
           className="flex justify-between items-center mb-6 sm:mb-8 px-2"
@@ -97,6 +92,14 @@ const Index = () => {
           <div className="flex gap-2">
             {!isMobile && (
               <>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => navigateTo('/modern-dashboard')}
+                  className="glass-card-hover text-white border-none"
+                >
+                  <Home className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+                  Dashboard
+                </Button>
                 <Button 
                   variant="ghost" 
                   onClick={() => navigateTo('/profile')}

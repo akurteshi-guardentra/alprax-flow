@@ -6,6 +6,10 @@ import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { motion } from "framer-motion";
+import { SecurityDashboard } from "@/components/SecurityDashboard";
+import { TransferImpact } from "@/components/financial/TransferImpact";
+import { TransactionStatus } from "@/components/financial/TransactionStatus";
+import { KYCStatus } from "@/components/kyc/KYCStatus";
 
 export default function ModernDashboard() {
   const { isLoading } = useStellarAccount();
@@ -19,8 +23,8 @@ export default function ModernDashboard() {
           className="glass-card p-8 text-center modern-shadow"
         >
           <div className="animate-modern-pulse space-y-4">
-            <div className="h-8 bg-white/20 rounded-lg w-48 mx-auto"></div>
-            <div className="h-4 bg-white/15 rounded w-32 mx-auto"></div>
+            <div className="h-8 bg-white/20 rounded-lg w-48 mx-auto shimmer-effect"></div>
+            <div className="h-4 bg-white/15 rounded w-32 mx-auto shimmer-effect"></div>
           </div>
         </motion.div>
       </div>
@@ -29,7 +33,7 @@ export default function ModernDashboard() {
 
   return (
     <div className="min-h-screen modern-gradient relative overflow-hidden">
-      {/* Enhanced background elements */}
+      {/* Enhanced premium background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
@@ -44,10 +48,29 @@ export default function ModernDashboard() {
           className="space-y-6"
         >
           <DashboardHeader />
-          <BalanceCard />
-          <QuickActionsGrid />
-          <StatsGrid />
-          <RecentActivityCard />
+          
+          {/* Main Dashboard Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column - Balance & Quick Actions */}
+            <div className="lg:col-span-2 space-y-6">
+              <BalanceCard />
+              <QuickActionsGrid />
+              <RecentActivityCard />
+            </div>
+            
+            {/* Right Column - Status Cards */}
+            <div className="space-y-6">
+              <KYCStatus compact={true} />
+              <SecurityDashboard />
+              <StatsGrid />
+            </div>
+          </div>
+
+          {/* Bottom Section - Analytics */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <TransferImpact />
+            <TransactionStatus />
+          </div>
         </motion.div>
       </div>
     </div>

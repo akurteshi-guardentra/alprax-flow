@@ -1,3 +1,4 @@
+
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
@@ -7,10 +8,6 @@ import KYCStatus from "@/components/kyc/KYCStatus";
 import AdminKYCVerification from "@/components/kyc/AdminKYCVerification";
 import { useEffect, useState } from "react";
 import { useKYC } from "@/hooks/useKYC";
-import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
-import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
-import { useMobile } from "@/hooks/use-mobile";
-import { useDataSaverMode } from "@/hooks/use-data-saver";
 
 const KYC = () => {
   const navigate = useNavigate();
@@ -24,15 +21,9 @@ const KYC = () => {
     refreshKYCStatus,
     cancelVerification
   } = useKYC();
-  const { shouldAnimate, getTransition } = useOptimizedAnimations();
-  const { isLoadingWithFallback } = useNetworkAwareLoading(isLoading);
-  const { isMobile } = useMobile();
-  const { isLowEndDevice } = useDataSaverMode();
 
   useEffect(() => {
-    // Admin check could be a separate hook or function
     const checkAdminStatus = async () => {
-      // TODO: Implement proper admin check based on your auth model
       setIsAdmin(false);
     };
     
@@ -41,21 +32,21 @@ const KYC = () => {
 
   const getStatusDisplay = () => {
     switch (status) {
-      case 'approved':
+      case 'verified':
         return (
           <div className="max-w-lg mx-auto">
             <KYCStatus showActionButton={false} />
             
             <motion.div 
               className="text-center text-white bg-green-500/20 p-6 mt-6 rounded-xl backdrop-blur-sm border border-green-500/30"
-              initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : undefined} 
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={getTransition({ type: 'spring', stiffness: 300, damping: 25 })}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
-              <div className={`${isLowEndDevice ? 'w-12 h-12' : 'w-16 h-16'} mx-auto rounded-full bg-green-500/30 flex items-center justify-center mb-4`}>
-                <Check className={`${isLowEndDevice ? 'h-6 w-6' : 'h-8 w-8'} text-green-300`} />
+              <div className="w-16 h-16 mx-auto rounded-full bg-green-500/30 flex items-center justify-center mb-4">
+                <Check className="h-8 w-8 text-green-300" />
               </div>
-              <h2 className={`${isLowEndDevice ? 'text-xl' : 'text-2xl'} font-bold mb-2`}>KYC Verification Complete</h2>
+              <h2 className="text-2xl font-bold mb-2">KYC Verification Complete</h2>
               <p className="text-white/80">Your identity has been verified. You now have full access to all features.</p>
               <div className="mt-6 flex justify-center">
                 <Button 
@@ -67,25 +58,6 @@ const KYC = () => {
                 </Button>
               </div>
             </motion.div>
-            
-            {/* Verified account features */}
-            {!isLowEndDevice && (
-              <motion.div 
-                className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4"
-                initial={shouldAnimate ? { opacity: 0, y: 10 } : undefined}
-                animate={{ opacity: 1, y: 0 }}
-                transition={getTransition({ delay: 0.2 })}
-              >
-                <div className="bg-white/5 p-4 rounded-lg border border-white/10 backdrop-blur-sm">
-                  <h3 className="text-white font-medium mb-2">Higher Transaction Limits</h3>
-                  <p className="text-white/70 text-sm">You can now perform larger transactions without additional verification.</p>
-                </div>
-                <div className="bg-white/5 p-4 rounded-lg border border-white/10 backdrop-blur-sm">
-                  <h3 className="text-white font-medium mb-2">Advanced Features</h3>
-                  <p className="text-white/70 text-sm">Access to premium features like batch transfers and currency exchange.</p>
-                </div>
-              </motion.div>
-            )}
           </div>
         );
       case 'pending':
@@ -95,15 +67,15 @@ const KYC = () => {
             
             <motion.div 
               className="text-center text-white bg-yellow-500/20 p-6 mt-6 rounded-xl backdrop-blur-sm border border-yellow-500/30"
-              initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : undefined} 
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={getTransition({ type: 'spring', stiffness: 300, damping: 25 })}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
-              <div className={`${isLowEndDevice ? 'w-12 h-12' : 'w-16 h-16'} mx-auto rounded-full bg-yellow-500/30 flex items-center justify-center mb-4`}>
-                <Clock className={`${isLowEndDevice ? 'h-6 w-6' : 'h-8 w-8'} text-yellow-300`} />
+              <div className="w-16 h-16 mx-auto rounded-full bg-yellow-500/30 flex items-center justify-center mb-4">
+                <Clock className="h-8 w-8 text-yellow-300" />
               </div>
-              <h2 className={`${isLowEndDevice ? 'text-xl' : 'text-2xl'} font-bold mb-2`}>Verification In Progress</h2>
-              <p className="text-white/80">Your verification request is being reviewed. We'll notify you once the process is complete.</p>
+              <h2 className="text-2xl font-bold mb-2">Verification In Progress</h2>
+              <p className="text-white/80">Your verification is being processed. This usually takes 1-2 business days.</p>
               {documents.length > 0 && (
                 <div className="mt-6">
                   <p className="text-sm text-white/60 mb-2">Submitted {new Date(documents[0].submitted_at).toLocaleDateString()}</p>
@@ -117,20 +89,6 @@ const KYC = () => {
                 </div>
               )}
             </motion.div>
-            
-            {/* Expected completion info */}
-            <motion.div 
-              className="mt-6 bg-white/5 p-4 rounded-lg border border-white/10 backdrop-blur-sm"
-              initial={shouldAnimate ? { opacity: 0, y: 10 } : undefined}
-              animate={{ opacity: 1, y: 0 }}
-              transition={getTransition({ delay: 0.2 })}
-            >
-              <h3 className="text-white font-medium mb-2 flex items-center">
-                <Info className="h-4 w-4 mr-2 text-blue-400" />
-                Verification Timeline
-              </h3>
-              <p className="text-white/70 text-sm">Verification typically takes 1-2 business days to complete. You'll receive a notification once your documents have been reviewed.</p>
-            </motion.div>
           </div>
         );
       case 'rejected':
@@ -140,15 +98,15 @@ const KYC = () => {
           
             <motion.div 
               className="text-white bg-red-500/20 p-6 mt-6 rounded-xl backdrop-blur-sm border border-red-500/30"
-              initial={shouldAnimate ? { opacity: 0, scale: 0.95 } : undefined}
+              initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={getTransition({ type: 'spring', stiffness: 300, damping: 25 })}
+              transition={{ type: 'spring', stiffness: 300, damping: 25 }}
             >
               <div className="text-center">
-                <div className={`${isLowEndDevice ? 'w-12 h-12' : 'w-16 h-16'} mx-auto rounded-full bg-red-500/30 flex items-center justify-center mb-4`}>
-                  <AlertTriangle className={`${isLowEndDevice ? 'h-6 w-6' : 'h-8 w-8'} text-red-300`} />
+                <div className="w-16 h-16 mx-auto rounded-full bg-red-500/30 flex items-center justify-center mb-4">
+                  <AlertTriangle className="h-8 w-8 text-red-300" />
                 </div>
-                <h2 className={`${isLowEndDevice ? 'text-xl' : 'text-2xl'} font-bold mb-2`}>Verification Rejected</h2>
+                <h2 className="text-2xl font-bold mb-2">Verification Rejected</h2>
               </div>
               
               <div className="mt-4 bg-red-500/10 p-4 rounded-lg border border-red-500/20">
@@ -159,15 +117,6 @@ const KYC = () => {
                     "Your verification was rejected. Please try again with valid documents."
                   }
                 </p>
-              </div>
-              
-              <div className="mt-4">
-                <h3 className="text-white font-medium mb-2">What to do next:</h3>
-                <ul className="space-y-2 text-white/80 text-sm pl-5">
-                  <li>Ensure your documents are clearly visible and not expired</li>
-                  <li>Make sure all four corners of your ID are visible</li>
-                  <li>Upload a higher quality photo if the previous one was blurry</li>
-                </ul>
               </div>
               
               <div className="mt-6 text-center">
@@ -191,8 +140,15 @@ const KYC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-kosovo-blue via-kosovo-blue/90 to-red-900 p-4 sm:p-6 lg:p-8">
-      <div className="max-w-7xl mx-auto relative">
+    <div className="min-h-screen modern-gradient p-4 sm:p-6 lg:p-8 relative overflow-hidden">
+      {/* Enhanced background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-cyan-500/10 rounded-full blur-2xl animate-modern-pulse"></div>
+      </div>
+
+      <div className="max-w-7xl mx-auto relative z-10">
         <Button
           variant="ghost"
           onClick={() => navigate(-1)}
@@ -207,7 +163,7 @@ const KYC = () => {
           animate={{ opacity: 1, y: 0 }}
           className="pt-20"
         >
-          {isLoadingWithFallback ? (
+          {isLoading ? (
             <div className="max-w-lg mx-auto text-center p-10">
               <div className="animate-pulse space-y-4">
                 <div className="h-24 w-24 bg-white/10 rounded-full mx-auto"></div>

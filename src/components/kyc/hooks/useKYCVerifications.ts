@@ -45,7 +45,7 @@ export function useKYCVerifications() {
       notes?: string;
     }) => {
       // Map our status to database status
-      const dbStatus = status === 'rejected' ? 'basic' : status;
+      const dbStatus = status === 'rejected' ? 'basic' : status === 'not_submitted' ? 'pending' : status;
       
       const { data, error } = await supabase
         .from('kyc_verifications')
@@ -78,7 +78,6 @@ export function useKYCVerifications() {
     }
   });
 
-  // Create a wrapper function that matches the expected signature
   const handleStatusUpdate = (verificationId: string, status: KYCVerificationStatus, notes?: string) => {
     updateVerificationMutation.mutate({ id: verificationId, status, notes });
   };

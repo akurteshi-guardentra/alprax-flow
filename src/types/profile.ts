@@ -8,7 +8,7 @@ export interface Profile {
   avatar_url?: string;
   country?: string;
   phone_number?: string;
-  kyc_level: KYCStatus;
+  kyc_level: "pending" | "verified" | "basic";
   kyc_verified_at?: string;
   onboarding_completed: boolean;
   onboarding_step?: string;
@@ -24,7 +24,7 @@ export interface KYCVerification {
   user_id: string;
   document_type: string;
   document_url: string;
-  status: KYCStatus;
+  status: "pending" | "verified" | "rejected";
   submitted_at: string;
   verified_at?: string;
   rejection_reason?: string;

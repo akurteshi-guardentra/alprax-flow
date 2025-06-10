@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -25,7 +26,7 @@ import { Badge } from '@/components/ui/badge';
 import { CheckCircle, AlertTriangle } from 'lucide-react';
 
 // Define valid KYC statuses that match the database enum
-type KYCStatus = 'pending' | 'verified' | 'rejected';
+type KYCVerificationStatus = 'pending' | 'verified' | 'rejected';
 
 // Define valid profile KYC levels that match the profiles table
 type ProfileKYCLevel = 'pending' | 'verified' | 'basic';
@@ -35,7 +36,7 @@ interface KYCVerification {
   user_id: string;
   document_type: string;
   document_url: string;
-  status: KYCStatus;
+  status: KYCVerificationStatus;
   submitted_at: string;
   verified_at?: string;
   notes?: string;
@@ -88,7 +89,7 @@ const AdminKYCVerification = () => {
     fetchVerifications();
   }, []);
 
-  const handleStatusUpdate = async (verificationId: string, newStatus: KYCStatus, notes?: string) => {
+  const handleStatusUpdate = async (verificationId: string, newStatus: KYCVerificationStatus, notes?: string) => {
     try {
       // Update the KYC verification record
       const { error } = await supabase
@@ -106,7 +107,7 @@ const AdminKYCVerification = () => {
       const verification = verifications.find(v => v.id === verificationId);
       if (verification) {
         // Map KYC verification status to profile kyc_level
-        const getProfileKycLevel = (status: KYCStatus): ProfileKYCLevel => {
+        const getProfileKycLevel = (status: KYCVerificationStatus): ProfileKYCLevel => {
           switch (status) {
             case 'verified':
               return 'verified';

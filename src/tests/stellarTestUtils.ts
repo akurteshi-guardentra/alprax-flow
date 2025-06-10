@@ -1,40 +1,26 @@
-// Test utilities for Stellar functionality
-// These functions are simplified versions for testing purposes
 
 import { Keypair } from 'stellar-sdk';
-import { StellarAccount } from '../lib/stellar/types';
+import { TestAccount } from '../lib/stellar/types';
 
-/**
- * Create a test Stellar account without requiring authentication
- * This is a simpler version of the normal createAccount function 
- * that doesn't require Supabase authentication
- */
-export function createTestAccount(): StellarAccount {
-  // Generate a new random keypair
+// Create a test account without requiring authentication
+export function createTestAccount(): TestAccount {
   const keypair = Keypair.random();
-  const publicKey = keypair.publicKey();
-  const secretKey = keypair.secret();
   
-  // Use simple encoding (not for production)
-  const encryptedSecret = btoa(secretKey);
-  
-  // Return the account details without storing in the database
   return {
-    id: `test_${Math.random().toString(36).substring(2, 9)}`,
-    publicKey,
-    encryptedSecret
+    id: Math.random().toString(36).substring(2, 15),
+    name: 'Test Account',
+    publicKey: keypair.publicKey(),
+    encryptedSecret: btoa(keypair.secret()), // Simple base64 encoding for testing
+    balance: '0',
+    isActive: false,
+    createdAt: new Date().toISOString()
   };
 }
 
-/**
- * Fund a test account using Friendbot without requiring authentication
- * This bypasses the database recording functionality
- */
-export async function fundTestAccountDirect(publicKey: string) {
+// Fund test account directly using Stellar Friendbot
+export async function fundTestAccountDirect(publicKey: string): Promise<{ success: boolean; hash?: string; error?: string }> {
   try {
-    const response = await fetch(
-      `https://friendbot.stellar.org?addr=${publicKey}`
-    );
+    const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
     
     if (!response.ok) {
       const errorText = await response.text();

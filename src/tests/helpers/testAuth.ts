@@ -1,78 +1,44 @@
-// Helper for test user authentication
-import { supabase } from '@/integrations/supabase/client';
 
-// Test credentials - use environment variables in a real app
+import { supabase } from '../../integrations/supabase/client';
+
 const TEST_EMAIL = 'test@example.com';
 const TEST_PASSWORD = 'password123';
 
 export async function ensureTestUser() {
-  console.log('🔑 Setting up test user authentication...');
+  console.log('🔑 Ensuring test user is authenticated...');
   
-  // First check if already authenticated
-  const { data: { user: existingUser } } = await supabase.auth.getUser();
-  if (existingUser) {
-    console.log('✅ Already authenticated as:', existingUser.email);
-    return existingUser;
+  // Check if already signed in
+  const { data: { user } } = await supabase.auth.getUser();
+  if (user) {
+    console.log('✅ Already authenticated as:', user.email);
+    return user;
   }
-  
-  // Try to sign in first
-  let user = await trySignIn();
-  
-  // If sign-in fails, try to sign up
-  if (!user) {
-    user = await trySignUp();
-  }
-  
-  // If still no user, try one more sign-in (in case signup succeeded but didn't return user)
-  if (!user) {
-    user = await trySignIn();
-  }
-  
-  if (!user) {
-    throw new Error('Could not authenticate or create test user after multiple attempts');
-  }
-  
-  return user;
-}
 
-async function trySignIn() {
-  try {
-    console.log('Attempting to sign in with test credentials...');
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: TEST_EMAIL,
-      password: TEST_PASSWORD
-    });
-    
-    if (error) {
-      console.log('🔶 Sign-in failed:', error.message);
-      return null;
-    }
-    
-    console.log('✅ Test user signed in successfully');
-    return data.user;
-  } catch (error) {
-    console.error('❌ Exception during sign-in:', error);
-    return null;
-  }
-}
+  // Try to sign in with test credentials
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email: TEST_EMAIL,
+    password: TEST_PASSWORD
+  });
 
-async function trySignUp() {
-  try {
+  if (error) {
+    console.error('❌ Authentication failed:', error.message);
+    
+    // Try to sign up if sign in fails
     console.log('🔄 Attempting to sign up test user...');
-    const { data, error } = await supabase.auth.signUp({
+    const { data: signupData, error: signupError } = await supabase.auth.signUp({
       email: TEST_EMAIL,
       password: TEST_PASSWORD
     });
-    
-    if (error) {
-      console.error('❌ Sign up failed:', error.message);
-      return null;
+
+    if (signupError) {
+      console.error('❌ Sign up failed:', signupError.message);
+      throw new Error('Could not authenticate test user');
     }
-    
+
     console.log('✅ Test user signed up successfully');
-    return data.user;
-  } catch (error) {
-    console.error('❌ Exception during sign-up:', error);
-    return null;
+    return signupData.user;
   }
+
+  console.log('✅ Test user authenticated successfully');
+  return data.user;
 }

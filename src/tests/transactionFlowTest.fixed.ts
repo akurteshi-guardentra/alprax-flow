@@ -1,3 +1,4 @@
+
 // Fixed Transaction Flow Test Script
 // This script provides a step-by-step process to test the transaction flow
 
@@ -123,7 +124,7 @@ async function testTransactionFlow() {
       console.log('- Type:', senderTransactions[0].transaction_type);
       console.log('- Amount:', senderTransactions[0].amount);
       console.log('- Status:', senderTransactions[0].status);
-      console.log('- To:', senderTransactions[0].to_address);
+      console.log('- Recipient:', senderTransactions[0].recipient_name);
     }
     
     console.log('\nRecipient transaction history:');
@@ -135,7 +136,7 @@ async function testTransactionFlow() {
       console.log('- Type:', recipientTransactions[0].transaction_type);
       console.log('- Amount:', recipientTransactions[0].amount);
       console.log('- Status:', recipientTransactions[0].status);
-      console.log('- From:', recipientTransactions[0].from_address);
+      console.log('- Memo:', recipientTransactions[0].memo);
     }
   } catch (error) {
     console.error('❌ Failed to check transaction history:', error);

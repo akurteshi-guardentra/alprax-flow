@@ -58,12 +58,12 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Map status to profile level using our local function
+      // Map status to profile level using our local function with proper type casting
       const profileKycLevel = mapStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ kyc_level: profileKycLevel })
+        .update({ kyc_level: profileKycLevel as "pending" | "verified" | "basic" })
         .eq('id', data.user_id);
 
       if (profileError) throw profileError;

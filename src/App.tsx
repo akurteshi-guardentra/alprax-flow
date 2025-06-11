@@ -23,31 +23,36 @@ const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="alprax-theme">
-        <TooltipProvider>
-          <Toaster />
-          <BrowserRouter>
-            <TestnetBanner />
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/welcome" element={<Welcome />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-              <Route path="/profile" element={<Profile />} />
-              <Route path="/settings" element={<Settings />} />
-              <Route path="/analytics" element={<Analytics />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/modern-dashboard" element={<ModernDashboard />} />
-              <Route path="/verify" element={<Verify />} />
-              <Route path="/verification/document" element={<VerifyDocument />} />
-              <Route path="/cards" element={<Cards />} />
-              <Route path="/help" element={<Help />} />
-            </Routes>
-          </BrowserRouter>
-        </TooltipProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <div className="relative min-h-screen w-full">
+      {/* Second background layer covering entire screen */}
+      <div className="fixed inset-0 w-full h-full bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 opacity-30 pointer-events-none z-0" />
+      
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" storageKey="alprax-theme">
+          <TooltipProvider>
+            <Toaster />
+            <BrowserRouter>
+              <TestnetBanner />
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/welcome" element={<Welcome />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/profile" element={<Profile />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="/analytics" element={<Analytics />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/modern-dashboard" element={<ModernDashboard />} />
+                <Route path="/verify" element={<Verify />} />
+                <Route path="/verification/document" element={<VerifyDocument />} />
+                <Route path="/cards" element={<Cards />} />
+                <Route path="/help" element={<Help />} />
+              </Routes>
+            </BrowserRouter>
+          </TooltipProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </div>
   );
 }
 

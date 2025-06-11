@@ -59,7 +59,7 @@ export function useKYCVerifications() {
       if (error) throw error;
 
       // Map status to profile level with proper typing
-      const profileKycLevel: "pending" | "verified" | "basic" = mapStatusToProfileLevel(status);
+      const profileKycLevel = mapStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')

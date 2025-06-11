@@ -1,4 +1,5 @@
 
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { KYCVerificationStatus, ProfileKYCLevel } from "../types";
@@ -59,7 +60,7 @@ export function useKYCVerifications() {
       if (error) throw error;
 
       // Map status to profile level using our local function
-      const profileKycLevel = mapStatusToProfileLevel(status);
+      const profileKycLevel: ProfileKYCLevel = mapStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')
@@ -118,13 +119,14 @@ function mapFrontendStatusToDb(status: KYCVerificationStatus): string {
 function mapStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
   switch (status) {
     case 'verified':
-      return 'verified';
+      return 'verified' as const;
     case 'pending':
     case 'not_submitted':
-      return 'pending';
+      return 'pending' as const;
     case 'rejected':
-      return 'basic';
+      return 'basic' as const;
     default:
-      return 'pending';
+      return 'pending' as const;
   }
 }
+

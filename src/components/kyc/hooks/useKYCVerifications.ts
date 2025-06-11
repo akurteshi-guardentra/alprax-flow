@@ -58,12 +58,12 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Map status to profile level using our local function with proper type casting
+      // Map status to profile level with proper typing
       const profileKycLevel = mapStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ kyc_level: profileKycLevel as "pending" | "verified" | "basic" })
+        .update({ kyc_level: profileKycLevel })
         .eq('id', data.user_id);
 
       if (profileError) throw profileError;
@@ -115,7 +115,7 @@ function mapFrontendStatusToDb(status: KYCVerificationStatus): string {
   }
 }
 
-function mapStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
+function mapStatusToProfileLevel(status: KYCVerificationStatus): "pending" | "verified" | "basic" {
   switch (status) {
     case 'verified':
       return 'verified';

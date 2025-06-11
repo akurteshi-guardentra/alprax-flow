@@ -115,7 +115,7 @@ function mapFrontendStatusToDb(status: KYCVerificationStatus): string {
   }
 }
 
-function mapStatusToProfileLevel(status: KYCVerificationStatus): "pending" | "verified" | "basic" {
+function mapStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
   switch (status) {
     case 'verified':
       return 'verified';

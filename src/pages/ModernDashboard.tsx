@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { TransferImpact } from "@/components/financial/TransferImpact";
 import { TransactionStatus } from "@/components/financial/TransactionStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, TrendingUp, Users, DollarSign, Globe, Zap, AlertTriangle } from "lucide-react";
+import { TrendingUp, Users, DollarSign, Globe, Zap } from "lucide-react";
 
 export default function ModernDashboard() {
   const { isLoading } = useStellarAccount();
@@ -31,30 +31,6 @@ export default function ModernDashboard() {
       </div>
     );
   }
-
-  const securityMetrics = [
-    {
-      title: "Security Score",
-      value: "98/100",
-      icon: Shield,
-      status: "excellent",
-      description: "All security measures active"
-    },
-    {
-      title: "Threats Prevented",
-      value: "24",
-      icon: AlertTriangle,
-      status: "active",
-      description: "Last 30 days"
-    },
-    {
-      title: "Account Status",
-      value: "Active",
-      icon: Users,
-      status: "verified",
-      description: "Account ready"
-    }
-  ];
 
   const transactionMetrics = [
     {
@@ -125,36 +101,6 @@ export default function ModernDashboard() {
                   </Card>
                 </div>
               </div>
-
-              {/* Security Metrics */}
-              <Card className="glass-card modern-shadow security-card">
-                <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-green-400" />
-                    Security Dashboard
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    {securityMetrics.map((metric, index) => (
-                      <motion.div
-                        key={metric.title}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.3 + index * 0.1 }}
-                        className="text-center"
-                      >
-                        <div className="w-12 h-12 mx-auto mb-3 rounded-xl bg-green-500/20 flex items-center justify-center">
-                          <metric.icon className="h-6 w-6 text-green-400" />
-                        </div>
-                        <div className="text-2xl font-bold text-white mb-1">{metric.value}</div>
-                        <div className="text-white/70 text-sm">{metric.title}</div>
-                        <div className="text-green-400 text-xs mt-1">{metric.description}</div>
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
 
               {/* Transaction Metrics */}
               <Card className="glass-card modern-shadow">

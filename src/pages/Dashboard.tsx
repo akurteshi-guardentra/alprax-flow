@@ -5,7 +5,7 @@ import { SimplifiedPaymentFlow } from "@/components/transaction/SimplifiedPaymen
 import { TestAccountView } from "@/components/stellar-account/TestAccountView";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings, Shield, TrendingUp, DollarSign } from "lucide-react";
+import { ArrowLeft, Settings, TrendingUp, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useStellarAccount } from "@/hooks/useStellarAccount";
@@ -34,13 +34,6 @@ export default function Dashboard() {
       icon: TrendingUp,
       change: "+8%", 
       changeType: "positive"
-    },
-    {
-      title: "Security Score",
-      value: "98/100",
-      icon: Shield,
-      change: "Excellent",
-      changeType: "neutral"
     }
   ];
 
@@ -94,7 +87,7 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.3 }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
         >
           {quickStats.map((stat, index) => (
             <Card key={stat.title} className="glass-card modern-shadow metrics-card">

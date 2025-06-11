@@ -14,7 +14,6 @@ import Settings from "./pages/Settings";
 import Analytics from "./pages/Analytics";
 import Dashboard from "./pages/Dashboard";
 import ModernDashboard from "./pages/ModernDashboard";
-import KYC from "./pages/KYC";
 import Verify from "./pages/Verify";
 import VerifyDocument from "./pages/VerifyDocument";
 import Cards from "./pages/Cards";
@@ -40,7 +39,6 @@ function App() {
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/modern-dashboard" element={<ModernDashboard />} />
-              <Route path="/kyc" element={<KYC />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
               <Route path="/cards" element={<Cards />} />

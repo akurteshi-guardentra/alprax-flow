@@ -1,164 +1,128 @@
-// Integration component for the simplified payment flow
-import { useState, useEffect } from 'react';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
-import { UserProfileService } from '@/services/UserProfileService';
-import { SimplifiedPaymentForm } from './SimplifiedPaymentForm';
-import { EnhancedTransactionHistory } from './EnhancedTransactionHistory';
-import { useTransactionSubmission } from '@/hooks/useTransactionSubmission';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import { motion } from 'framer-motion';
-import { Wallet, ChevronDown, Activity, Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { toast } from 'sonner';
-import { hapticFeedback } from '@/lib/haptics';
+import { useState } from "react";
+import { TransactionForm } from "@/components/TransactionForm";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { QrCode, Users, Plus, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
 
-interface PaymentFlowProps {
-  isMobile: boolean;
+interface SimplifiedPaymentFlowProps {
+  isMobile?: boolean;
 }
 
-export function SimplifiedPaymentFlow({ isMobile }: PaymentFlowProps) {
-  // Get account details and balance
-  const { account, balance, sendPayment, isSending } = useStellarAccount();
-  const { fiatRate, defaultFiat } = useTransactionSubmission();
-  const [availableFunds, setAvailableFunds] = useState(0);
-  const [showBalanceDetails, setShowBalanceDetails] = useState(false);
-  const [activeTab, setActiveTab] = useState<'send' | 'history'>('send');
+export function SimplifiedPaymentFlow({ isMobile = false }: SimplifiedPaymentFlowProps) {
+  const [view, setView] = useState<'home' | 'send' | 'request' | 'qr'>('home');
 
-  // Effect to update available funds from balance
-  useEffect(() => {
-    if (balance && balance.length > 0) {
-      try {
-        setAvailableFunds(parseFloat(balance[0].balance));
-      } catch (error) {
-        console.error("Error parsing balance:", error);
-        setAvailableFunds(0);
-      }
-    } else {
-      setAvailableFunds(0);
-    }
-  }, [balance]);  // Handle payment submission - simplified to work with the mutation
-  const handlePaymentSubmit = async (
-    destination: string,
-    amount: string,
-    memo: string,
-    recipientInfo: { name?: string; id?: string }
-  ): Promise<{ success: boolean; hash?: string; error?: string }> => {
-    if (!account) {
-      toast.error("Account not set up yet");
-      return { success: false, error: "Account not set up" };
-    }
-
-    // Call the sendPayment mutation - it handles its own success/error through toast messages
-    sendPayment({
-      destination,
-      amount,
-      memo,
-      recipientName: recipientInfo.name,
-      recipientId: recipientInfo.id
-    });
-
-    // Return success immediately since the mutation handles the actual result
-    // The form will show loading state while isSending is true
-    return { success: true };
-  };
-
-  // Handle tab change
-  const handleTabChange = (value: string) => {
-    setActiveTab(value as 'send' | 'history');
-    hapticFeedback('light');
-  };
-
-  // If no account is set up yet, show a message
-  if (!account) {
+  if (view === 'send') {
     return (
-      <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
-        <CardContent className="flex flex-col items-center justify-center p-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-400 mb-4" />
-          <p className="text-white/70 text-center">
-            Loading your account details...
-          </p>
-        </CardContent>
-      </Card>
+      <div className="space-y-4">
+        <Button 
+          variant="ghost" 
+          onClick={() => setView('home')}
+          className="text-white/70 hover:text-white hover:bg-white/10"
+        >
+          ← Back to menu
+        </Button>
+        <TransactionForm />
+      </div>
     );
   }
 
-  // Rendering the component
-  return (
-    <div className="space-y-6">
-      {/* Balance Card */}
-      <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm overflow-hidden">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center text-xl font-semibold text-white">
-              <Wallet className="mr-2 h-5 w-5 text-blue-400" />
-              Your Balance
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>          <div className="flex flex-col items-center text-center">            <div className="text-3xl font-bold text-white mb-2">
-              {fiatRate > 0 
-                ? `${(availableFunds * fiatRate).toFixed(2)} ${defaultFiat}`
-                : `-- ${defaultFiat}` // Show placeholder when rate is loading
-              }
-            </div><Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30 mb-4">
-              Secure Account
-            </Badge>
-            
+  if (view === 'home') {
+    return (
+      <div className="space-y-6">
+        <div className="text-center">
+          <h3 className="text-xl font-semibold text-white mb-2">Send Money</h3>
+          <p className="text-white/70">Choose how you'd like to send money</p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4">
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             <Button
-              variant="outline"
-              size="sm"
-              className="text-xs text-white/70 bg-transparent border-white/20 hover:bg-white/10"
-              onClick={() => setShowBalanceDetails(!showBalanceDetails)}
+              onClick={() => setView('send')}
+              className="w-full h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-white/10 text-white justify-between group"
             >
-              Account Details <ChevronDown className={`ml-1 h-3 w-3 transition-transform ${showBalanceDetails ? 'rotate-180' : ''}`} />
-            </Button>
-            
-            {showBalanceDetails && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="w-full mt-4"
-              >
-                <div className="p-3 bg-white/5 rounded border border-white/10 text-left">
-                  <p className="text-white/60 text-sm mb-1">Network ID:</p>
-                  <p className="text-white text-sm font-mono break-all">{account.publicKey}</p>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                  <Users className="h-5 w-5 text-blue-400" />
                 </div>
-              </motion.div>
-            )}
+                <div className="text-left">
+                  <div className="font-medium">Send to Contact</div>
+                  <div className="text-sm text-white/70">Send money to anyone by name, email, or phone</div>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
+            </Button>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={() => setView('qr')}
+              className="w-full h-16 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-white/10 text-white justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
+                  <QrCode className="h-5 w-5 text-green-400" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Scan QR Code</div>
+                  <div className="text-sm text-white/70">Pay with QR code or generate one for others</div>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
+            </Button>
+          </motion.div>
+
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Button
+              onClick={() => setView('request')}
+              className="w-full h-16 bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border border-white/10 text-white justify-between group"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
+                  <Plus className="h-5 w-5 text-orange-400" />
+                </div>
+                <div className="text-left">
+                  <div className="font-medium">Request Money</div>
+                  <div className="text-sm text-white/70">Ask someone to send you money</div>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
+            </Button>
+          </motion.div>
+        </div>
+
+        <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+          <div className="text-blue-400 text-sm font-medium mb-1">💡 Quick Tip</div>
+          <div className="text-white/90 text-sm">
+            You can send money to anyone with just their name, email, or phone number. No need to know wallet addresses!
           </div>
-        </CardContent>
-      </Card>
-      
-      {/* Tabs for Send Money and Transaction History */}
-      <Tabs value={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="bg-slate-800/60 border border-white/10 mb-4">
-          <TabsTrigger value="send" className="data-[state=active]:bg-white/10 text-white">
-            Send Money
-          </TabsTrigger>
-          <TabsTrigger value="history" className="data-[state=active]:bg-white/10 text-white">
-            <Activity className="h-4 w-4 mr-1" />
-            History
-          </TabsTrigger>
-        </TabsList>
-          <TabsContent value="send" className="mt-0">
-          <SimplifiedPaymentForm
-            stellarAccount={account}
-            availableFunds={availableFunds}
-            isProcessing={isSending}
-            onSubmitPayment={handlePaymentSubmit}
-            isMobile={isMobile}
-            defaultFiat={defaultFiat}
-            fiatRate={fiatRate}
-          />
-        </TabsContent>
-        
-        <TabsContent value="history" className="mt-0">
-          <EnhancedTransactionHistory publicKey={account.publicKey} />
-        </TabsContent>
-      </Tabs>
+        </div>
+      </div>
+    );
+  }
+
+  // Placeholder for other views
+  return (
+    <div className="space-y-4">
+      <Button 
+        variant="ghost" 
+        onClick={() => setView('home')}
+        className="text-white/70 hover:text-white hover:bg-white/10"
+      >
+        ← Back to menu
+      </Button>
+      <div className="text-center py-8">
+        <p className="text-white/70">This feature is coming soon!</p>
+      </div>
     </div>
   );
 }

@@ -38,7 +38,7 @@ export async function createAccount(): Promise<StellarAccount | null> {
 
     // Automatically fund the account on testnet with generous amount
     try {
-      toast.loading('Setting up your account with test funds...');
+      toast.loading('Setting up your account with funds...');
       
       const response = await fetch(
         `https://friendbot.stellar.org?addr=${publicKey}`
@@ -66,18 +66,18 @@ export async function createAccount(): Promise<StellarAccount | null> {
           status: 'completed',
           created_at: timestamp,
           completed_at: timestamp,
-          memo: 'Welcome to Alprax Flow! Your account is ready.',
+          memo: 'Welcome to Alprax! Your account is ready.',
           recipient_name: 'My Account'
         });
       }
       
       toast.dismiss();
-      toast.success('Your Alprax Flow account is ready with test funds! 🎉');
+      toast.success('Your account is ready with funds! 🎉');
       hapticFeedback('success');
     } catch (err) {
       console.error('Error funding testnet account:', err);
       toast.dismiss();
-      toast.error('Account created but funding failed. You can add test funds later.');
+      toast.error('Account created but funding failed. You can add funds later.');
       hapticFeedback('error');
     }
 
@@ -88,7 +88,7 @@ export async function createAccount(): Promise<StellarAccount | null> {
     };
   } catch (error) {
     console.error('Error creating Stellar account:', error);
-    toast.error('Failed to create your Alprax Flow account');
+    toast.error('Failed to create your account');
     return null;
   }
 }
@@ -101,10 +101,13 @@ export async function getAccount(): Promise<StellarAccount | null> {
       throw new Error('User not authenticated');
     }
 
+    // Use maybeSingle to handle cases where no data exists
     const { data, error } = await supabase
       .from('stellar_accounts')
       .select()
       .eq('user_id', user.id)
+      .order('is_primary', { ascending: false })
+      .order('created_at', { ascending: false })
       .maybeSingle();
 
     if (error) throw error;

@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
+import { TestnetBanner } from "@/components/TestnetBanner";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -16,6 +17,8 @@ import ModernDashboard from "./pages/ModernDashboard";
 import KYC from "./pages/KYC";
 import Verify from "./pages/Verify";
 import VerifyDocument from "./pages/VerifyDocument";
+import Cards from "./pages/Cards";
+import Help from "./pages/Help";
 
 const queryClient = new QueryClient();
 
@@ -26,6 +29,7 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
+            <TestnetBanner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/welcome" element={<Welcome />} />
@@ -39,6 +43,8 @@ function App() {
               <Route path="/kyc" element={<KYC />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
+              <Route path="/cards" element={<Cards />} />
+              <Route path="/help" element={<Help />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

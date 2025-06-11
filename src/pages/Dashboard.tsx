@@ -15,14 +15,14 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { balance } = useStellarAccount();
-  const [showTestAccounts, setShowTestAccounts] = React.useState(false);
+  const [showDeveloperMode, setShowDeveloperMode] = React.useState(false);
 
   // Get real account balance
   const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
 
   const quickStats = [
     {
-      title: "Total Balance",
+      title: "Available Balance",
       value: <FiatDisplay xlmAmount={accountBalance} currency="USD" />,
       icon: DollarSign,
       change: "+12%",
@@ -71,11 +71,11 @@ export default function Dashboard() {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowTestAccounts(!showTestAccounts)}
+            onClick={() => setShowDeveloperMode(!showDeveloperMode)}
             className="glass-card-hover text-white border-white/20"
           >
             <Settings className="h-4 w-4 mr-1" />
-            {showTestAccounts ? 'Hide' : 'Show'} Test Accounts
+            {showDeveloperMode ? 'Hide' : 'Show'} Developer Mode
           </Button>
         </motion.div>
         
@@ -86,7 +86,7 @@ export default function Dashboard() {
           className="flex flex-col items-start"
         >
           <h1 className="text-3xl md:text-4xl font-bold text-gradient-modern mt-4 mb-2">Alprax Dashboard</h1>
-          <p className="text-white/70 text-lg">Manage your global payments and transfers</p>
+          <p className="text-white/70 text-lg">Send money to anyone, anywhere, instantly</p>
         </motion.div>
 
         {/* Quick Stats */}
@@ -119,17 +119,17 @@ export default function Dashboard() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
-          className={showTestAccounts ? "grid grid-cols-1 lg:grid-cols-3 gap-8" : ""}
+          className={showDeveloperMode ? "grid grid-cols-1 lg:grid-cols-3 gap-8" : ""}
         >
-          {showTestAccounts ? (
+          {showDeveloperMode ? (
             <>
               <div className="lg:col-span-1">
                 <Card className="glass-card modern-shadow">
                   <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Test Accounts (Development Only)</h3>
+                    <h3 className="text-white font-semibold mb-4">Developer Accounts (Demo Only)</h3>
                     <div className="bg-yellow-500/10 p-3 rounded border border-yellow-500/20 mb-4">
                       <p className="text-yellow-300 text-xs">
-                        ⚠️ These are test accounts for development purposes only
+                        ⚠️ These are demo accounts for development purposes only
                       </p>
                     </div>
                     <TestAccountView />
@@ -140,7 +140,7 @@ export default function Dashboard() {
               <div className="lg:col-span-2">
                 <Card className="glass-card modern-shadow">
                   <CardContent className="p-6">
-                    <h3 className="text-white font-semibold mb-4">Payment Flow</h3>
+                    <h3 className="text-white font-semibold mb-4">Send Money</h3>
                     <SimplifiedPaymentFlow isMobile={isMobile} />
                   </CardContent>
                 </Card>

@@ -6,12 +6,10 @@ import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
 import { StatsGrid } from "@/components/dashboard/StatsGrid";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { motion } from "framer-motion";
-import { SecurityDashboard } from "@/components/SecurityDashboard";
 import { TransferImpact } from "@/components/financial/TransferImpact";
 import { TransactionStatus } from "@/components/financial/TransactionStatus";
-import { KYCStatus } from "@/components/kyc/KYCStatus";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Shield, TrendingUp, Users, Clock, DollarSign, Globe, Zap, AlertTriangle } from "lucide-react";
+import { Shield, TrendingUp, Users, DollarSign, Globe, Zap, AlertTriangle } from "lucide-react";
 
 export default function ModernDashboard() {
   const { isLoading } = useStellarAccount();
@@ -50,11 +48,11 @@ export default function ModernDashboard() {
       description: "Last 30 days"
     },
     {
-      title: "Account Verification",
-      value: "Complete",
+      title: "Account Status",
+      value: "Active",
       icon: Users,
       status: "verified",
-      description: "KYC verified"
+      description: "Account ready"
     }
   ];
 
@@ -194,9 +192,7 @@ export default function ModernDashboard() {
             </div>
             
             {/* Right Column - Status Cards */}
-            <div className="space-y-6">
-              <KYCStatus compact={false} />
-              
+            <div className="space-y-6">              
               <Card className="glass-card modern-shadow">
                 <CardHeader>
                   <CardTitle className="text-white text-sm">AI Insights</CardTitle>

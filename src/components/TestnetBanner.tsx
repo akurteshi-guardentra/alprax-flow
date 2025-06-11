@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { AlertCircle, X } from 'lucide-react';
 import { Button } from './ui/button';
@@ -5,11 +6,11 @@ import { Button } from './ui/button';
 export function TestnetBanner() {
   const [closed, setClosed] = useState(() => {
     // Check if the banner has been previously closed
-    return localStorage.getItem('testnet-banner-closed') === 'true';
+    return localStorage.getItem('demo-banner-closed') === 'true';
   });
 
   const handleClose = () => {
-    localStorage.setItem('testnet-banner-closed', 'true');
+    localStorage.setItem('demo-banner-closed', 'true');
     setClosed(true);
   };
 
@@ -21,8 +22,8 @@ export function TestnetBanner() {
       <div className="flex items-center mx-auto">
         <AlertCircle className="h-4 w-4 mr-2 text-blue-300" />
         <span>
-          You are using the <strong className="text-blue-300">Test Network</strong>. 
-          Transactions are not real and for demonstration purposes only.
+          You are using <strong className="text-blue-300">Demo Mode</strong>. 
+          All transactions are simulated for demonstration purposes.
         </span>
       </div>
       <Button 

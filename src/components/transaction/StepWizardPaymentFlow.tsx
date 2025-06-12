@@ -7,10 +7,11 @@ import { RecipientSelectionStep } from './wizard-steps/RecipientSelectionStep';
 import { AmountSelectionStep } from './wizard-steps/AmountSelectionStep';
 import { PurposeReviewStep } from './wizard-steps/PurposeReviewStep';
 import { ConfirmationStep } from './wizard-steps/ConfirmationStep';
-import { TransactionSuccess } from './TransactionSuccess';
+import TransactionSuccess from './TransactionSuccess';
 import { useTransactionSubmission } from '@/hooks/useTransactionSubmission';
 import { toast } from 'sonner';
 import confetti from 'canvas-confetti';
+import { FavoriteRecipient } from '@/types/favoriteRecipient';
 
 interface StepWizardPaymentFlowProps {
   onBack: () => void;
@@ -19,7 +20,7 @@ interface StepWizardPaymentFlowProps {
 export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    recipient: '',
+    recipient: null as FavoriteRecipient | null,
     recipientName: '',
     amount: '',
     purpose: '',
@@ -28,7 +29,7 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [transactionId, setTransactionId] = useState('');
 
-  const { executeTransaction, isLoading } = useTransactionSubmission();
+  const { executeTransaction, isProcessing } = useTransactionSubmission();
 
   const steps = [
     { number: 1, title: 'Recipient', completed: currentStep > 1 },
@@ -52,6 +53,8 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   };
 
   const handleConfirmPayment = async () => {
+    if (!formData.recipient) return;
+
     try {
       // Trigger confetti immediately for better UX
       confetti({
@@ -65,7 +68,7 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
 
       // Execute the actual transaction
       const result = await executeTransaction({
-        recipient: formData.recipient,
+        recipient: formData.recipient.stellar_address,
         amount: parseFloat(formData.amount),
         currency: 'EUR',
         description: formData.description || formData.purpose
@@ -87,7 +90,7 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
     // Reset the wizard
     setCurrentStep(1);
     setFormData({
-      recipient: '',
+      recipient: null,
       recipientName: '',
       amount: '',
       purpose: '',
@@ -96,18 +99,15 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
     onBack();
   };
 
-  if (showSuccess) {
+  if (showSuccess && formData.recipient) {
     return (
       <TransactionSuccess
         isOpen={true}
         onClose={handleSuccessClose}
-        transactionData={{
-          recipient: formData.recipientName,
-          amount: parseFloat(formData.amount),
-          currency: 'EUR',
-          transactionId: transactionId,
-          timestamp: new Date().toISOString()
-        }}
+        recipient={formData.recipient}
+        amount={formData.amount}
+        transactionId={transactionId}
+        defaultFiat="EUR"
       />
     );
   }
@@ -163,12 +163,15 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
         <CardContent className="p-6">
           {currentStep === 1 && (
             <RecipientSelectionStep
-              recipient={formData.recipient}
-              onRecipientChange={(email, name) => {
-                setFormData({ ...formData, recipient: email, recipientName: name });
+              selectedRecipient={formData.recipient}
+              onSelectRecipient={(recipient) => {
+                setFormData({ 
+                  ...formData, 
+                  recipient: recipient, 
+                  recipientName: recipient.recipient_name 
+                });
+                handleNext();
               }}
-              onNext={handleNext}
-              onBack={handleBack}
             />
           )}
 
@@ -183,22 +186,46 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
 
           {currentStep === 3 && (
             <PurposeReviewStep
-              purpose={formData.purpose}
               description={formData.description}
-              onPurposeChange={(purpose) => setFormData({ ...formData, purpose })}
-              onDescriptionChange={(description) => setFormData({ ...formData, description })}
-              onNext={handleNext}
-              onBack={handleBack}
+              setDescription={(description) => setFormData({ ...formData, description })}
+              selectedRecipient={formData.recipient}
+              amount={formData.amount}
+              defaultFiat="EUR"
             />
           )}
 
           {currentStep === 4 && (
             <ConfirmationStep
-              formData={formData}
+              selectedRecipient={formData.recipient}
+              amount={formData.amount}
+              description={formData.description}
+              defaultFiat="EUR"
+              isProcessing={isProcessing}
               onConfirm={handleConfirmPayment}
-              onBack={handleBack}
-              isLoading={isLoading}
             />
+          )}
+
+          {/* Navigation Buttons */}
+          {currentStep !== 1 && currentStep !== 4 && (
+            <div className="flex gap-3 mt-6">
+              <Button
+                variant="outline"
+                onClick={handleBack}
+                className="flex-1 border-white/20 text-white hover:bg-white/10"
+              >
+                Back
+              </Button>
+              <Button
+                onClick={currentStep === 3 ? handleNext : handleNext}
+                disabled={
+                  (currentStep === 2 && !formData.amount) ||
+                  (currentStep === 3 && !formData.description)
+                }
+                className="flex-1 bg-white text-blue-900 hover:bg-white/90"
+              >
+                Continue
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>

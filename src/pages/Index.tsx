@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { StellarAccount } from "@/components/stellar-account";
@@ -208,7 +207,7 @@ const Index = () => {
             <motion.div variants={itemVariants}>
               <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
                 <CardContent className="p-6">
-                  <SimplifiedPaymentFlow isMobile={isMobile} />
+                  <SimplifiedPaymentFlow />
                 </CardContent>
               </Card>
             </motion.div>

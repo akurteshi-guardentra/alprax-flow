@@ -29,13 +29,13 @@ export function useTransactionSubmission() {
     amount: "",
     description: "",
     selectedRecipient: null,
-    countryCode: "", // default to empty string
+    countryCode: "",
     selectedPaymentMethod: "card",
     verificationCompleted: false,
     securityCheck: null,
     threatLevel: "low",
-    transferPurpose: "", // default to empty string
-    transferCategory: "" // default to empty string
+    transferPurpose: "",
+    transferCategory: ""
   });
   
   // New state for transaction flow
@@ -44,9 +44,8 @@ export function useTransactionSubmission() {
   const [completedTransactionId, setCompletedTransactionId] = useState("");
 
   // --- Fiat currency conversion logic ---
-  // Default fiat currency (can be "USD" or "EUR")
   const DEFAULT_FIAT = "EUR";
-  const [fiatRate, setFiatRate] = useState(0.0); // XLM to EUR
+  const [fiatRate, setFiatRate] = useState(0.0);
   const [fiatAmount, setFiatAmount] = useState("");
 
   // Fetch XLM to EUR rate (could be moved to a custom hook)
@@ -323,11 +322,13 @@ export function useTransactionSubmission() {
   };
 
   const isProcessing = isAdding || isSending || isAnalyzing;
+  const isLoading = isProcessing;
 
   return {
     formState,
     availableFunds,
     isProcessing,
+    isLoading,
     isFormDisabled,
     securityResult,
     fiatAmount,
@@ -350,7 +351,7 @@ export function useTransactionSubmission() {
     setIsSuccessOpen,
     completedTransactionId,
     handleSuccessClose,
-    handleConfirmationClose, // <-- Expose confirmation close handler
+    handleConfirmationClose,
     handleSecurityVerify,
     handleIgnoreWarning
   };

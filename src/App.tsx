@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/use-theme";
 import { TestnetBanner } from "@/components/TestnetBanner";
+import { useMemo } from "react";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
@@ -19,9 +20,18 @@ import VerifyDocument from "./pages/VerifyDocument";
 import Cards from "./pages/Cards";
 import Help from "./pages/Help";
 
-const queryClient = new QueryClient();
-
 function App() {
+  // Create QueryClient inside the component to ensure proper React context
+  const queryClient = useMemo(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        staleTime: 1000 * 60 * 5, // 5 minutes
+        refetchOnWindowFocus: false,
+        retry: 1,
+      },
+    },
+  }), []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="alprax-theme">

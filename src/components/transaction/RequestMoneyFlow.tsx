@@ -1,140 +1,129 @@
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Copy, Share, QrCode, Check } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Share2, Copy, QrCode } from "lucide-react";
+import { motion } from "framer-motion";
 import { toast } from "sonner";
-import { hapticFeedback } from "@/lib/haptics";
 
 interface RequestMoneyFlowProps {
   onBack: () => void;
 }
 
 export function RequestMoneyFlow({ onBack }: RequestMoneyFlowProps) {
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [requestCreated, setRequestCreated] = useState(false);
-
-  const handleAmountChange = (value: string) => {
-    const cleanValue = value.replace(/[^0-9.]/g, '');
-    const parts = cleanValue.split('.');
-    if (parts.length > 2) return;
-    if (parts[1] && parts[1].length > 2) return;
-    setAmount(cleanValue);
-  };
-
-  const generateRequestLink = () => {
-    const baseUrl = "https://pay.alprax.app/request";
-    const params = new URLSearchParams();
-    if (amount) params.append("amount", amount);
-    if (description) params.append("desc", description);
-    params.append("currency", "EUR");
-    return `${baseUrl}?${params.toString()}`;
-  };
+  const [step, setStep] = useState<'form' | 'share'>('form');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [requestUrl, setRequestUrl] = useState('');
 
   const handleCreateRequest = () => {
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
-    setRequestCreated(true);
-    hapticFeedback("success");
-    toast.success("Payment request created!");
+
+    // Generate request URL
+    const baseUrl = 'https://pay.alprax.app/request';
+    const params = new URLSearchParams();
+    params.append('amount', amount);
+    params.append('currency', 'EUR');
+    if (description) params.append('desc', description);
+    params.append('to', 'your-stellar-address'); // This would be the user's address
+    
+    const url = `${baseUrl}?${params.toString()}`;
+    setRequestUrl(url);
+    setStep('share');
+    toast.success('Payment request created!');
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generateRequestLink());
-    setCopied(true);
-    toast.success("Payment link copied to clipboard");
-    hapticFeedback("light");
-    setTimeout(() => setCopied(false), 2000);
+  const copyToClipboard = async () => {
+    try {
+      await navigator.clipboard.writeText(requestUrl);
+      toast.success('Request link copied to clipboard!');
+    } catch (error) {
+      toast.error('Failed to copy link');
+    }
   };
 
-  const shareRequest = () => {
+  const shareRequest = async () => {
     if (navigator.share) {
-      navigator.share({
-        title: "Payment Request",
-        text: `Please send me ${amount} EUR${description ? ` for ${description}` : ''}`,
-        url: generateRequestLink()
-      });
+      try {
+        await navigator.share({
+          title: 'Payment Request - AlpraxFlow',
+          text: `I'm requesting ${amount} EUR${description ? ` for ${description}` : ''}`,
+          url: requestUrl,
+        });
+      } catch (error) {
+        copyToClipboard();
+      }
     } else {
       copyToClipboard();
     }
   };
 
-  if (requestCreated) {
+  if (step === 'share') {
     return (
       <div className="space-y-6">
         <div className="flex items-center gap-4 mb-6">
           <Button 
             variant="ghost" 
-            onClick={() => setRequestCreated(false)}
+            onClick={() => setStep('form')}
             className="text-white/70 hover:text-white hover:bg-white/10"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Edit Request
+            Back
           </Button>
-          <h3 className="text-xl font-semibold text-white">Payment Request Created</h3>
+          <h3 className="text-xl font-semibold text-white">Share Request</h3>
         </div>
 
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-            <Check className="h-8 w-8 text-green-400" />
-          </div>
-
-          <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-            <h4 className="text-lg font-semibold text-white mb-2">Request Details</h4>
-            <div className="text-left space-y-2">
-              <div className="flex justify-between">
-                <span className="text-white/70">Amount:</span>
-                <span className="text-white font-medium">{amount} EUR</span>
-              </div>
+        <Card className="glass-card border-white/10">
+          <CardHeader>
+            <CardTitle className="text-white flex items-center gap-2">
+              <QrCode className="h-5 w-5 text-green-400" />
+              Payment Request Created
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="text-center p-6 bg-white/5 rounded-lg">
+              <div className="text-3xl font-bold text-white mb-2">{amount} EUR</div>
               {description && (
-                <div className="flex justify-between">
-                  <span className="text-white/70">For:</span>
-                  <span className="text-white">{description}</span>
-                </div>
+                <div className="text-white/70">{description}</div>
               )}
             </div>
-          </div>
 
-          <div className="space-y-3">
-            <Button
-              onClick={copyToClipboard}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-              {copied ? 'Copied!' : 'Copy Payment Link'}
-            </Button>
+            <div className="space-y-3">
+              <div className="p-3 bg-white/5 rounded-lg">
+                <div className="text-sm text-white/60 mb-1">Request Link:</div>
+                <div className="text-white text-sm break-all">{requestUrl}</div>
+              </div>
 
-            <Button
-              onClick={shareRequest}
-              variant="outline"
-              className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white"
-            >
-              <Share className="w-4 h-4 mr-2" />
-              Share Request
-            </Button>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  onClick={shareRequest}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </Button>
+                <Button
+                  onClick={copyToClipboard}
+                  variant="outline"
+                  className="border-white/20 text-white hover:bg-white/10"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy Link
+                </Button>
+              </div>
+            </div>
 
-            <Button
-              onClick={onBack}
-              variant="ghost"
-              className="w-full text-white/70 hover:text-white hover:bg-white/10"
-            >
-              Back to Home
-            </Button>
-          </div>
-
-          <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <p className="text-blue-300 text-sm">
-              💡 Share this link with anyone to request payment. They can pay using any supported payment method.
-            </p>
-          </div>
-        </div>
+            <div className="text-center text-xs text-white/50">
+              Anyone with this link can send you the requested amount
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
@@ -153,67 +142,48 @@ export function RequestMoneyFlow({ onBack }: RequestMoneyFlowProps) {
         <h3 className="text-xl font-semibold text-white">Request Money</h3>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div className="space-y-2">
-          <Label className="text-white">Amount (EUR)</Label>
-          <div className="relative">
+      <Card className="glass-card border-white/10">
+        <CardHeader>
+          <CardTitle className="text-white">Create Payment Request</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-white">Amount (EUR)</Label>
             <Input
-              type="text"
+              type="number"
               value={amount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              placeholder="0"
-              className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+              className="bg-white/10 border-white/20 text-white"
+              step="0.01"
+              min="0"
             />
-            <div className="absolute right-3 top-0 bottom-0 flex items-center">
-              <span className="text-white/60 font-medium">EUR</span>
-            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label className="text-white">What is this request for? (Optional)</Label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Dinner split, Concert tickets, Rent..."
-            className="bg-white/10 border-white/20 text-white placeholder:text-white/60 min-h-[80px]"
-          />
-        </div>
-
-        {amount && (
-          <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-            <h4 className="text-white font-medium mb-2">Preview</h4>
-            <p className="text-white/80">
-              Request for <span className="font-semibold">{amount} EUR</span>
-              {description && <span> for {description}</span>}
-            </p>
+          <div className="space-y-2">
+            <Label className="text-white">Description (Optional)</Label>
+            <Textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What is this payment for?"
+              className="bg-white/10 border-white/20 text-white resize-none"
+              rows={3}
+            />
           </div>
-        )}
 
-        <Button
-          onClick={handleCreateRequest}
-          disabled={!amount || parseFloat(amount) <= 0}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12"
-        >
-          Create Payment Request
-        </Button>
+          <Button
+            onClick={handleCreateRequest}
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
+            disabled={!amount || parseFloat(amount) <= 0}
+          >
+            Create Request
+          </Button>
 
-        <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-          <div className="text-sm text-orange-200">
-            <p className="font-medium mb-1">How it works:</p>
-            <ul className="space-y-1 text-orange-200/80">
-              <li>• Create a payment request with the amount you need</li>
-              <li>• Share the link with the person who should pay you</li>
-              <li>• They can pay using their preferred payment method</li>
-              <li>• You'll receive the funds directly to your account</li>
-            </ul>
+          <div className="text-center text-xs text-white/50">
+            Create a shareable link to request payment from anyone
           </div>
-        </div>
-      </motion.div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

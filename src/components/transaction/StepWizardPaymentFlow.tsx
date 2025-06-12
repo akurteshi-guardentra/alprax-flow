@@ -29,7 +29,14 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   const [showSuccess, setShowSuccess] = useState(false);
   const [transactionId, setTransactionId] = useState('');
 
-  const { executeTransaction, isProcessing } = useTransactionSubmission();
+  const { 
+    executeTransaction, 
+    isProcessing,
+    formState,
+    setAmount,
+    setDescription,
+    setSelectedRecipient
+  } = useTransactionSubmission();
 
   const steps = [
     { number: 1, title: 'Recipient', completed: currentStep > 1 },
@@ -56,6 +63,11 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
     if (!formData.recipient) return;
 
     try {
+      // Update the hook's form state with our wizard data
+      setSelectedRecipient(formData.recipient);
+      setAmount(formData.amount);
+      setDescription(formData.description || formData.purpose);
+
       // Trigger confetti immediately for better UX
       confetti({
         particleCount: 100,
@@ -66,13 +78,8 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
       // Show success toast
       toast.success(`Payment sent to ${formData.recipientName}!`);
 
-      // Execute the actual transaction
-      const result = await executeTransaction({
-        recipient: formData.recipient.stellar_address,
-        amount: parseFloat(formData.amount),
-        currency: 'EUR',
-        description: formData.description || formData.purpose
-      });
+      // Execute the actual transaction (no arguments needed)
+      const result = await executeTransaction();
 
       // Generate a mock transaction ID for demo
       const mockTxId = `TX${Date.now().toString().slice(-8)}`;

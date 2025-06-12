@@ -3,6 +3,21 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { KYCVerificationStatus, ProfileKYCLevel } from "../types";
 
+// Type-safe function to map KYC status to profile level
+function mapKYCStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
+  switch (status) {
+    case 'verified':
+      return 'verified';
+    case 'pending':
+    case 'not_submitted':
+      return 'pending';
+    case 'rejected':
+      return 'basic';
+    default:
+      return 'pending';
+  }
+}
+
 export function useKYCVerifications() {
   const queryClient = useQueryClient();
 
@@ -58,20 +73,8 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Map status to profile level with explicit type casting
-      const profileKycLevel = (() => {
-        switch (status) {
-          case 'verified':
-            return 'verified' as const;
-          case 'pending':
-          case 'not_submitted':
-            return 'pending' as const;
-          case 'rejected':
-            return 'basic' as const;
-          default:
-            return 'pending' as const;
-        }
-      })();
+      // Use the type-safe mapping function
+      const profileKycLevel = mapKYCStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')

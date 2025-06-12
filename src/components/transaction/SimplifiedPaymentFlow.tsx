@@ -2,9 +2,10 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { QrCode, Users, Plus, ArrowRight } from "lucide-react";
+import { QrCode, Users, Plus, ArrowRight, ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { StepWizardPaymentFlow } from "./StepWizardPaymentFlow";
+import { toast } from "sonner";
 
 interface SimplifiedPaymentFlowProps {
   isMobile?: boolean;
@@ -15,6 +16,80 @@ export function SimplifiedPaymentFlow({ isMobile = false }: SimplifiedPaymentFlo
 
   if (view === 'send') {
     return <StepWizardPaymentFlow onBack={() => setView('home')} />;
+  }
+
+  if (view === 'request') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => setView('home')}
+            className="text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <h3 className="text-xl font-semibold text-white">Request Money</h3>
+        </div>
+
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Plus className="h-8 w-8 text-orange-400" />
+          </div>
+          <h4 className="text-lg font-medium text-white mb-2">Request Money Feature</h4>
+          <p className="text-white/70 mb-6">
+            This feature is coming soon! You'll be able to request money from contacts by sending them a payment link.
+          </p>
+          <Button
+            onClick={() => {
+              toast.info("Request money feature coming soon!");
+              setView('home');
+            }}
+            className="bg-orange-600 hover:bg-orange-700 text-white"
+          >
+            Notify me when available
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  if (view === 'qr') {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center gap-4 mb-6">
+          <Button 
+            variant="ghost" 
+            onClick={() => setView('home')}
+            className="text-white/70 hover:text-white hover:bg-white/10"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back
+          </Button>
+          <h3 className="text-xl font-semibold text-white">QR Payment</h3>
+        </div>
+
+        <div className="text-center py-12">
+          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <QrCode className="h-8 w-8 text-green-400" />
+          </div>
+          <h4 className="text-lg font-medium text-white mb-2">QR Code Payments</h4>
+          <p className="text-white/70 mb-6">
+            Scan QR codes to pay or generate your own for others to pay you. This feature is coming soon!
+          </p>
+          <Button
+            onClick={() => {
+              toast.info("QR code payments coming soon!");
+              setView('home');
+            }}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            Notify me when available
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   if (view === 'home') {
@@ -100,19 +175,5 @@ export function SimplifiedPaymentFlow({ isMobile = false }: SimplifiedPaymentFlo
     );
   }
 
-  // Placeholder for other views
-  return (
-    <div className="space-y-4">
-      <Button 
-        variant="ghost" 
-        onClick={() => setView('home')}
-        className="text-white/70 hover:text-white hover:bg-white/10"
-      >
-        ← Back to menu
-      </Button>
-      <div className="text-center py-8">
-        <p className="text-white/70">This feature is coming soon!</p>
-      </div>
-    </div>
-  );
+  return null;
 }

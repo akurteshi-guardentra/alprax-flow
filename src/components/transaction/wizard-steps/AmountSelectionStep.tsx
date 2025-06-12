@@ -24,6 +24,10 @@ export function AmountSelectionStep({
 
   const quickAmounts = [10, 25, 50, 100];
 
+  const formatAmount = (value: number) => {
+    return value % 1 === 0 ? value.toString() : value.toFixed(2);
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -38,7 +42,7 @@ export function AmountSelectionStep({
         </div>
         <div className="text-xl font-semibold text-white">
           {fiatRate > 0 
-            ? `${maxFiatAmount.toFixed(2)} ${defaultFiat}`
+            ? `${formatAmount(maxFiatAmount)} ${defaultFiat}`
             : `-- ${defaultFiat}`
           }
         </div>
@@ -55,9 +59,9 @@ export function AmountSelectionStep({
             type="number"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-            step="0.01"
-            min="0.01"
+            placeholder="0"
+            step="1"
+            min="1"
             className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
           />
           <div className="absolute right-3 top-0 bottom-0 flex items-center">
@@ -84,7 +88,7 @@ export function AmountSelectionStep({
         </div>
         <Button
           variant="ghost"
-          onClick={() => setAmount(maxFiatAmount.toFixed(2))}
+          onClick={() => setAmount(Math.floor(maxFiatAmount).toString())}
           className="w-full text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm"
           disabled={maxFiatAmount <= 0}
         >

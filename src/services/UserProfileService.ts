@@ -1,116 +1,92 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { Profile, KYCStatus } from '@/types/profile';
+import { toast } from 'sonner';
+import { FavoriteRecipient } from '@/types/favoriteRecipient';
 
-export interface UserProfile extends Profile {
+export interface UserProfile {
+  id: string;
+  full_name: string;
   email?: string;
+  phone_number?: string;
+  avatar_url?: string;
+  country?: string;
 }
 
 export class UserProfileService {
-  static async getProfile(userId: string): Promise<any> {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error fetching profile:', error);
-      throw error;
-    }
-  }
-
-  static async updateProfile(userId: string, updates: any): Promise<any> {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .update(updates)
-        .eq('id', userId)
-        .single();
-
-      if (error) throw error;
-      return data;
-    } catch (error) {
-      console.error('Error updating profile:', error);
-      throw error;
-    }
-  }
-
-  static async getOrCreateStellarAccount(userId: string): Promise<any> {
-    try {
-      const { data: existingAccount, error: selectError } = await supabase
-        .from('stellar_accounts')
-        .select('*')
-        .eq('user_id', userId)
-        .single();
-
-      if (selectError && selectError.message.includes('No rows found')) {
-        // Account doesn't exist, create it
-        const { data: newAccount, error: insertError } = await supabase.functions.invoke('create-stellar-account', {
-          body: { user_id: userId },
-        });
-
-        if (insertError) throw insertError;
-        return newAccount;
-      }
-
-      if (selectError) throw selectError;
-
-      return existingAccount;
-    } catch (error) {
-      console.error('Error getting or creating Stellar account:', error);
-      throw error;
-    }
-  }
-
   static async findUserByIdentifier(identifier: string): Promise<UserProfile[]> {
     try {
+      console.log('Searching for users with identifier:', identifier);
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
         .or(`full_name.ilike.%${identifier}%,username.ilike.%${identifier}%,phone_number.ilike.%${identifier}%`);
 
-      if (error) throw error;
-      
-      // Cast the data to UserProfile[] and ensure kyc_level is properly typed
-      const profiles = (data || []).map(profile => ({
-        ...profile,
-        kyc_level: profile.kyc_level as KYCStatus
-      })) as UserProfile[];
-      
-      return profiles;
+      if (error) {
+        console.error('Error searching profiles:', error);
+        throw error;
+      }
+
+      console.log('Search results:', data);
+      return data || [];
     } catch (error) {
-      console.error('Error finding user by identifier:', error);
+      console.error('Error in findUserByIdentifier:', error);
       throw error;
     }
   }
 
-  static async addToFavorites(userProfile: UserProfile): Promise<any> {
+  static async addToFavorites(userProfile: UserProfile): Promise<FavoriteRecipient> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
+      // Check if recipient already exists
+      const { data: existing } = await supabase
+        .from('favorite_recipients')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('stellar_address', userProfile.id)
+        .single();
+
+      if (existing) {
+        // Return existing recipient instead of throwing error
+        console.log('Recipient already exists, returning existing:', existing);
+        return existing;
+      }
+
+      const favoriteData = {
+        user_id: user.id,
+        recipient_name: userProfile.full_name,
+        stellar_address: userProfile.id,
+        country: userProfile.country || 'US',
+        currency: userProfile.country === 'at' ? 'EUR' : 'USD',
+        relationship: 'Contact'
+      };
+
+      console.log('Adding new favorite recipient:', favoriteData);
+
       const { data, error } = await supabase
         .from('favorite_recipients')
-        .insert({
-          user_id: user.id,
-          recipient_name: userProfile.full_name || userProfile.username || 'Unknown',
-          stellar_address: userProfile.id, // Use profile ID as placeholder
-          country: userProfile.country || 'Unknown',
-          currency: 'EUR',
-          relationship: 'Contact'
-        })
+        .insert(favoriteData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error adding to favorites:', error);
+        throw error;
+      }
+
+      console.log('Successfully added favorite recipient:', data);
       return data;
     } catch (error) {
-      console.error('Error adding to favorites:', error);
+      console.error('Error in addToFavorites:', error);
       throw error;
     }
+  }
+
+  static async getOrCreateStellarAccount(userId: string): Promise<{ publicKey: string }> {
+    // For now, return the user ID as stellar address
+    // In a real implementation, this would create/get a proper Stellar account
+    return { publicKey: userId };
   }
 }

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SimplifiedPaymentFlow } from "@/components/transaction/SimplifiedPaymentFlow";
@@ -133,7 +134,7 @@ export default function Dashboard() {
                 <Card className="glass-card modern-shadow">
                   <CardContent className="p-6">
                     <h3 className="text-white font-semibold mb-4">Send Money</h3>
-                    <SimplifiedPaymentFlow />
+                    <SimplifiedPaymentFlow isMobile={isMobile} />
                   </CardContent>
                 </Card>
               </div>
@@ -142,7 +143,7 @@ export default function Dashboard() {
             <Card className="glass-card modern-shadow">
               <CardContent className="p-6">
                 <h3 className="text-white font-semibold mb-4">Send Money</h3>
-                <SimplifiedPaymentFlow />
+                <SimplifiedPaymentFlow isMobile={isMobile} />
               </CardContent>
             </Card>
           )}        

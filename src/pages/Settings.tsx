@@ -2,12 +2,10 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, BarChart3, Smartphone } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
-import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
-import { useNavigate } from "react-router-dom";
-import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -23,170 +21,160 @@ const Settings = () => {
       title: "Account",
       icon: User,
       items: [
-        { label: "Profile Information", action: () => navigate('/profile'), description: "Update your personal details" },
-        { label: "Verification Status", action: () => navigate('/verify'), description: "Complete KYC verification" },
-        { label: "Payment Methods", action: () => navigate('/cards'), description: "Manage cards and accounts" }
+        { label: "Profile Information", action: () => navigate('/profile') },
+        { label: "KYC Verification", action: () => navigate('/kyc') },
+        { label: "Payment Methods", action: () => navigate('/payments') }
       ]
     },
     {
       title: "Security",
       icon: Shield,
       items: [
-        { label: "Two-Factor Authentication", action: () => {}, description: "Add extra security to your account" },
-        { label: "Biometric Login", action: () => {}, description: "Use fingerprint or face recognition" },
-        { label: "Change Password", action: () => {}, description: "Update your login password" }
+        { label: "Two-Factor Authentication", action: () => navigate('/setup-2fa') },
+        { label: "Biometric Login", action: () => navigate('/biometric-setup') },
+        { label: "Change Password", action: () => {} }
       ]
     },
     {
       title: "Preferences",
       icon: Palette,
       items: [
-        { label: "Language & Region", action: () => {}, description: "English (US)" },
-        { label: "Currency Display", action: () => {}, description: "EUR - Euro" },
-        { label: "Time Zone", action: () => {}, description: "UTC+1 (Central European Time)" }
+        { label: "Language", action: () => {} },
+        { label: "Currency", action: () => {} },
+        { label: "Time Zone", action: () => {} }
       ]
     }
   ];
 
   return (
-    <UnifiedAppLayout title="Settings" showBack>
-      <div className="max-w-4xl mx-auto space-y-6">
-        {/* Analytics Dashboard Integration */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-        >
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-3">
-                <BarChart3 className="h-5 w-5 text-blue-400" />
-                Analytics Overview
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <DashboardAnalytics />
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Settings Categories */}
-        {settingsCategories.map((category, index) => (
-          <motion.div
-            key={category.title}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 + index * 0.05 }}
-          >
-            <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-              <CardHeader>
-                <CardTitle className="text-white flex items-center gap-3">
-                  <category.icon className="h-5 w-5 text-blue-400" />
-                  {category.title}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {category.items.map((item, itemIndex) => (
-                  <div
-                    key={itemIndex}
-                    className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors border border-white/10"
-                    onClick={item.action}
-                  >
-                    <div className="flex-1">
-                      <h4 className="text-white font-medium">{item.label}</h4>
-                      <p className="text-white/60 text-sm">{item.description}</p>
-                    </div>
-                    <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </motion.div>
-        ))}
-
-        {/* Notifications with properly styled toggles */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
-        >
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-3">
-                <Bell className="h-5 w-5 text-blue-400" />
-                Notifications
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {Object.entries(notifications).map(([key, value]) => (
-                <div key={key} className="flex items-center justify-between p-4 bg-white/5 rounded-lg border border-white/10">
-                  <div>
-                    <p className="text-white font-medium capitalize">{key}</p>
-                    <p className="text-white/60 text-sm">
-                      Receive notifications about {key.toLowerCase()}
-                    </p>
-                  </div>
-                  <Switch
-                    checked={value}
-                    onCheckedChange={(checked) =>
-                      setNotifications(prev => ({ ...prev, [key]: checked }))
-                    }
-                    className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-white/20"
-                  />
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Support & Legal */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.7 }}
-        >
-          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
-            <CardHeader>
-              <CardTitle className="text-white">Support & Legal</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              {[
-                { label: "Help Center", action: () => navigate('/help'), description: "Get help and support" },
-                { label: "Contact Support", action: () => navigate('/help'), description: "Reach out to our team" },
-                { label: "Terms & Privacy", action: () => {}, description: "Legal information and policies" },
-                { label: "About AlpraxFlow", action: () => {}, description: "Learn more about our platform" }
-              ].map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between p-4 bg-white/5 hover:bg-white/10 rounded-lg cursor-pointer transition-colors border border-white/10"
-                  onClick={item.action}
-                >
-                  <div className="flex-1">
-                    <h4 className="text-white font-medium">{item.label}</h4>
-                    <p className="text-white/60 text-sm">{item.description}</p>
-                  </div>
-                  <div className="w-2 h-2 bg-blue-400 rounded-full"></div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* App Version */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
-        >
-          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
-            <CardContent className="p-6 text-center">
-              <h3 className="text-white font-medium mb-2">AlpraxFlow</h3>
-              <p className="text-white/60 text-sm">Version 1.0.0 • Powered by Stellar Testnet</p>
-              <p className="text-white/40 text-xs mt-2">Built for the future of decentralized finance</p>
-            </CardContent>
-          </Card>
-        </motion.div>
+    <div className="min-h-screen modern-gradient relative overflow-hidden">
+      {/* Enhanced premium background elements */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
       </div>
-    </UnifiedAppLayout>
+
+      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
+        <div className="max-w-4xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-4 mb-8"
+          >
+            <Button 
+              variant="ghost" 
+              onClick={() => navigate(-1)}
+              className="glass-card-hover text-white border-none"
+            >
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back
+            </Button>
+            <h1 className="text-3xl font-bold text-gradient-modern flex items-center gap-3">
+              <SettingsIcon className="h-8 w-8" />
+              Settings
+            </h1>
+          </motion.div>
+
+          <div className="space-y-8">
+            {/* Settings Categories */}
+            {settingsCategories.map((category, index) => (
+              <motion.div
+                key={category.title}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.1 + index * 0.1 }}
+              >
+                <Card className="glass-card modern-shadow">
+                  <CardHeader>
+                    <CardTitle className="text-white flex items-center gap-2">
+                      <category.icon className="h-5 w-5 text-blue-400" />
+                      {category.title}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {category.items.map((item, itemIndex) => (
+                      <div
+                        key={itemIndex}
+                        className="flex items-center justify-between p-3 glass-card-hover cursor-pointer"
+                        onClick={item.action}
+                      >
+                        <span className="text-white/90">{item.label}</span>
+                        <ArrowLeft className="h-4 w-4 text-white/60 rotate-180" />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+
+            {/* Notifications */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+            >
+              <Card className="glass-card modern-shadow">
+                <CardHeader>
+                  <CardTitle className="text-white flex items-center gap-2">
+                    <Bell className="h-5 w-5 text-blue-400" />
+                    Notifications
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {Object.entries(notifications).map(([key, value]) => (
+                    <div key={key} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-white/90 capitalize">{key}</p>
+                        <p className="text-white/60 text-sm">
+                          Receive notifications about {key}
+                        </p>
+                      </div>
+                      <Switch
+                        checked={value}
+                        onCheckedChange={(checked) =>
+                          setNotifications(prev => ({ ...prev, [key]: checked }))
+                        }
+                      />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+
+            {/* Support & Legal */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5 }}
+            >
+              <Card className="glass-card modern-shadow">
+                <CardHeader>
+                  <CardTitle className="text-white">Support & Legal</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  {[
+                    { label: "Help Center", action: () => navigate('/help') },
+                    { label: "Contact Support", action: () => {} },
+                    { label: "Terms & Privacy", action: () => navigate('/terms') },
+                    { label: "About", action: () => {} }
+                  ].map((item, index) => (
+                    <div
+                      key={index}
+                      className="flex items-center justify-between p-3 glass-card-hover cursor-pointer"
+                      onClick={item.action}
+                    >
+                      <span className="text-white/90">{item.label}</span>
+                      <ArrowLeft className="h-4 w-4 text-white/60 rotate-180" />
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

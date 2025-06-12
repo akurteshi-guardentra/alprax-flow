@@ -2,148 +2,104 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Building, Wallet, Plus, MoreVertical, Shield } from "lucide-react";
-import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
-import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { ArrowLeft, CreditCard, Plus, Lock, Eye, EyeOff } from "lucide-react";
+import { useState } from "react";
 
 const Cards = () => {
-  const paymentMethods = [
-    {
-      id: 1,
-      type: "Credit Card",
-      icon: CreditCard,
-      details: "Visa ending in 4242",
-      default: true,
-      color: "from-blue-500 to-blue-600"
-    },
-    {
-      id: 2,
-      type: "Bank Account",
-      icon: Building,
-      details: "Bank of Kosovo ****1234",
-      default: false,
-      color: "from-green-500 to-green-600"
-    },
-    {
-      id: 3,
-      type: "Digital Wallet",
-      icon: Wallet,
-      details: "Connected",
-      default: false,
-      color: "from-purple-500 to-purple-600"
-    },
-  ];
+  const navigate = useNavigate();
+  const [showCardNumber, setShowCardNumber] = useState(false);
+
+  // This is a placeholder for future integration with Stellar anchors or payment methods
+  // In the future, this could be connected to Stellar-compatible payment methods or anchors
+  const [isIntegrationAvailable, setIsIntegrationAvailable] = useState(false);
 
   return (
-    <UnifiedAppLayout title="Payment Methods" showBack>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-kosovo-blue via-kosovo-blue/90 to-red-900 p-4 sm:p-6 lg:p-8">
+      <div className="max-w-4xl mx-auto relative">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate(-1)}
+          className="absolute top-4 left-4 text-white hover:bg-white/10"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center"
+          className="pt-20"
         >
-          <div>
-            <h2 className="text-xl font-semibold text-white mb-2">Your Payment Methods</h2>
-            <p className="text-white/70">Manage your cards and bank accounts securely</p>
-          </div>
-          <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Method
-          </Button>
-        </motion.div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {paymentMethods.map((method, index) => (
-            <motion.div
-              key={method.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1 }}
-            >
-              <Card className="bg-white/10 backdrop-blur-lg border-white/20 hover:bg-white/15 transition-all cursor-pointer">
-                <CardContent className="p-6">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className={`p-3 rounded-lg bg-gradient-to-r ${method.color}`}>
-                      <method.icon className="h-6 w-6 text-white" />
-                    </div>
-                    <Button variant="ghost" size="icon" className="text-white/70 hover:bg-white/10">
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-2">
-                      <h3 className="font-semibold text-white">{method.type}</h3>
-                      {method.default && (
-                        <Badge variant="secondary" className="bg-blue-500/20 text-blue-400 border-blue-500/30">
-                          Default
-                        </Badge>
-                      )}
-                    </div>
-                    <p className="text-white/70 text-sm">{method.details}</p>
-                  </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" size="sm" className="flex-1 border-white/20 text-white hover:bg-white/10">
-                      Edit
-                    </Button>
-                    {!method.default && (
-                      <Button variant="outline" size="sm" className="border-white/20 text-white hover:bg-white/10">
-                        Set Default
-                      </Button>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Add New Card Section */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
-            <CardContent className="p-6 text-center">
-              <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
-                <Plus className="h-8 w-8 text-blue-400" />
-              </div>
-              <h3 className="text-white font-semibold mb-2">Add New Payment Method</h3>
-              <p className="text-white/70 text-sm mb-4">
-                Connect your bank account, credit card, or digital wallet for seamless transactions
-              </p>
-              <Button className="bg-white text-blue-900 hover:bg-white/90">
-                Get Started
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-white flex items-center gap-2">
+                <CreditCard className="h-6 w-6" />
+                Your Cards
+              </h1>
+              <Button className="bg-primary hover:bg-primary/90 text-white">
+                <Plus className="h-4 w-4 mr-2" />
+                Add New Card
               </Button>
-            </CardContent>
-          </Card>
-        </motion.div>
+            </div>
 
-        {/* Security Info */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5 }}
-        >
-          <Card className="bg-white/5 backdrop-blur-lg border-white/10">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-3">
-                <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
-                <div>
-                  <h4 className="text-white font-medium mb-2">Security & Privacy</h4>
-                  <p className="text-white/70 text-sm">
-                    All payment methods are secured with bank-level encryption. We never store your full card details 
-                    and use tokenization for maximum security.
-                  </p>
+            <div className="grid gap-4">
+              {isIntegrationAvailable ? (
+                <p className="text-white">Connected payment methods will appear here.</p>
+              ) : (
+                <div className="space-y-4">
+                  <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm overflow-hidden border border-white/10">
+                    <CardContent className="p-6">
+                      <div className="space-y-6 text-center">
+                        <div className="relative mx-auto w-64 h-40 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 shadow-lg flex flex-col justify-between p-4 overflow-hidden">
+                          <div className="absolute top-0 left-0 w-full h-full opacity-20">
+                            <svg className="w-full h-full" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                              <path fill="white" d="M42.7,-62.9C56.7,-55.1,70.3,-43.9,77.4,-29.2C84.4,-14.5,84.9,3.7,78.6,18.8C72.3,33.9,59.3,45.9,45.2,53.8C31.1,61.7,15.6,65.5,-0.2,65.8C-16,66.1,-32,62.9,-45.9,54.8C-59.8,46.7,-71.5,33.7,-77.3,17.8C-83.1,1.9,-82.9,-16.9,-75.1,-31.2C-67.3,-45.5,-51.9,-55.3,-37,-62.1C-22.1,-68.9,-7.7,-72.7,6.9,-72.8C21.5,-72.9,28.7,-70.7,42.7,-62.9Z" transform="translate(100 100)" />
+                            </svg>
+                          </div>                            <div className="flex justify-between items-start">
+                            <div className="text-white text-left">
+                              <p className="text-xs opacity-80">Digital Payments</p>
+                              <p className="font-bold">ALPRAX CARD</p>
+                            </div>
+                            <CreditCard className="h-6 w-6 text-white" />
+                          </div>                          <div className="flex justify-between items-end">
+                            <div className="text-white text-left">
+                              <p className="text-xs opacity-80">Coming Soon</p>
+                              <p className="font-mono">••••  ••••  ••••  ••••</p>
+                            </div>
+                            <div className="text-white">
+                              <p className="text-xs opacity-80">Powered by</p>
+                              <p className="font-bold text-sm">Alprax</p>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-xl font-medium text-white">Connect Payment Methods</h3>                          <p className="text-white/60 mt-2">
+                            This feature will allow you to connect various payment methods to your account.
+                            Integration with payment providers and banking systems coming soon.
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <Button className="bg-primary hover:bg-primary/90 text-white w-full">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Connect Payment Method
+                          </Button>                          <p className="text-xs text-white/40">
+                            Connect your existing debit cards, credit cards, or bank accounts for seamless 
+                            transfers and payments with low transaction fees.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              )}
+            </div>
+          </div>
         </motion.div>
       </div>
-    </UnifiedAppLayout>
+    </div>
   );
 };
 

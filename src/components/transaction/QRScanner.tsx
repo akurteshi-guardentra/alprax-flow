@@ -10,6 +10,11 @@ interface QRScannerProps {
   isOpen: boolean;
 }
 
+// Extended interface for torch capability
+interface ExtendedMediaTrackCapabilities extends MediaTrackCapabilities {
+  torch?: boolean;
+}
+
 export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
@@ -50,7 +55,7 @@ export function QRScanner({ onScan, onClose, isOpen }: QRScannerProps) {
   const toggleFlash = async () => {
     if (stream) {
       const track = stream.getVideoTracks()[0];
-      const capabilities = track.getCapabilities();
+      const capabilities = track.getCapabilities() as ExtendedMediaTrackCapabilities;
       
       if (capabilities.torch) {
         try {

@@ -1,139 +1,141 @@
 
-import { useState } from "react";
-import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Copy, Share, QrCode, Check } from "lucide-react";
-import { toast } from "sonner";
-import { hapticFeedback } from "@/lib/haptics";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { QrCode, Share2, Copy, ArrowLeft, Euro } from 'lucide-react';
+import { toast } from 'sonner';
+import QRCode from 'qrcode';
 
 interface RequestMoneyFlowProps {
   onBack: () => void;
 }
 
 export function RequestMoneyFlow({ onBack }: RequestMoneyFlowProps) {
-  const [amount, setAmount] = useState("");
-  const [description, setDescription] = useState("");
-  const [copied, setCopied] = useState(false);
-  const [requestCreated, setRequestCreated] = useState(false);
+  const [step, setStep] = useState<'form' | 'generated'>('form');
+  const [amount, setAmount] = useState('');
+  const [description, setDescription] = useState('');
+  const [requestLink, setRequestLink] = useState('');
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState('');
 
-  const handleAmountChange = (value: string) => {
-    const cleanValue = value.replace(/[^0-9.]/g, '');
-    const parts = cleanValue.split('.');
-    if (parts.length > 2) return;
-    if (parts[1] && parts[1].length > 2) return;
-    setAmount(cleanValue);
-  };
-
-  const generateRequestLink = () => {
-    const baseUrl = "https://pay.alprax.app/request";
-    const params = new URLSearchParams();
-    if (amount) params.append("amount", amount);
-    if (description) params.append("desc", description);
-    params.append("currency", "EUR");
-    return `${baseUrl}?${params.toString()}`;
-  };
-
-  const handleCreateRequest = () => {
+  const handleGenerateRequest = async () => {
     if (!amount || parseFloat(amount) <= 0) {
-      toast.error("Please enter a valid amount");
+      toast.error('Please enter a valid amount');
       return;
     }
-    setRequestCreated(true);
-    hapticFeedback("success");
-    toast.success("Payment request created!");
-  };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generateRequestLink());
-    setCopied(true);
-    toast.success("Payment link copied to clipboard");
-    hapticFeedback("light");
-    setTimeout(() => setCopied(false), 2000);
-  };
+    const link = `https://alpraxflow.com/pay?amount=${amount}&description=${encodeURIComponent(description)}&to=current-user`;
+    setRequestLink(link);
 
-  const shareRequest = () => {
-    if (navigator.share) {
-      navigator.share({
-        title: "Payment Request",
-        text: `Please send me ${amount} EUR${description ? ` for ${description}` : ''}`,
-        url: generateRequestLink()
+    try {
+      const qrDataUrl = await QRCode.toDataURL(link, {
+        width: 256,
+        margin: 2,
+        color: {
+          dark: '#1e40af',
+          light: '#ffffff'
+        }
       });
+      setQrCodeDataUrl(qrDataUrl);
+    } catch (error) {
+      console.error('Error generating QR code:', error);
+    }
+
+    setStep('generated');
+    toast.success('Payment request generated successfully!');
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(requestLink);
+    toast.success('Payment link copied to clipboard!');
+  };
+
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Payment Request',
+          text: `Please send me €${amount}${description ? ` for ${description}` : ''}`,
+          url: requestLink
+        });
+      } catch (error) {
+        console.error('Error sharing:', error);
+        handleCopyLink();
+      }
     } else {
-      copyToClipboard();
+      handleCopyLink();
     }
   };
 
-  if (requestCreated) {
+  if (step === 'generated') {
     return (
       <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => setRequestCreated(false)}
-            className="text-white/70 hover:text-white hover:bg-white/10"
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setStep('form')}
+            className="text-white hover:bg-white/10"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Edit Request
+            <ArrowLeft className="h-5 w-5" />
           </Button>
-          <h3 className="text-xl font-semibold text-white">Payment Request Created</h3>
+          <h2 className="text-2xl font-bold text-white">Payment Request Generated</h2>
         </div>
 
-        <div className="text-center space-y-6">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto">
-            <Check className="h-8 w-8 text-green-400" />
-          </div>
-
-          <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-            <h4 className="text-lg font-semibold text-white mb-2">Request Details</h4>
-            <div className="text-left space-y-2">
-              <div className="flex justify-between">
-                <span className="text-white/70">Amount:</span>
-                <span className="text-white font-medium">{amount} EUR</span>
-              </div>
+        <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+          <CardContent className="p-6 text-center">
+            <div className="space-y-4">
+              <div className="text-3xl font-bold text-white">€{amount}</div>
               {description && (
-                <div className="flex justify-between">
-                  <span className="text-white/70">For:</span>
-                  <span className="text-white">{description}</span>
+                <p className="text-white/70">{description}</p>
+              )}
+              
+              {qrCodeDataUrl && (
+                <div className="flex justify-center">
+                  <img 
+                    src={qrCodeDataUrl} 
+                    alt="Payment QR Code" 
+                    className="w-48 h-48 bg-white p-4 rounded-lg"
+                  />
                 </div>
               )}
+
+              <div className="space-y-3">
+                <div className="p-3 bg-white/5 rounded-lg border border-white/10">
+                  <p className="text-white/70 text-sm break-all">{requestLink}</p>
+                </div>
+
+                <div className="flex gap-2">
+                  <Button
+                    onClick={handleCopyLink}
+                    className="flex-1 bg-white/10 text-white hover:bg-white/20 border-white/20"
+                    variant="outline"
+                  >
+                    <Copy className="mr-2 h-4 w-4" />
+                    Copy Link
+                  </Button>
+                  <Button
+                    onClick={handleShare}
+                    className="flex-1 bg-blue-500 hover:bg-blue-600 text-white"
+                  >
+                    <Share2 className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
 
-          <div className="space-y-3">
-            <Button
-              onClick={copyToClipboard}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              {copied ? <Check className="w-4 h-4 mr-2" /> : <Copy className="w-4 h-4 mr-2" />}
-              {copied ? 'Copied!' : 'Copy Payment Link'}
-            </Button>
-
-            <Button
-              onClick={shareRequest}
-              variant="outline"
-              className="w-full border-white/20 bg-white/5 hover:bg-white/10 text-white"
-            >
-              <Share className="w-4 h-4 mr-2" />
-              Share Request
-            </Button>
-
-            <Button
-              onClick={onBack}
-              variant="ghost"
-              className="w-full text-white/70 hover:text-white hover:bg-white/10"
-            >
-              Back to Home
-            </Button>
-          </div>
-
-          <div className="p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-            <p className="text-blue-300 text-sm">
-              💡 Share this link with anyone to request payment. They can pay using any supported payment method.
-            </p>
-          </div>
+        <div className="text-center">
+          <Button
+            onClick={onBack}
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10"
+          >
+            Create Another Request
+          </Button>
         </div>
       </div>
     );
@@ -141,79 +143,62 @@ export function RequestMoneyFlow({ onBack }: RequestMoneyFlowProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4 mb-6">
-        <Button 
-          variant="ghost" 
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onBack}
-          className="text-white/70 hover:text-white hover:bg-white/10"
+          className="text-white hover:bg-white/10"
         >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back
+          <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h3 className="text-xl font-semibold text-white">Request Money</h3>
+        <h2 className="text-2xl font-bold text-white">Request Money</h2>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-6"
-      >
-        <div className="space-y-2">
-          <Label className="text-white">Amount (EUR)</Label>
-          <div className="relative">
-            <Input
-              type="text"
-              value={amount}
-              onChange={(e) => handleAmountChange(e.target.value)}
-              placeholder="0"
-              className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
-            />
-            <div className="absolute right-3 top-0 bottom-0 flex items-center">
-              <span className="text-white/60 font-medium">EUR</span>
+      <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+        <CardHeader>
+          <CardTitle className="text-white flex items-center gap-2">
+            <QrCode className="h-5 w-5 text-blue-400" />
+            Create Payment Request
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <label className="text-white font-medium">Amount</label>
+            <div className="relative">
+              <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" />
+              <Input
+                type="number"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                className="pl-12 bg-white/10 border-white/20 text-white placeholder:text-white/50"
+                step="0.01"
+                min="0"
+              />
             </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <Label className="text-white">What is this request for? (Optional)</Label>
-          <Textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            placeholder="e.g., Dinner split, Concert tickets, Rent..."
-            className="bg-white/10 border-white/20 text-white placeholder:text-white/60 min-h-[80px]"
-          />
-        </div>
-
-        {amount && (
-          <div className="p-4 rounded-lg bg-white/5 border border-white/10">
-            <h4 className="text-white font-medium mb-2">Preview</h4>
-            <p className="text-white/80">
-              Request for <span className="font-semibold">{amount} EUR</span>
-              {description && <span> for {description}</span>}
-            </p>
+          <div className="space-y-2">
+            <label className="text-white font-medium">Description (Optional)</label>
+            <Textarea
+              placeholder="What is this payment for?"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
+              rows={3}
+            />
           </div>
-        )}
 
-        <Button
-          onClick={handleCreateRequest}
-          disabled={!amount || parseFloat(amount) <= 0}
-          className="w-full bg-orange-600 hover:bg-orange-700 text-white h-12"
-        >
-          Create Payment Request
-        </Button>
-
-        <div className="p-4 bg-orange-500/10 rounded-lg border border-orange-500/20">
-          <div className="text-sm text-orange-200">
-            <p className="font-medium mb-1">How it works:</p>
-            <ul className="space-y-1 text-orange-200/80">
-              <li>• Create a payment request with the amount you need</li>
-              <li>• Share the link with the person who should pay you</li>
-              <li>• They can pay using their preferred payment method</li>
-              <li>• You'll receive the funds directly to your account</li>
-            </ul>
-          </div>
-        </div>
-      </motion.div>
+          <Button
+            onClick={handleGenerateRequest}
+            disabled={!amount || parseFloat(amount) <= 0}
+            className="w-full bg-white text-blue-900 hover:bg-white/90"
+          >
+            Generate Payment Request
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

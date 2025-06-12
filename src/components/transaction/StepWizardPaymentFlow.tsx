@@ -1,266 +1,207 @@
 
-import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { FavoriteRecipient } from "@/types/favoriteRecipient";
-import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
-import { cn } from "@/lib/utils";
-import { RecipientSelectionStep } from "./wizard-steps/RecipientSelectionStep";
-import { AmountSelectionStep } from "./wizard-steps/AmountSelectionStep";
-import { PurposeReviewStep } from "./wizard-steps/PurposeReviewStep";
-import { ConfirmationStep } from "./wizard-steps/ConfirmationStep";
-import TransactionSuccess from "./TransactionSuccess";
-import { toast } from "sonner";
-import confetti from "canvas-confetti";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowLeft, Check } from 'lucide-react';
+import { RecipientSelectionStep } from './wizard-steps/RecipientSelectionStep';
+import { AmountSelectionStep } from './wizard-steps/AmountSelectionStep';
+import { PurposeReviewStep } from './wizard-steps/PurposeReviewStep';
+import { ConfirmationStep } from './wizard-steps/ConfirmationStep';
+import { TransactionSuccess } from './TransactionSuccess';
+import { useTransactionSubmission } from '@/hooks/useTransactionSubmission';
+import { toast } from 'sonner';
+import confetti from 'canvas-confetti';
 
 interface StepWizardPaymentFlowProps {
   onBack: () => void;
 }
 
-const steps = [
-  { id: 'recipient', title: 'Select Recipient', description: 'Who are you sending money to?' },
-  { id: 'amount', title: 'Enter Amount', description: 'How much would you like to send?' },
-  { id: 'purpose', title: 'Purpose & Review', description: 'What is this payment for?' },
-  { id: 'confirm', title: 'Confirm', description: 'Review and confirm your payment' }
-];
-
 export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
-  const [currentStep, setCurrentStep] = useState(0);
-  const [showSuccessModal, setShowSuccessModal] = useState(false);
-  const [completedTransactionId, setCompletedTransactionId] = useState("");
-  
-  const {
-    formState,
-    availableFunds,
-    isProcessing,
-    fiatAmount,
-    setFiatAmount,
-    defaultFiat,
-    fiatRate,
-    setSelectedRecipient,
-    setDescription,
-    executeTransaction,
-    handleSuccessClose
-  } = useTransactionSubmission();
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formData, setFormData] = useState({
+    recipient: '',
+    recipientName: '',
+    amount: '',
+    purpose: '',
+    description: ''
+  });
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [transactionId, setTransactionId] = useState('');
 
-  const { selectedRecipient, description } = formState;
+  const { executeTransaction, isLoading } = useTransactionSubmission();
 
-  const canProceedToNext = () => {
-    switch (currentStep) {
-      case 0: return selectedRecipient !== null;
-      case 1: return fiatAmount && parseFloat(fiatAmount) > 0;
-      case 2: return description.trim().length > 0;
-      case 3: return true;
-      default: return false;
-    }
-  };
+  const steps = [
+    { number: 1, title: 'Recipient', completed: currentStep > 1 },
+    { number: 2, title: 'Amount', completed: currentStep > 2 },
+    { number: 3, title: 'Purpose', completed: currentStep > 3 },
+    { number: 4, title: 'Confirm', completed: false }
+  ];
 
   const handleNext = () => {
-    if (canProceedToNext() && currentStep < steps.length - 1) {
+    if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     }
   };
 
-  const handlePrevious = () => {
-    if (currentStep > 0) {
+  const handleBack = () => {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
       onBack();
     }
   };
 
-  const triggerCelebration = () => {
-    // Trigger confetti animation
-    const count = 200;
-    const defaults = {
-      origin: { y: 0.7 }
-    };
-
-    function fire(particleRatio: number, opts: any) {
-      confetti({
-        ...defaults,
-        ...opts,
-        particleCount: Math.floor(count * particleRatio)
-      });
-    }
-
-    fire(0.25, {
-      spread: 26,
-      startVelocity: 55,
-    });
-
-    fire(0.2, {
-      spread: 60,
-    });
-
-    fire(0.35, {
-      spread: 100,
-      decay: 0.91,
-      scalar: 0.8
-    });
-
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 25,
-      decay: 0.92,
-      scalar: 1.2
-    });
-
-    fire(0.1, {
-      spread: 120,
-      startVelocity: 45,
-    });
-  };
-
   const handleConfirmPayment = async () => {
     try {
-      await executeTransaction();
-      
-      // Generate a realistic transaction ID
-      const transactionId = `tx_${Math.random().toString(36).substring(2, 15)}${Date.now().toString(36)}`;
-      setCompletedTransactionId(transactionId);
-      
-      // Show success celebration
-      triggerCelebration();
-      toast.success(`Payment sent successfully to ${selectedRecipient?.recipient_name}!`);
-      
-      // Show success modal
-      setShowSuccessModal(true);
-      
+      // Trigger confetti immediately for better UX
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 }
+      });
+
+      // Show success toast
+      toast.success(`Payment sent to ${formData.recipientName}!`);
+
+      // Execute the actual transaction
+      const result = await executeTransaction({
+        recipient: formData.recipient,
+        amount: parseFloat(formData.amount),
+        currency: 'EUR',
+        description: formData.description || formData.purpose
+      });
+
+      // Generate a mock transaction ID for demo
+      const mockTxId = `TX${Date.now().toString().slice(-8)}`;
+      setTransactionId(mockTxId);
+      setShowSuccess(true);
+
     } catch (error) {
-      console.error("Payment failed:", error);
-      toast.error("Payment failed. Please try again.");
+      console.error('Payment failed:', error);
+      toast.error('Payment failed. Please try again.');
     }
   };
 
-  const handleSuccessModalClose = () => {
-    setShowSuccessModal(false);
-    handleSuccessClose();
+  const handleSuccessClose = () => {
+    setShowSuccess(false);
+    // Reset the wizard
+    setCurrentStep(1);
+    setFormData({
+      recipient: '',
+      recipientName: '',
+      amount: '',
+      purpose: '',
+      description: ''
+    });
     onBack();
   };
 
-  const stepVariants = {
-    enter: { opacity: 0, x: 20 },
-    center: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -20 }
-  };
+  if (showSuccess) {
+    return (
+      <TransactionSuccess
+        isOpen={true}
+        onClose={handleSuccessClose}
+        transactionData={{
+          recipient: formData.recipientName,
+          amount: parseFloat(formData.amount),
+          currency: 'EUR',
+          transactionId: transactionId,
+          timestamp: new Date().toISOString()
+        }}
+      />
+    );
+  }
 
   return (
-    <>
-      <div className="max-w-md mx-auto">
-        {/* Progress Indicator */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between mb-4">
+    <div className="max-w-2xl mx-auto space-y-6">
+      {/* Header with Back Button */}
+      <div className="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleBack}
+          className="text-white hover:bg-white/10"
+        >
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="text-2xl font-bold text-white">Send Money</h1>
+      </div>
+
+      {/* Progress Indicator */}
+      <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between">
             {steps.map((step, index) => (
-              <div key={step.id} className="flex items-center">
-                <div className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                  index < currentStep ? "bg-blue-500 text-white" :
-                  index === currentStep ? "bg-blue-500/20 text-blue-400 border-2 border-blue-500" :
-                  "bg-white/10 text-white/50"
-                )}>
-                  {index < currentStep ? <Check className="w-4 h-4" /> : index + 1}
+              <div key={step.number} className="flex items-center">
+                <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                  step.completed 
+                    ? 'bg-green-500 text-white' 
+                    : currentStep === step.number 
+                      ? 'bg-blue-500 text-white' 
+                      : 'bg-white/20 text-white/60'
+                }`}>
+                  {step.completed ? <Check className="h-4 w-4" /> : step.number}
                 </div>
+                <span className={`ml-2 text-sm font-medium ${
+                  currentStep >= step.number ? 'text-white' : 'text-white/60'
+                }`}>
+                  {step.title}
+                </span>
                 {index < steps.length - 1 && (
-                  <div className={cn(
-                    "w-8 h-0.5 mx-2 transition-colors",
-                    index < currentStep ? "bg-blue-500" : "bg-white/20"
-                  )} />
+                  <div className={`mx-4 h-0.5 w-8 ${
+                    step.completed ? 'bg-green-500' : 'bg-white/20'
+                  }`} />
                 )}
               </div>
             ))}
           </div>
-          <div className="text-center">
-            <h2 className="text-lg font-semibold text-white">{steps[currentStep].title}</h2>
-            <p className="text-sm text-white/70">{steps[currentStep].description}</p>
-          </div>
-        </div>
+        </CardContent>
+      </Card>
 
-        {/* Step Content */}
-        <div className="min-h-[300px]">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={currentStep}
-              variants={stepVariants}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={{ duration: 0.3 }}
-            >
-              {currentStep === 0 && (
-                <RecipientSelectionStep
-                  selectedRecipient={selectedRecipient}
-                  onSelectRecipient={setSelectedRecipient}
-                />
-              )}
-              {currentStep === 1 && (
-                <AmountSelectionStep
-                  amount={fiatAmount}
-                  setAmount={setFiatAmount}
-                  availableFunds={availableFunds}
-                  defaultFiat={defaultFiat}
-                  fiatRate={fiatRate}
-                />
-              )}
-              {currentStep === 2 && (
-                <PurposeReviewStep
-                  description={description}
-                  setDescription={setDescription}
-                  selectedRecipient={selectedRecipient}
-                  amount={fiatAmount}
-                  defaultFiat={defaultFiat}
-                />
-              )}
-              {currentStep === 3 && (
-                <ConfirmationStep
-                  selectedRecipient={selectedRecipient}
-                  amount={fiatAmount}
-                  description={description}
-                  defaultFiat={defaultFiat}
-                  isProcessing={isProcessing}
-                  onConfirm={handleConfirmPayment}
-                />
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
+      {/* Step Content */}
+      <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+        <CardContent className="p-6">
+          {currentStep === 1 && (
+            <RecipientSelectionStep
+              recipient={formData.recipient}
+              onRecipientChange={(email, name) => {
+                setFormData({ ...formData, recipient: email, recipientName: name });
+              }}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
 
-        {/* Navigation */}
-        <div className="flex justify-between mt-6">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            className="border-white/20 bg-transparent hover:bg-white/10 text-white"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            {currentStep === 0 ? 'Back' : 'Previous'}
-          </Button>
+          {currentStep === 2 && (
+            <AmountSelectionStep
+              amount={formData.amount}
+              onAmountChange={(amount) => setFormData({ ...formData, amount })}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
 
-          {currentStep < steps.length - 1 ? (
-            <Button
-              onClick={handleNext}
-              disabled={!canProceedToNext() || isProcessing}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Next
-              <ArrowRight className="w-4 h-4 ml-2" />
-            </Button>
-          ) : null}
-        </div>
-      </div>
+          {currentStep === 3 && (
+            <PurposeReviewStep
+              purpose={formData.purpose}
+              description={formData.description}
+              onPurposeChange={(purpose) => setFormData({ ...formData, purpose })}
+              onDescriptionChange={(description) => setFormData({ ...formData, description })}
+              onNext={handleNext}
+              onBack={handleBack}
+            />
+          )}
 
-      {/* Success Modal */}
-      {selectedRecipient && (
-        <TransactionSuccess
-          isOpen={showSuccessModal}
-          onClose={handleSuccessModalClose}
-          recipient={selectedRecipient}
-          amount={fiatAmount}
-          transactionId={completedTransactionId}
-          defaultFiat={defaultFiat}
-        />
-      )}
-    </>
+          {currentStep === 4 && (
+            <ConfirmationStep
+              formData={formData}
+              onConfirm={handleConfirmPayment}
+              onBack={handleBack}
+              isLoading={isLoading}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

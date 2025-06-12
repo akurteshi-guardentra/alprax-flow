@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, BarChart3, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { useNavigate } from "react-router-dom";
 import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 
@@ -45,20 +45,11 @@ const Settings = () => {
         { label: "Currency Display", action: () => {}, description: "EUR - Euro" },
         { label: "Time Zone", action: () => {}, description: "UTC+1 (Central European Time)" }
       ]
-    },
-    {
-      title: "Mobile Features",
-      icon: Smartphone,
-      items: [
-        { label: "Push Notifications", action: () => {}, description: "Manage mobile alerts" },
-        { label: "Biometric Security", action: () => {}, description: "Touch ID / Face ID settings" },
-        { label: "Offline Mode", action: () => {}, description: "Access recent transactions offline" }
-      ]
     }
   ];
 
   return (
-    <UnifiedLayout title="Settings">
+    <UnifiedAppLayout title="Settings" showBack>
       <div className="max-w-4xl mx-auto space-y-6">
         {/* Analytics Dashboard Integration */}
         <motion.div
@@ -112,7 +103,7 @@ const Settings = () => {
           </motion.div>
         ))}
 
-        {/* Notifications with fixed toggles */}
+        {/* Notifications with properly styled toggles */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -139,7 +130,7 @@ const Settings = () => {
                     onCheckedChange={(checked) =>
                       setNotifications(prev => ({ ...prev, [key]: checked }))
                     }
-                    className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-white/30 border-white/20"
+                    className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-white/20"
                   />
                 </div>
               ))}
@@ -189,13 +180,13 @@ const Settings = () => {
           <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
             <CardContent className="p-6 text-center">
               <h3 className="text-white font-medium mb-2">AlpraxFlow</h3>
-              <p className="text-white/60 text-sm">Version 1.0.0 • Powered by Stellar</p>
-              <p className="text-white/40 text-xs mt-2">Built for the future of finance</p>
+              <p className="text-white/60 text-sm">Version 1.0.0 • Powered by Stellar Testnet</p>
+              <p className="text-white/40 text-xs mt-2">Built for the future of decentralized finance</p>
             </CardContent>
           </Card>
         </motion.div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

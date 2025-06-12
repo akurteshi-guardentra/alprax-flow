@@ -1,147 +1,115 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { QrCode, Users, Plus, ArrowRight, ArrowLeft } from "lucide-react";
-import { motion } from "framer-motion";
-import { StepWizardPaymentFlow } from "./StepWizardPaymentFlow";
-import { RequestMoneyFlow } from "./RequestMoneyFlow";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Send, UserPlus, QrCode, Users } from 'lucide-react';
+import { StepWizardPaymentFlow } from './StepWizardPaymentFlow';
+import { RequestMoneyFlow } from './RequestMoneyFlow';
+import { QRCodeScanner } from './QRCodeScanner';
+import { motion } from 'framer-motion';
 
-interface SimplifiedPaymentFlowProps {
-  isMobile?: boolean;
-}
+type FlowType = 'menu' | 'send' | 'request' | 'scan';
 
-export function SimplifiedPaymentFlow({ isMobile = false }: SimplifiedPaymentFlowProps) {
-  const [view, setView] = useState<'home' | 'send' | 'request' | 'qr'>('home');
+export function SimplifiedPaymentFlow() {
+  const [currentFlow, setCurrentFlow] = useState<FlowType>('menu');
 
-  if (view === 'send') {
-    return <StepWizardPaymentFlow onBack={() => setView('home')} />;
+  const handleQRScan = (data: string) => {
+    console.log('QR Code scanned:', data);
+    // Process the QR code data and navigate to appropriate flow
+    setCurrentFlow('send');
+  };
+
+  if (currentFlow === 'send') {
+    return <StepWizardPaymentFlow onBack={() => setCurrentFlow('menu')} />;
   }
 
-  if (view === 'request') {
-    return <RequestMoneyFlow onBack={() => setView('home')} />;
+  if (currentFlow === 'request') {
+    return <RequestMoneyFlow onBack={() => setCurrentFlow('menu')} />;
   }
 
-  if (view === 'qr') {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center gap-4 mb-6">
-          <Button 
-            variant="ghost" 
-            onClick={() => setView('home')}
-            className="text-white/70 hover:text-white hover:bg-white/10"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back
-          </Button>
-          <h3 className="text-xl font-semibold text-white">QR Payment</h3>
-        </div>
+  return (
+    <div className="space-y-6">
+      <QRCodeScanner
+        isOpen={currentFlow === 'scan'}
+        onScan={handleQRScan}
+        onClose={() => setCurrentFlow('menu')}
+      />
 
-        <div className="text-center py-12">
-          <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <QrCode className="h-8 w-8 text-green-400" />
-          </div>
-          <h4 className="text-lg font-medium text-white mb-2">QR Code Payments</h4>
-          <p className="text-white/70 mb-6">
-            Scan QR codes to pay or generate your own for others to pay you. This feature is coming soon!
-          </p>
-          <Button
-            onClick={() => {
-              toast.info("QR code payments coming soon!");
-              setView('home');
-            }}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            Notify me when available
-          </Button>
-        </div>
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white mb-2">Send & Request Money</h2>
+        <p className="text-white/70">Choose how you'd like to transfer money</p>
       </div>
-    );
-  }
 
-  if (view === 'home') {
-    return (
-      <div className="space-y-6">
-        <div className="text-center">
-          <h3 className="text-xl font-semibold text-white mb-2">Send Money</h3>
-          <p className="text-white/70">Choose how you'd like to send money</p>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4">
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card 
+            className="bg-white/10 backdrop-blur-lg border-white/20 hover:bg-white/15 transition-all cursor-pointer h-full"
+            onClick={() => setCurrentFlow('send')}
           >
-            <Button
-              onClick={() => setView('send')}
-              className="w-full h-16 bg-gradient-to-r from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border border-white/10 text-white justify-between group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                  <Users className="h-5 w-5 text-blue-400" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Send to Contact</div>
-                  <div className="text-sm text-white/70">Send money to anyone by name, email, or phone</div>
-                </div>
+            <CardContent className="p-6 text-center">
+              <div className="bg-blue-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                <Send className="h-8 w-8 text-blue-400" />
               </div>
-              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
-            </Button>
-          </motion.div>
+              <h3 className="text-lg font-semibold text-white mb-2">Send to Contact</h3>
+              <p className="text-white/70 text-sm">Send money to friends and family instantly</p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card 
+            className="bg-white/10 backdrop-blur-lg border-white/20 hover:bg-white/15 transition-all cursor-pointer h-full"
+            onClick={() => setCurrentFlow('request')}
           >
-            <Button
-              onClick={() => setView('qr')}
-              className="w-full h-16 bg-gradient-to-r from-green-500/20 to-emerald-500/20 hover:from-green-500/30 hover:to-emerald-500/30 border border-white/10 text-white justify-between group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center">
-                  <QrCode className="h-5 w-5 text-green-400" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Scan QR Code</div>
-                  <div className="text-sm text-white/70">Pay with QR code or generate one for others</div>
-                </div>
+            <CardContent className="p-6 text-center">
+              <div className="bg-green-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                <UserPlus className="h-8 w-8 text-green-400" />
               </div>
-              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
-            </Button>
-          </motion.div>
+              <h3 className="text-lg font-semibold text-white mb-2">Request Money</h3>
+              <p className="text-white/70 text-sm">Create a payment request with QR code</p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-          <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card 
+            className="bg-white/10 backdrop-blur-lg border-white/20 hover:bg-white/15 transition-all cursor-pointer h-full"
+            onClick={() => setCurrentFlow('scan')}
           >
-            <Button
-              onClick={() => setView('request')}
-              className="w-full h-16 bg-gradient-to-r from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border border-white/10 text-white justify-between group"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-orange-500/20 flex items-center justify-center">
-                  <Plus className="h-5 w-5 text-orange-400" />
-                </div>
-                <div className="text-left">
-                  <div className="font-medium">Request Money</div>
-                  <div className="text-sm text-white/70">Ask someone to send you money</div>
-                </div>
+            <CardContent className="p-6 text-center">
+              <div className="bg-purple-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                <QrCode className="h-8 w-8 text-purple-400" />
               </div>
-              <ArrowRight className="h-5 w-5 text-white/50 group-hover:text-white transition-colors" />
-            </Button>
-          </motion.div>
-        </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Scan QR Code</h3>
+              <p className="text-white/70 text-sm">Scan to pay or receive payment requests</p>
+            </CardContent>
+          </Card>
+        </motion.div>
 
-        <div className="mt-6 p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
-          <div className="text-blue-400 text-sm font-medium mb-1">💡 Quick Tip</div>
-          <div className="text-white/90 text-sm">
-            You can send money to anyone with just their name, email, or phone number. No need to know wallet addresses!
-          </div>
-        </div>
+        <motion.div
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Card className="bg-white/10 backdrop-blur-lg border-white/20 hover:bg-white/15 transition-all cursor-pointer h-full">
+            <CardContent className="p-6 text-center">
+              <div className="bg-orange-500/20 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                <Users className="h-8 w-8 text-orange-400" />
+              </div>
+              <h3 className="text-lg font-semibold text-white mb-2">Split Bill</h3>
+              <p className="text-white/70 text-sm">Split expenses with multiple people</p>
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-    );
-  }
-
-  return null;
+    </div>
+  );
 }

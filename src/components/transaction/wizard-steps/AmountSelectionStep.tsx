@@ -1,129 +1,125 @@
-import { motion } from "framer-motion";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { DollarSign, Wallet, Info } from "lucide-react";
+
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { ArrowRight, Euro, DollarSign } from 'lucide-react';
 
 interface AmountSelectionStepProps {
   amount: string;
-  setAmount: (amount: string) => void;
-  availableFunds: number;
-  defaultFiat: string;
-  fiatRate: number;
+  onAmountChange: (amount: string) => void;
+  onNext: () => void;
+  onBack: () => void;
 }
 
-export function AmountSelectionStep({
-  amount,
-  setAmount,
-  availableFunds,
-  defaultFiat,
-  fiatRate
-}: AmountSelectionStepProps) {
-  const maxFiatAmount = fiatRate > 0 ? availableFunds * fiatRate : availableFunds;
+export function AmountSelectionStep({ amount, onAmountChange, onNext, onBack }: AmountSelectionStepProps) {
+  const [localAmount, setLocalAmount] = useState(amount);
+  const quickAmounts = [10, 25, 50, 100, 250, 500];
+  const availableBalance = 1000;
 
-  const quickAmounts = [10, 25, 50, 100];
-
-  const formatAmount = (value: number) => {
-    return value % 1 === 0 ? value.toString() : value.toFixed(2);
-  };
+  useEffect(() => {
+    setLocalAmount(amount);
+  }, [amount]);
 
   const handleAmountChange = (value: string) => {
-    // Allow only numbers and one decimal point
-    const cleanValue = value.replace(/[^0-9.]/g, '');
+    // Remove any non-numeric characters except decimal point
+    const cleanValue = value.replace(/[^\d.]/g, '');
     
     // Prevent multiple decimal points
     const parts = cleanValue.split('.');
-    if (parts.length > 2) {
-      return;
-    }
+    if (parts.length > 2) return;
     
-    // Limit decimal places to 2
-    if (parts[1] && parts[1].length > 2) {
-      return;
-    }
+    // Limit to 2 decimal places
+    if (parts[1] && parts[1].length > 2) return;
     
-    setAmount(cleanValue);
+    setLocalAmount(cleanValue);
+    onAmountChange(cleanValue);
   };
 
+  const handleQuickAmount = (value: number) => {
+    const stringValue = value.toString();
+    setLocalAmount(stringValue);
+    onAmountChange(stringValue);
+  };
+
+  const handleMaxAmount = () => {
+    const maxValue = availableBalance.toString();
+    setLocalAmount(maxValue);
+    onAmountChange(maxValue);
+  };
+
+  const isValidAmount = parseFloat(localAmount) > 0 && parseFloat(localAmount) <= availableBalance;
+
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
-      {/* Available Balance */}
-      <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Wallet className="h-4 w-4 text-white/60" />
-          <span className="text-white/70 text-sm">Available Balance</span>
-        </div>
-        <div className="text-xl font-semibold text-white">
-          {fiatRate > 0 
-            ? `${formatAmount(maxFiatAmount)} ${defaultFiat}`
-            : `-- ${defaultFiat}`
-          }
-        </div>
+    <div className="space-y-6">
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white mb-2">How much would you like to send?</h2>
+        <p className="text-white/70">Choose an amount or enter a custom value</p>
       </div>
 
-      {/* Amount Input */}
-      <div className="space-y-2">
-        <Label className="text-white flex items-center gap-2">
-          <DollarSign className="h-4 w-4" />
-          Amount ({defaultFiat})
-        </Label>
-        <div className="relative">
-          <Input
-            type="text"
-            value={amount}
-            onChange={(e) => handleAmountChange(e.target.value)}
-            placeholder="0"
-            className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
-          />
-          <div className="absolute right-3 top-0 bottom-0 flex items-center">
-            <span className="text-white/60 font-medium">{defaultFiat}</span>
+      <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+        <CardContent className="p-6">
+          <div className="space-y-4">
+            <div className="relative">
+              <Euro className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-white/70" />
+              <Input
+                type="text"
+                inputMode="decimal"
+                placeholder="0"
+                value={localAmount}
+                onChange={(e) => handleAmountChange(e.target.value)}
+                className="pl-12 pr-20 h-16 text-2xl font-bold bg-white/10 border-white/20 text-white placeholder:text-white/50 text-center"
+              />
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <span className="text-white/70 font-medium">EUR</span>
+              </div>
+            </div>
+
+            <div className="text-center">
+              <p className="text-white/60 text-sm">Available Balance: €{availableBalance.toLocaleString()}</p>
+              <Button 
+                variant="link" 
+                onClick={handleMaxAmount}
+                className="text-blue-400 hover:text-blue-300 p-0 h-auto"
+              >
+                Use Max
+              </Button>
+            </div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Amount Buttons */}
-      <div className="space-y-2">
-        <Label className="text-white text-sm">Quick amounts</Label>
-        <div className="grid grid-cols-4 gap-2">
-          {quickAmounts.map((quickAmount) => (
-            <Button
-              key={quickAmount}
-              variant="outline"
-              onClick={() => setAmount(quickAmount.toString())}
-              className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm"
-              disabled={quickAmount > maxFiatAmount}
-            >
-              {quickAmount}
-            </Button>
-          ))}
-        </div>
-        <Button
-          variant="ghost"
-          onClick={() => setAmount(Math.floor(maxFiatAmount).toString())}
-          className="w-full text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm"
-          disabled={maxFiatAmount <= 0}
-        >
-          Use maximum amount
-        </Button>
+      <div className="grid grid-cols-3 gap-3">
+        {quickAmounts.map((quickAmount) => (
+          <Button
+            key={quickAmount}
+            variant="outline"
+            onClick={() => handleQuickAmount(quickAmount)}
+            className="h-12 border-white/20 text-white hover:bg-white/10"
+          >
+            €{quickAmount}
+          </Button>
+        ))}
       </div>
 
-      {/* Processing Fee Info - Fixed to show free transfers */}
-      <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
-        <div className="flex items-center justify-center gap-2 mb-1">
-          <Info className="h-4 w-4 text-green-400" />
-          <span className="text-green-300 text-sm font-medium">Transaction Details</span>
-        </div>
-        <p className="text-green-200 text-xs">
-          Instant transfer • Secured by Stellar blockchain technology
-        </p>
-        <p className="text-green-200 text-xs mt-1">
-          Network fee: <span className="font-medium text-green-300">FREE</span> on testnet
-        </p>
+      {/* Action Buttons */}
+      <div className="flex gap-3">
+        <Button
+          variant="outline"
+          onClick={onBack}
+          className="flex-1 border-white/20 text-white hover:bg-white/10"
+        >
+          Back
+        </Button>
+        <Button
+          onClick={onNext}
+          disabled={!isValidAmount}
+          className="flex-1 bg-white text-blue-900 hover:bg-white/90"
+        >
+          Continue <ArrowRight className="ml-2 h-4 w-4" />
+        </Button>
       </div>
-    </motion.div>
+    </div>
   );
 }

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Bell, DollarSign, CreditCard, Settings } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
@@ -19,7 +19,7 @@ const Notifications = () => {
     {
       id: 1,
       title: "Payment Received",
-      message: "You received a payment of $250.00 from John Doe",
+      message: "You received a payment of €250.00 from John Doe",
       time: "2 hours ago",
       icon: <DollarSign className="h-5 w-5 text-green-400" />
     },
@@ -40,7 +40,7 @@ const Notifications = () => {
   ];
 
   return (
-    <UnifiedLayout title="Notifications">
+    <UnifiedAppLayout title="Notifications" showBack>
       <div className="max-w-3xl mx-auto space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -110,7 +110,7 @@ const Notifications = () => {
           </Button>
         </div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -55,7 +55,7 @@ const Signup = () => {
   };
 
   return (
-    <UnifiedLayout title="Create Account" onBack={() => navigate('/welcome')}>
+    <UnifiedAppLayout title="Create Account" showBack onBack={() => navigate('/welcome')}>
       <div className="max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -67,7 +67,7 @@ const Signup = () => {
                 <UserPlus className="h-8 w-8 text-blue-400" />
               </div>
               <CardTitle className="text-white text-2xl">Join AlpraxFlow</CardTitle>
-              <p className="text-white/70">Start sending money globally</p>
+              <p className="text-white/70">Start sending money globally for free</p>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSignUp} className="space-y-6">
@@ -120,10 +120,10 @@ const Signup = () => {
                 <div className="space-y-4">
                   <Button 
                     type="submit" 
-                    className="w-full bg-white text-blue-900 hover:bg-white/90 h-12"
+                    className="w-full bg-white text-blue-900 hover:bg-white/90 h-12 font-semibold"
                     disabled={isLoading}
                   >
-                    {isLoading ? 'Creating account...' : 'Create Account'}
+                    {isLoading ? 'Creating account...' : 'Create Free Account'}
                   </Button>
 
                   <div className="text-center">
@@ -141,7 +141,7 @@ const Signup = () => {
           </Card>
         </motion.div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

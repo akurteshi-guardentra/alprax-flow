@@ -7,7 +7,7 @@ import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { useLogin } from "@/hooks/useLogin";
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LogIn } from "lucide-react";
 
@@ -91,7 +91,7 @@ const Login = () => {
   };
 
   return (
-    <UnifiedLayout title={getTitle()} onBack={handleBackNavigation}>
+    <UnifiedAppLayout title={getTitle()} showBack onBack={handleBackNavigation}>
       <div className="max-w-md mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -111,7 +111,7 @@ const Login = () => {
           </Card>
         </motion.div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

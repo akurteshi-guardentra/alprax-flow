@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreditCard, Building, Wallet, Plus, MoreVertical } from "lucide-react";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { CreditCard, Building, Wallet, Plus, MoreVertical, Shield } from "lucide-react";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { Badge } from "@/components/ui/badge";
 
 const Cards = () => {
@@ -35,7 +35,7 @@ const Cards = () => {
   ];
 
   return (
-    <UnifiedLayout title="Payment Methods">
+    <UnifiedAppLayout title="Payment Methods" showBack>
       <div className="max-w-4xl mx-auto space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -44,7 +44,7 @@ const Cards = () => {
         >
           <div>
             <h2 className="text-xl font-semibold text-white mb-2">Your Payment Methods</h2>
-            <p className="text-white/70">Manage your cards and bank accounts</p>
+            <p className="text-white/70">Manage your cards and bank accounts securely</p>
           </div>
           <Button className="bg-blue-500 hover:bg-blue-600 text-white">
             <Plus className="h-4 w-4 mr-2" />
@@ -129,16 +129,21 @@ const Cards = () => {
         >
           <Card className="bg-white/5 backdrop-blur-lg border-white/10">
             <CardContent className="p-6">
-              <h4 className="text-white font-medium mb-2">Security & Privacy</h4>
-              <p className="text-white/70 text-sm">
-                All payment methods are secured with bank-level encryption. We never store your full card details 
-                and use tokenization for maximum security.
-              </p>
+              <div className="flex items-start gap-3">
+                <Shield className="w-5 h-5 text-blue-400 mt-0.5" />
+                <div>
+                  <h4 className="text-white font-medium mb-2">Security & Privacy</h4>
+                  <p className="text-white/70 text-sm">
+                    All payment methods are secured with bank-level encryption. We never store your full card details 
+                    and use tokenization for maximum security.
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </motion.div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

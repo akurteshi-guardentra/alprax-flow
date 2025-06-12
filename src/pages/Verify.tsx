@@ -6,7 +6,7 @@ import { ChevronRight, Smartphone, Globe, FileText, Bitcoin, Shield } from "luci
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
-import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { UnifiedAppLayout } from "@/components/layout/UnifiedAppLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const VerificationStep = ({ 
@@ -79,7 +79,7 @@ const Verify = () => {
   };
 
   return (
-    <UnifiedLayout title="Enhanced Security Verification">
+    <UnifiedAppLayout title="Identity Verification" showBack>
       <div className="max-w-2xl mx-auto space-y-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -90,7 +90,7 @@ const Verify = () => {
               <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
                 <Shield className="w-8 h-8 text-blue-400" />
               </div>
-              <CardTitle className="text-white text-2xl">Identity Verification</CardTitle>
+              <CardTitle className="text-white text-2xl">Enhanced Security Verification</CardTitle>
               <p className="text-white/70">
                 Multi-layer verification system protects your account and ensures compliance
               </p>
@@ -149,7 +149,7 @@ const Verify = () => {
           </Card>
         </motion.div>
       </div>
-    </UnifiedLayout>
+    </UnifiedAppLayout>
   );
 };
 

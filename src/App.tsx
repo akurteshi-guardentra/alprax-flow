@@ -38,7 +38,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <TestnetBanner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/welcome" element={<Welcome />} />

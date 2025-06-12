@@ -1,16 +1,16 @@
 
 import React, { useState } from 'react';
-import { AlertCircle, X } from 'lucide-react';
+import { AlertCircle, X, Shield } from 'lucide-react';
 import { Button } from './ui/button';
 
 export function TestnetBanner() {
   const [closed, setClosed] = useState(() => {
     // Check if the banner has been previously closed
-    return localStorage.getItem('demo-banner-closed') === 'true';
+    return localStorage.getItem('testnet-banner-closed') === 'true';
   });
 
   const handleClose = () => {
-    localStorage.setItem('demo-banner-closed', 'true');
+    localStorage.setItem('testnet-banner-closed', 'true');
     setClosed(true);
   };
 
@@ -18,12 +18,12 @@ export function TestnetBanner() {
   if (closed) return null;
 
   return (
-    <div className="bg-blue-950 text-white p-2 flex items-center justify-between text-sm font-medium relative z-50">
+    <div className="bg-gradient-to-r from-blue-950 to-purple-950 text-white p-3 flex items-center justify-between text-sm font-medium relative z-50 border-b border-blue-800/30">
       <div className="flex items-center mx-auto">
-        <AlertCircle className="h-4 w-4 mr-2 text-blue-300" />
+        <Shield className="h-4 w-4 mr-2 text-blue-300" />
         <span>
-          You are using <strong className="text-blue-300">Demo Mode</strong>. 
-          All transactions are simulated for demonstration purposes.
+          Running on <strong className="text-blue-300">Stellar Testnet</strong> • 
+          All transactions are secure but use test tokens for demonstration.
         </span>
       </div>
       <Button 

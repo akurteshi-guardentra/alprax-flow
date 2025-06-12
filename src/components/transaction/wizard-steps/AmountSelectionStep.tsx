@@ -1,4 +1,3 @@
-
 import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -112,20 +111,18 @@ export function AmountSelectionStep({
         </Button>
       </div>
 
-      {/* Processing Fee Info */}
-      <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+      {/* Processing Fee Info - Fixed to show free transfers */}
+      <div className="text-center p-3 rounded-lg bg-green-500/10 border border-green-500/20">
         <div className="flex items-center justify-center gap-2 mb-1">
-          <Info className="h-4 w-4 text-blue-400" />
-          <span className="text-blue-300 text-sm font-medium">Transaction Details</span>
+          <Info className="h-4 w-4 text-green-400" />
+          <span className="text-green-300 text-sm font-medium">Transaction Details</span>
         </div>
-        <p className="text-blue-200 text-xs">
-          Instant transfer • Secured by blockchain technology
+        <p className="text-green-200 text-xs">
+          Instant transfer • Secured by Stellar blockchain technology
         </p>
-        {amount && (
-          <p className="text-blue-200 text-xs mt-1">
-            Processing fee: ~{(parseFloat(amount) * 0.001).toFixed(2)} {defaultFiat}
-          </p>
-        )}
+        <p className="text-green-200 text-xs mt-1">
+          Network fee: <span className="font-medium text-green-300">FREE</span> on testnet
+        </p>
       </div>
     </motion.div>
   );

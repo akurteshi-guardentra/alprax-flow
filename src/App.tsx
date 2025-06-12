@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -14,7 +13,6 @@ import Profile from "./pages/Profile";
 import Settings from "./pages/Settings";
 import Analytics from "./pages/Analytics";
 import Dashboard from "./pages/Dashboard";
-import ModernDashboard from "./pages/ModernDashboard";
 import Verify from "./pages/Verify";
 import VerifyDocument from "./pages/VerifyDocument";
 import Cards from "./pages/Cards";
@@ -48,7 +46,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/modern-dashboard" element={<ModernDashboard />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
               <Route path="/cards" element={<Cards />} />

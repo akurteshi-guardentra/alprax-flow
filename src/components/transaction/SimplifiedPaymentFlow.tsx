@@ -1,9 +1,10 @@
+
 import { useState } from "react";
-import { TransactionForm } from "@/components/TransactionForm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { QrCode, Users, Plus, ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { StepWizardPaymentFlow } from "./StepWizardPaymentFlow";
 
 interface SimplifiedPaymentFlowProps {
   isMobile?: boolean;
@@ -13,18 +14,7 @@ export function SimplifiedPaymentFlow({ isMobile = false }: SimplifiedPaymentFlo
   const [view, setView] = useState<'home' | 'send' | 'request' | 'qr'>('home');
 
   if (view === 'send') {
-    return (
-      <div className="space-y-4">
-        <Button 
-          variant="ghost" 
-          onClick={() => setView('home')}
-          className="text-white/70 hover:text-white hover:bg-white/10"
-        >
-          ← Back to menu
-        </Button>
-        <TransactionForm />
-      </div>
-    );
+    return <StepWizardPaymentFlow onBack={() => setView('home')} />;
   }
 
   if (view === 'home') {

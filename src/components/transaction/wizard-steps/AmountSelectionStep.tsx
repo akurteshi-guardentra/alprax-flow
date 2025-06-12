@@ -1,0 +1,105 @@
+
+import { motion } from "framer-motion";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { DollarSign, Wallet } from "lucide-react";
+
+interface AmountSelectionStepProps {
+  amount: string;
+  setAmount: (amount: string) => void;
+  availableFunds: number;
+  defaultFiat: string;
+  fiatRate: number;
+}
+
+export function AmountSelectionStep({
+  amount,
+  setAmount,
+  availableFunds,
+  defaultFiat,
+  fiatRate
+}: AmountSelectionStepProps) {
+  const maxFiatAmount = fiatRate > 0 ? availableFunds * fiatRate : availableFunds;
+
+  const quickAmounts = [10, 25, 50, 100];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="space-y-6"
+    >
+      {/* Available Balance */}
+      <div className="text-center p-4 rounded-lg bg-white/5 border border-white/10">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Wallet className="h-4 w-4 text-white/60" />
+          <span className="text-white/70 text-sm">Available Balance</span>
+        </div>
+        <div className="text-xl font-semibold text-white">
+          {fiatRate > 0 
+            ? `${maxFiatAmount.toFixed(2)} ${defaultFiat}`
+            : `-- ${defaultFiat}`
+          }
+        </div>
+      </div>
+
+      {/* Amount Input */}
+      <div className="space-y-2">
+        <Label className="text-white flex items-center gap-2">
+          <DollarSign className="h-4 w-4" />
+          Amount ({defaultFiat})
+        </Label>
+        <div className="relative">
+          <Input
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+            placeholder="0.00"
+            step="0.01"
+            min="0.01"
+            className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
+          />
+          <div className="absolute right-3 top-0 bottom-0 flex items-center">
+            <span className="text-white/60 font-medium">{defaultFiat}</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Amount Buttons */}
+      <div className="space-y-2">
+        <Label className="text-white text-sm">Quick amounts</Label>
+        <div className="grid grid-cols-4 gap-2">
+          {quickAmounts.map((quickAmount) => (
+            <Button
+              key={quickAmount}
+              variant="outline"
+              onClick={() => setAmount(quickAmount.toString())}
+              className="border-white/20 bg-white/5 hover:bg-white/10 text-white text-sm"
+              disabled={quickAmount > maxFiatAmount}
+            >
+              {quickAmount}
+            </Button>
+          ))}
+        </div>
+        <Button
+          variant="ghost"
+          onClick={() => setAmount(maxFiatAmount.toFixed(2))}
+          className="w-full text-blue-400 hover:text-blue-300 hover:bg-blue-500/10 text-sm"
+          disabled={maxFiatAmount <= 0}
+        >
+          Use maximum amount
+        </Button>
+      </div>
+
+      {/* Conversion Info */}
+      {amount && fiatRate > 0 && (
+        <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <p className="text-blue-300 text-sm">
+            ≈ {(parseFloat(amount) / fiatRate).toFixed(7)} XLM
+          </p>
+        </div>
+      )}
+    </motion.div>
+  );
+}

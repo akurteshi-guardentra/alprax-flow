@@ -58,24 +58,20 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Map status to profile level with explicit type assertion
-      let profileKycLevel: 'pending' | 'verified' | 'basic';
-      
-      switch (status) {
-        case 'verified':
-          profileKycLevel = 'verified';
-          break;
-        case 'pending':
-        case 'not_submitted':
-          profileKycLevel = 'pending';
-          break;
-        case 'rejected':
-          profileKycLevel = 'basic';
-          break;
-        default:
-          profileKycLevel = 'pending';
-          break;
-      }
+      // Map status to profile level with explicit type casting
+      const profileKycLevel = (() => {
+        switch (status) {
+          case 'verified':
+            return 'verified' as const;
+          case 'pending':
+          case 'not_submitted':
+            return 'pending' as const;
+          case 'rejected':
+            return 'basic' as const;
+          default:
+            return 'pending' as const;
+        }
+      })();
       
       const { error: profileError } = await supabase
         .from('profiles')

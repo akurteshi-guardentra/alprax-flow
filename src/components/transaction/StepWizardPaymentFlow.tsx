@@ -10,6 +10,7 @@ import { RecipientSelectionStep } from "./wizard-steps/RecipientSelectionStep";
 import { AmountSelectionStep } from "./wizard-steps/AmountSelectionStep";
 import { PurposeReviewStep } from "./wizard-steps/PurposeReviewStep";
 import { ConfirmationStep } from "./wizard-steps/ConfirmationStep";
+import { toast } from "sonner";
 
 interface StepWizardPaymentFlowProps {
   onBack: () => void;
@@ -35,11 +36,7 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
     setSelectedRecipient,
     setDescription,
     executeTransaction,
-    isConfirmationOpen,
-    setIsConfirmationOpen,
-    isSuccessOpen,
-    handleSuccessClose,
-    completedTransactionId
+    handleSuccessClose
   } = useTransactionSubmission();
 
   const { selectedRecipient, description } = formState;
@@ -57,9 +54,6 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   const handleNext = () => {
     if (canProceedToNext() && currentStep < steps.length - 1) {
       setCurrentStep(currentStep + 1);
-    } else if (currentStep === steps.length - 1) {
-      // Final step - execute transaction
-      setIsConfirmationOpen(true);
     }
   };
 
@@ -68,6 +62,22 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
       setCurrentStep(currentStep - 1);
     } else {
       onBack();
+    }
+  };
+
+  const handleConfirmPayment = async () => {
+    try {
+      await executeTransaction();
+      toast.success("Payment sent successfully!");
+      
+      // Reset the wizard and go back to home
+      setTimeout(() => {
+        handleSuccessClose();
+        onBack();
+      }, 2000);
+    } catch (error) {
+      console.error("Payment failed:", error);
+      toast.error("Payment failed. Please try again.");
     }
   };
 
@@ -149,7 +159,7 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
                 description={description}
                 defaultFiat={defaultFiat}
                 isProcessing={isProcessing}
-                onConfirm={() => setIsConfirmationOpen(true)}
+                onConfirm={handleConfirmPayment}
               />
             )}
           </motion.div>
@@ -167,14 +177,16 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
           {currentStep === 0 ? 'Back' : 'Previous'}
         </Button>
 
-        <Button
-          onClick={handleNext}
-          disabled={!canProceedToNext() || isProcessing}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          {currentStep === steps.length - 1 ? 'Send Payment' : 'Next'}
-          {currentStep < steps.length - 1 && <ArrowRight className="w-4 h-4 ml-2" />}
-        </Button>
+        {currentStep < steps.length - 1 ? (
+          <Button
+            onClick={handleNext}
+            disabled={!canProceedToNext() || isProcessing}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Next
+            <ArrowRight className="w-4 h-4 ml-2" />
+          </Button>
+        ) : null}
       </div>
     </div>
   );

@@ -25,7 +25,26 @@ export function AmountSelectionStep({
   const quickAmounts = [10, 25, 50, 100];
 
   const formatAmount = (value: number) => {
+    // Only show decimals if the number has decimal places
     return value % 1 === 0 ? value.toString() : value.toFixed(2);
+  };
+
+  const handleAmountChange = (value: string) => {
+    // Allow only numbers and one decimal point
+    const cleanValue = value.replace(/[^0-9.]/g, '');
+    
+    // Prevent multiple decimal points
+    const parts = cleanValue.split('.');
+    if (parts.length > 2) {
+      return;
+    }
+    
+    // Limit decimal places to 2
+    if (parts[1] && parts[1].length > 2) {
+      return;
+    }
+    
+    setAmount(cleanValue);
   };
 
   return (
@@ -56,12 +75,10 @@ export function AmountSelectionStep({
         </Label>
         <div className="relative">
           <Input
-            type="number"
+            type="text"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => handleAmountChange(e.target.value)}
             placeholder="0"
-            step="1"
-            min="1"
             className="bg-white/10 border-white/20 text-white text-lg pr-16 h-12"
           />
           <div className="absolute right-3 top-0 bottom-0 flex items-center">

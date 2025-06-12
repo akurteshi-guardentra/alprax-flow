@@ -2,8 +2,8 @@
 import { motion } from "framer-motion";
 import { TransactionHistory } from "@/components/TransactionHistory";
 import { StellarAccount } from "@/components/stellar-account";
-import { TransactionForm } from "@/components/TransactionForm";
 import { SecurityDashboard } from "@/components/SecurityDashboard";
+import { SimplifiedPaymentFlow } from "@/components/transaction/SimplifiedPaymentFlow";
 import { signOut } from "@/lib/auth";
 import { LogOut, User, BarChart, Settings, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useTheme } from "@/hooks/use-theme";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { logEnvironmentConfig, validateEnvironmentConfig } from "@/config/environment";
 import { toast } from "sonner";
 import { getDeploymentInfo } from "@/config/deployment";
@@ -22,6 +22,7 @@ const Index = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { theme } = useTheme();
+  const [activeSection, setActiveSection] = useState<'overview' | 'send-money' | 'security'>('overview');
 
   useEffect(() => {
     if (import.meta.env.DEV) {
@@ -147,26 +148,77 @@ const Index = () => {
             <LanguageSelector />
           </motion.div>
         )}
+
+        {/* Section Navigation */}
+        <motion.div variants={itemVariants} className="flex justify-center mb-6">
+          <div className="inline-flex bg-white/5 backdrop-blur-sm rounded-lg p-1 border border-white/10">
+            <Button
+              variant="ghost"
+              onClick={() => setActiveSection('overview')}
+              className={`rounded-md px-4 py-2 text-sm ${
+                activeSection === 'overview'
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Overview
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setActiveSection('send-money')}
+              className={`rounded-md px-4 py-2 text-sm ${
+                activeSection === 'send-money'
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Send Money
+            </Button>
+            <Button
+              variant="ghost"
+              onClick={() => setActiveSection('security')}
+              className={`rounded-md px-4 py-2 text-sm ${
+                activeSection === 'security'
+                  ? 'bg-blue-500/20 text-blue-400'
+                  : 'text-white/70 hover:text-white hover:bg-white/10'
+              }`}
+            >
+              Security
+            </Button>
+          </div>
+        </motion.div>
         
         <motion.div
           variants={containerVariants}
           className="max-w-4xl mx-auto space-y-6 sm:space-y-8"
         >
+          {/* Always show balance */}
           <motion.div variants={itemVariants}>
             <StellarAccount />
           </motion.div>
-          
-          <motion.div variants={itemVariants}>
-            <SecurityDashboard />
-          </motion.div>
-          
-          <motion.div variants={itemVariants}>
-            <TransactionForm />
-          </motion.div>
-          
-          <motion.div variants={itemVariants}>
-            <TransactionHistory />
-          </motion.div>
+
+          {/* Conditional content based on active section */}
+          {activeSection === 'overview' && (
+            <motion.div variants={itemVariants}>
+              <TransactionHistory />
+            </motion.div>
+          )}
+
+          {activeSection === 'send-money' && (
+            <motion.div variants={itemVariants}>
+              <Card className="border-none shadow-lg bg-white/5 backdrop-blur-sm">
+                <CardContent className="p-6">
+                  <SimplifiedPaymentFlow isMobile={isMobile} />
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {activeSection === 'security' && (
+            <motion.div variants={itemVariants}>
+              <SecurityDashboard />
+            </motion.div>
+          )}
         </motion.div>
       </motion.div>
       

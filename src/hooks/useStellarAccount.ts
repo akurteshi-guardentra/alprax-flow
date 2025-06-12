@@ -69,7 +69,30 @@ export function useStellarAccount() {
       
       try {
         const account = await server.loadAccount(primaryAccount.public_key);
-        return account as StellarAccountData;
+        
+        // Convert AccountResponse to StellarAccountData
+        const mappedAccount: StellarAccountData = {
+          id: account.id,
+          account_id: account.account_id,
+          sequence: account.sequence,
+          subentry_count: account.subentry_count,
+          balances: account.balances,
+          signers: account.signers,
+          data: {}, // Convert function to empty object for now
+          flags: {
+            auth_required: account.flags.auth_required,
+            auth_revocable: account.flags.auth_revocable,
+            auth_immutable: account.flags.auth_immutable,
+            auth_clawback_enabled: account.flags.auth_clawback_enabled
+          },
+          thresholds: {
+            low_threshold: account.thresholds.low_threshold,
+            med_threshold: account.thresholds.med_threshold,
+            high_threshold: account.thresholds.high_threshold
+          }
+        };
+        
+        return mappedAccount;
       } catch (error) {
         console.error('Error loading account from Stellar:', error);
         // Return mock data with default balance for demo purposes

@@ -3,34 +3,34 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getEnhancedTransactionHistory } from "@/services/stellar/history";
 import { useStellarAccount } from "./useStellarAccount";
 import { toast } from "sonner";
-import { useTransactionSubmission } from './useTransactionSubmission'; // Import for fiat rate
+import { useTransactionSubmission } from './useTransactionSubmission';
 
 export function useTransactionHistory() {
   const queryClient = useQueryClient();
-  const { account } = useStellarAccount();
-  const { fiatRate, defaultFiat } = useTransactionSubmission(); // Get fiat rate and default currency
+  const { publicKey } = useStellarAccount(); // Use publicKey instead of account
+  const { fiatRate, defaultFiat } = useTransactionSubmission();
     const {
     data: transactions,
     isLoading,
     error,
     refetch: refreshTransactions
   } = useQuery({
-    queryKey: ["transaction-history", account?.publicKey],
+    queryKey: ["transaction-history", publicKey],
     queryFn: async () => {
-      if (!account?.publicKey) {
+      if (!publicKey) {
         return Promise.resolve([]);
       }
       
-      console.log("Fetching transaction history for:", account.publicKey);
+      console.log("Fetching transaction history for:", publicKey);
       try {
-        return await getEnhancedTransactionHistory(account.publicKey);
+        return await getEnhancedTransactionHistory(publicKey);
       } catch (error) {
         console.error("Error in transaction history query:", error);
         // Return empty array instead of throwing to avoid breaking UI
         return [];
       }
     },
-    enabled: !!account?.publicKey,
+    enabled: !!publicKey,
     // Refresh transaction data regularly
     refetchInterval: 15000, // Refresh every 15 seconds
     refetchIntervalInBackground: false, // Only refetch when tab is focused
@@ -62,7 +62,7 @@ export function useTransactionHistory() {
     isLoading,
     error: error ? true : false,
     refetch,
-    fiatRate, // Expose fiatRate
-    defaultFiat // Expose defaultFiat
+    fiatRate,
+    defaultFiat
   };
 }

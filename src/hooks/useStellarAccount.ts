@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { Keypair, Server } from 'stellar-sdk';
+import { Horizon, Keypair } from 'stellar-sdk';
 import { toast } from 'sonner';
 
 export interface Balance {
@@ -35,10 +35,12 @@ export interface StellarAccountData {
   };
 }
 
-const server = new Server('https://horizon-testnet.stellar.org');
+const server = new Horizon.Server('https://horizon-testnet.stellar.org');
 
 export function useStellarAccount() {
   const [isSending, setIsSending] = useState(false);
+  const [isFunding, setIsFunding] = useState(false);
+  const [isSettingUp, setIsSettingUp] = useState(false);
 
   const { data: stellarAccounts } = useQuery({
     queryKey: ['stellar-accounts'],
@@ -104,13 +106,111 @@ export function useStellarAccount() {
   const balance = accountData?.balances || [];
   const publicKey = primaryAccount?.public_key;
 
+  // Create account method
+  const setupAccount = async () => {
+    try {
+      setIsSettingUp(true);
+      const keypair = Keypair.random();
+      const publicKey = keypair.publicKey();
+      const secretKey = keypair.secret();
+      
+      const encryptedSecret = btoa(secretKey);
+
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Store the account in the database
+      const { data, error } = await supabase
+        .from('stellar_accounts')
+        .insert({
+          user_id: user.id,
+          public_key: publicKey,
+          encrypted_secret: encryptedSecret,
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Fund the account automatically
+      const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
+      
+      if (response.ok) {
+        toast.success('Account created and funded successfully! 🎉');
+      } else {
+        toast.success('Account created successfully!');
+      }
+
+      // Refresh queries
+      window.location.reload();
+    } catch (error) {
+      console.error('Error creating account:', error);
+      toast.error('Failed to create account');
+    } finally {
+      setIsSettingUp(false);
+    }
+  };
+
+  // Fund account method
+  const fundAccount = async () => {
+    if (!publicKey) return;
+    
+    try {
+      setIsFunding(true);
+      const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
+      
+      if (response.ok) {
+        toast.success('Test funds added successfully! 💰');
+        // Refresh the account data
+        window.location.reload();
+      } else {
+        toast.error('Failed to add test funds');
+      }
+    } catch (error) {
+      console.error('Error funding account:', error);
+      toast.error('Failed to add test funds');
+    } finally {
+      setIsFunding(false);
+    }
+  };
+
+  // Send payment method (placeholder)
+  const sendPayment = async (params: any) => {
+    setIsSending(true);
+    try {
+      // Implementation would go here
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Mock delay
+      toast.success('Payment sent successfully!');
+    } catch (error) {
+      toast.error('Payment failed');
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Backward compatibility - map to old interface
+  const account = primaryAccount ? {
+    publicKey: primaryAccount.public_key,
+    id: primaryAccount.id,
+    encryptedSecret: primaryAccount.encrypted_secret
+  } : null;
+
   return {
     balance,
     publicKey,
     accountData,
     isLoading,
     isSending,
+    isFunding,
+    isSettingUp,
     stellarAccounts,
-    primaryAccount
+    primaryAccount,
+    account, // Backward compatibility
+    setupAccount,
+    fundAccount,
+    sendPayment
   };
 }

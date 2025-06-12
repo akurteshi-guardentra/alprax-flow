@@ -1,3 +1,4 @@
+
 import { useStellarAccount } from "@/hooks/useStellarAccount";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,11 +11,10 @@ import { Info, Copy, Check, ExternalLink, ChevronDown, ChevronUp } from "lucide-
 import { toast } from "sonner";
 import { hapticFeedback } from "@/lib/haptics";
 import { useState } from "react";
-import { StellarAccount } from "@/lib/stellar/types";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function AccountDetails() {
-  const { account } = useStellarAccount();
+  const { accountData } = useStellarAccount();
   const [copied, setCopied] = useState(false);
   const [showTechnicalDetails, setShowTechnicalDetails] = useState(false);
 
@@ -26,9 +26,7 @@ export function AccountDetails() {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (!account) return null;
-  
-  const typedAccount = account as StellarAccount;
+  if (!accountData) return null;
 
   return (
     <div className="bg-white/5 rounded p-3">
@@ -78,7 +76,7 @@ export function AccountDetails() {
                     variant="ghost" 
                     size="sm" 
                     className="h-6 px-2 text-white/60 hover:text-white hover:bg-white/10"
-                    onClick={() => copyToClipboard(typedAccount.publicKey)}
+                    onClick={() => copyToClipboard(accountData.account_id)}
                   >
                     {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                   </Button>
@@ -89,7 +87,7 @@ export function AccountDetails() {
                           variant="ghost" 
                           size="sm" 
                           className="h-6 px-2 text-white/60 hover:text-white hover:bg-white/10"
-                          onClick={() => window.open(`https://stellar.expert/explorer/testnet/account/${typedAccount.publicKey}`, '_blank')}
+                          onClick={() => window.open(`https://stellar.expert/explorer/testnet/account/${accountData.account_id}`, '_blank')}
                         >
                           <ExternalLink className="h-3 w-3" />
                         </Button>
@@ -102,7 +100,7 @@ export function AccountDetails() {
                 </div>
               </div>
               <p className="text-white/80 text-sm font-mono mt-1 break-all">
-                {typedAccount.publicKey.slice(0, 8)}...{typedAccount.publicKey.slice(-8)}
+                {accountData.account_id.slice(0, 8)}...{accountData.account_id.slice(-8)}
               </p>
               <div className="mt-2 bg-blue-500/10 p-2 rounded border border-blue-500/20">
                 <p className="text-xs text-blue-300 flex items-center">

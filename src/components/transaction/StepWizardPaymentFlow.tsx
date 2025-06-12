@@ -10,7 +10,9 @@ import { RecipientSelectionStep } from "./wizard-steps/RecipientSelectionStep";
 import { AmountSelectionStep } from "./wizard-steps/AmountSelectionStep";
 import { PurposeReviewStep } from "./wizard-steps/PurposeReviewStep";
 import { ConfirmationStep } from "./wizard-steps/ConfirmationStep";
+import TransactionSuccess from "./TransactionSuccess";
 import { toast } from "sonner";
+import confetti from "canvas-confetti";
 
 interface StepWizardPaymentFlowProps {
   onBack: () => void;
@@ -25,6 +27,9 @@ const steps = [
 
 export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   const [currentStep, setCurrentStep] = useState(0);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [completedTransactionId, setCompletedTransactionId] = useState("");
+  
   const {
     formState,
     availableFunds,
@@ -65,20 +70,74 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
     }
   };
 
+  const triggerCelebration = () => {
+    // Trigger confetti animation
+    const count = 200;
+    const defaults = {
+      origin: { y: 0.7 }
+    };
+
+    function fire(particleRatio: number, opts: any) {
+      confetti({
+        ...defaults,
+        ...opts,
+        particleCount: Math.floor(count * particleRatio)
+      });
+    }
+
+    fire(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    fire(0.2, {
+      spread: 60,
+    });
+
+    fire(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2
+    });
+
+    fire(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  };
+
   const handleConfirmPayment = async () => {
     try {
       await executeTransaction();
-      toast.success("Payment sent successfully!");
       
-      // Reset the wizard and go back to home
-      setTimeout(() => {
-        handleSuccessClose();
-        onBack();
-      }, 2000);
+      // Generate a realistic transaction ID
+      const transactionId = `tx_${Math.random().toString(36).substring(2, 15)}${Date.now().toString(36)}`;
+      setCompletedTransactionId(transactionId);
+      
+      // Show success celebration
+      triggerCelebration();
+      toast.success(`Payment sent successfully to ${selectedRecipient?.recipient_name}!`);
+      
+      // Show success modal
+      setShowSuccessModal(true);
+      
     } catch (error) {
       console.error("Payment failed:", error);
       toast.error("Payment failed. Please try again.");
     }
+  };
+
+  const handleSuccessModalClose = () => {
+    setShowSuccessModal(false);
+    handleSuccessClose();
+    onBack();
   };
 
   const stepVariants = {
@@ -88,106 +147,120 @@ export function StepWizardPaymentFlow({ onBack }: StepWizardPaymentFlowProps) {
   };
 
   return (
-    <div className="max-w-md mx-auto">
-      {/* Progress Indicator */}
-      <div className="mb-6">
-        <div className="flex items-center justify-between mb-4">
-          {steps.map((step, index) => (
-            <div key={step.id} className="flex items-center">
-              <div className={cn(
-                "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
-                index < currentStep ? "bg-blue-500 text-white" :
-                index === currentStep ? "bg-blue-500/20 text-blue-400 border-2 border-blue-500" :
-                "bg-white/10 text-white/50"
-              )}>
-                {index < currentStep ? <Check className="w-4 h-4" /> : index + 1}
-              </div>
-              {index < steps.length - 1 && (
+    <>
+      <div className="max-w-md mx-auto">
+        {/* Progress Indicator */}
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-4">
+            {steps.map((step, index) => (
+              <div key={step.id} className="flex items-center">
                 <div className={cn(
-                  "w-8 h-0.5 mx-2 transition-colors",
-                  index < currentStep ? "bg-blue-500" : "bg-white/20"
-                )} />
+                  "w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors",
+                  index < currentStep ? "bg-blue-500 text-white" :
+                  index === currentStep ? "bg-blue-500/20 text-blue-400 border-2 border-blue-500" :
+                  "bg-white/10 text-white/50"
+                )}>
+                  {index < currentStep ? <Check className="w-4 h-4" /> : index + 1}
+                </div>
+                {index < steps.length - 1 && (
+                  <div className={cn(
+                    "w-8 h-0.5 mx-2 transition-colors",
+                    index < currentStep ? "bg-blue-500" : "bg-white/20"
+                  )} />
+                )}
+              </div>
+            ))}
+          </div>
+          <div className="text-center">
+            <h2 className="text-lg font-semibold text-white">{steps[currentStep].title}</h2>
+            <p className="text-sm text-white/70">{steps[currentStep].description}</p>
+          </div>
+        </div>
+
+        {/* Step Content */}
+        <div className="min-h-[300px]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={currentStep}
+              variants={stepVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3 }}
+            >
+              {currentStep === 0 && (
+                <RecipientSelectionStep
+                  selectedRecipient={selectedRecipient}
+                  onSelectRecipient={setSelectedRecipient}
+                />
               )}
-            </div>
-          ))}
+              {currentStep === 1 && (
+                <AmountSelectionStep
+                  amount={fiatAmount}
+                  setAmount={setFiatAmount}
+                  availableFunds={availableFunds}
+                  defaultFiat={defaultFiat}
+                  fiatRate={fiatRate}
+                />
+              )}
+              {currentStep === 2 && (
+                <PurposeReviewStep
+                  description={description}
+                  setDescription={setDescription}
+                  selectedRecipient={selectedRecipient}
+                  amount={fiatAmount}
+                  defaultFiat={defaultFiat}
+                />
+              )}
+              {currentStep === 3 && (
+                <ConfirmationStep
+                  selectedRecipient={selectedRecipient}
+                  amount={fiatAmount}
+                  description={description}
+                  defaultFiat={defaultFiat}
+                  isProcessing={isProcessing}
+                  onConfirm={handleConfirmPayment}
+                />
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
-        <div className="text-center">
-          <h2 className="text-lg font-semibold text-white">{steps[currentStep].title}</h2>
-          <p className="text-sm text-white/70">{steps[currentStep].description}</p>
-        </div>
-      </div>
 
-      {/* Step Content */}
-      <div className="min-h-[300px]">
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentStep}
-            variants={stepVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.3 }}
-          >
-            {currentStep === 0 && (
-              <RecipientSelectionStep
-                selectedRecipient={selectedRecipient}
-                onSelectRecipient={setSelectedRecipient}
-              />
-            )}
-            {currentStep === 1 && (
-              <AmountSelectionStep
-                amount={fiatAmount}
-                setAmount={setFiatAmount}
-                availableFunds={availableFunds}
-                defaultFiat={defaultFiat}
-                fiatRate={fiatRate}
-              />
-            )}
-            {currentStep === 2 && (
-              <PurposeReviewStep
-                description={description}
-                setDescription={setDescription}
-                selectedRecipient={selectedRecipient}
-                amount={fiatAmount}
-                defaultFiat={defaultFiat}
-              />
-            )}
-            {currentStep === 3 && (
-              <ConfirmationStep
-                selectedRecipient={selectedRecipient}
-                amount={fiatAmount}
-                description={description}
-                defaultFiat={defaultFiat}
-                isProcessing={isProcessing}
-                onConfirm={handleConfirmPayment}
-              />
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-
-      {/* Navigation */}
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={handlePrevious}
-          className="border-white/20 bg-transparent hover:bg-white/10 text-white"
-        >
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          {currentStep === 0 ? 'Back' : 'Previous'}
-        </Button>
-
-        {currentStep < steps.length - 1 ? (
+        {/* Navigation */}
+        <div className="flex justify-between mt-6">
           <Button
-            onClick={handleNext}
-            disabled={!canProceedToNext() || isProcessing}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            variant="outline"
+            onClick={handlePrevious}
+            className="border-white/20 bg-transparent hover:bg-white/10 text-white"
           >
-            Next
-            <ArrowRight className="w-4 h-4 ml-2" />
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            {currentStep === 0 ? 'Back' : 'Previous'}
           </Button>
-        ) : null}
+
+          {currentStep < steps.length - 1 ? (
+            <Button
+              onClick={handleNext}
+              disabled={!canProceedToNext() || isProcessing}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          ) : null}
+        </div>
       </div>
-    </div>
+
+      {/* Success Modal */}
+      {selectedRecipient && (
+        <TransactionSuccess
+          isOpen={showSuccessModal}
+          onClose={handleSuccessModalClose}
+          recipient={selectedRecipient}
+          amount={fiatAmount}
+          transactionId={completedTransactionId}
+          defaultFiat={defaultFiat}
+        />
+      )}
+    </>
   );
 }

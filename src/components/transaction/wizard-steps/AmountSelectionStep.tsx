@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { DollarSign, Wallet } from "lucide-react";
+import { DollarSign, Wallet, Info } from "lucide-react";
 
 interface AmountSelectionStepProps {
   amount: string;
@@ -25,7 +25,6 @@ export function AmountSelectionStep({
   const quickAmounts = [10, 25, 50, 100];
 
   const formatAmount = (value: number) => {
-    // Only show decimals if the number has decimal places
     return value % 1 === 0 ? value.toString() : value.toFixed(2);
   };
 
@@ -113,14 +112,21 @@ export function AmountSelectionStep({
         </Button>
       </div>
 
-      {/* Conversion Info */}
-      {amount && fiatRate > 0 && (
-        <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-          <p className="text-blue-300 text-sm">
-            ≈ {(parseFloat(amount) / fiatRate).toFixed(7)} XLM
-          </p>
+      {/* Processing Fee Info */}
+      <div className="text-center p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Info className="h-4 w-4 text-blue-400" />
+          <span className="text-blue-300 text-sm font-medium">Transaction Details</span>
         </div>
-      )}
+        <p className="text-blue-200 text-xs">
+          Instant transfer • Secured by blockchain technology
+        </p>
+        {amount && (
+          <p className="text-blue-200 text-xs mt-1">
+            Processing fee: ~{(parseFloat(amount) * 0.001).toFixed(2)} {defaultFiat}
+          </p>
+        )}
+      </div>
     </motion.div>
   );
 }

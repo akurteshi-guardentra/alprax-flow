@@ -4,17 +4,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { KYCVerificationStatus, ProfileKYCLevel } from "../types";
 
 // Type-safe function to map KYC status to profile level
-function mapKYCStatusToProfileLevel(status: KYCVerificationStatus): "pending" | "verified" | "basic" {
+function mapKYCStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
   switch (status) {
     case 'verified':
-      return 'verified';
+      return 'verified' as ProfileKYCLevel;
     case 'pending':
     case 'not_submitted':
-      return 'pending';
+      return 'pending' as ProfileKYCLevel;
     case 'rejected':
-      return 'basic';
+      return 'basic' as ProfileKYCLevel;
     default:
-      return 'pending';
+      return 'pending' as ProfileKYCLevel;
   }
 }
 
@@ -73,8 +73,8 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Use the type-safe mapping function with explicit type assertion
-      const profileKycLevel: "pending" | "verified" | "basic" = mapKYCStatusToProfileLevel(status);
+      // Use the type-safe mapping function
+      const profileKycLevel = mapKYCStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')

@@ -43,7 +43,6 @@ export function RecipientSelectionStep({
       
       <SimplifiedRecipientFinder 
         onSelectRecipient={onSelectRecipient}
-        showAddNew={true}
       />
     </motion.div>
   );

@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -17,6 +18,7 @@ import Verify from "./pages/Verify";
 import VerifyDocument from "./pages/VerifyDocument";
 import Cards from "./pages/Cards";
 import Help from "./pages/Help";
+import Notifications from "./pages/Notifications";
 
 function App() {
   // Create QueryClient inside the component to ensure proper React context
@@ -46,10 +48,11 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/verify" element={<Verify />} />
+              <Route path="/verify" element={<Route />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
               <Route path="/cards" element={<Cards />} />
               <Route path="/help" element={<Help />} />
+              <Route path="/notifications" element={<Notifications />} />
             </Routes>
           </BrowserRouter>
         </TooltipProvider>

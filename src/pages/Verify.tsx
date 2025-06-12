@@ -2,10 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, ChevronRight, Smartphone, Globe, FileText, AlertCircle, Bitcoin, Lock, Shield } from "lucide-react";
+import { ChevronRight, Smartphone, Globe, FileText, Bitcoin, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useState } from "react";
 import { toast } from "sonner";
+import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const VerificationStep = ({ 
   icon: Icon, 
@@ -22,7 +24,7 @@ const VerificationStep = ({
 }) => (
   <motion.button
     onClick={onClick}
-    className="w-full p-4 bg-white/[0.08] hover:bg-white/[0.12] backdrop-blur-lg rounded-xl border border-white/[0.08] transition-all duration-200 text-left"
+    className="w-full p-4 bg-white/5 hover:bg-white/10 backdrop-blur-lg rounded-xl border border-white/10 transition-all duration-200 text-left"
     whileHover={{ scale: 1.02 }}
     whileTap={{ scale: 0.98 }}
   >
@@ -77,84 +79,77 @@ const Verify = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#1A1F2C] to-[#2C1A2F] relative overflow-hidden">
-      {/* Gradient effects */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 -left-40 w-96 h-96 bg-purple-500/30 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob" />
-        <div className="absolute -bottom-40 -right-40 w-96 h-96 bg-blue-500/30 rounded-full mix-blend-multiply filter blur-[128px] opacity-50 animate-blob animation-delay-2000" />
-      </div>
-
-      <div className="max-w-2xl mx-auto relative px-4 py-8">
-        <Button 
-          variant="ghost" 
-          onClick={() => navigate(-1)}
-          className="absolute top-4 left-4 text-white hover:bg-white/10"
+    <UnifiedLayout title="Enhanced Security Verification">
+      <div className="max-w-2xl mx-auto space-y-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
         >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
+          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
+                <Shield className="w-8 h-8 text-blue-400" />
+              </div>
+              <CardTitle className="text-white text-2xl">Identity Verification</CardTitle>
+              <p className="text-white/70">
+                Multi-layer verification system protects your account and ensures compliance
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <VerificationStep
+                icon={FileText}
+                title="AI Document Verification"
+                description="Our AI system verifies your passport or ID in seconds with 99.9% accuracy"
+                onClick={() => startVerification('id_document')}
+                badgeText="Recommended"
+              />
+              
+              <VerificationStep
+                icon={Smartphone}
+                title="Biometric Verification"
+                description="Secure verification through facial recognition or fingerprint"
+                onClick={() => startVerification('biometric')}
+              />
+              
+              <VerificationStep
+                icon={Bitcoin}
+                title="Web3 Wallet Verification"
+                description="Connect your blockchain wallet for enhanced security and faster transfers"
+                onClick={() => startVerification('web3_wallet')}
+                badgeText="New"
+              />
+              
+              <VerificationStep
+                icon={Globe}
+                title="Bank Account Verification"
+                description="Link and verify your banking details securely"
+                onClick={() => startVerification('bank_statement')}
+              />
+            </CardContent>
+          </Card>
+        </motion.div>
 
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="mt-16 space-y-6"
+          transition={{ delay: 0.2 }}
         >
-          <div className="text-center space-y-3">
-            <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
-              <Shield className="w-8 h-8 text-blue-400" />
-            </div>
-            <h1 className="text-3xl font-bold text-white">Enhanced Security Verification</h1>
-            <p className="text-white/60 max-w-md mx-auto">
-              Our multi-layer identity verification system protects your account and ensures compliance with global regulations.
-            </p>
-          </div>
-
-          <div className="mt-8 space-y-4">
-            <VerificationStep
-              icon={FileText}
-              title="AI Document Verification"
-              description="Our AI system verifies your passport or ID in seconds with 99.9% accuracy"
-              onClick={() => startVerification('id_document')}
-              badgeText="Recommended"
-            />
-            
-            <VerificationStep
-              icon={Smartphone}
-              title="Biometric Verification"
-              description="Secure verification through facial recognition or fingerprint"
-              onClick={() => startVerification('biometric')}
-            />
-            
-            <VerificationStep
-              icon={Bitcoin}
-              title="Web3 Wallet Verification"
-              description="Connect your blockchain wallet for enhanced security and faster transfers"
-              onClick={() => startVerification('web3_wallet')}
-              badgeText="New"
-            />
-            
-            <VerificationStep
-              icon={Globe}
-              title="Bank Account Verification"
-              description="Link and verify your banking details securely"
-              onClick={() => startVerification('bank_statement')}
-            />
-          </div>
-
-          <div className="mt-8 p-5 bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/20">
-            <div className="flex gap-3">
-              <Lock className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-medium text-blue-400">Advanced Security Protocols</h4>
-                <p className="text-sm text-blue-300/70 mt-1">
-                  Our verification process uses enterprise-grade encryption and follows strict data protection guidelines. Your information is never shared with third parties and is stored using secure, encrypted methods.
-                </p>
+          <Card className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border-blue-500/20">
+            <CardContent className="p-6">
+              <div className="flex gap-3">
+                <Shield className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="text-sm font-medium text-blue-400">Advanced Security Protocols</h4>
+                  <p className="text-sm text-blue-300/70 mt-1">
+                    Enterprise-grade encryption and strict data protection. Your information is never shared and stored securely.
+                  </p>
+                </div>
               </div>
-            </div>
-          </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
-    </div>
+    </UnifiedLayout>
   );
 };
 

@@ -2,11 +2,12 @@
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, Lock, CreditCard, BarChart3, Smartphone } from "lucide-react";
+import { Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, BarChart3, Smartphone } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
 import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
 import { useNavigate } from "react-router-dom";
+import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -37,15 +38,6 @@ const Settings = () => {
       ]
     },
     {
-      title: "Analytics & Insights",
-      icon: BarChart3,
-      items: [
-        { label: "Transaction Analytics", action: () => navigate('/analytics'), description: "View spending patterns and insights" },
-        { label: "Monthly Reports", action: () => {}, description: "Download detailed transaction reports" },
-        { label: "Budget Tracking", action: () => {}, description: "Set and monitor spending limits" }
-      ]
-    },
-    {
       title: "Preferences",
       icon: Palette,
       items: [
@@ -68,6 +60,24 @@ const Settings = () => {
   return (
     <UnifiedLayout title="Settings">
       <div className="max-w-4xl mx-auto space-y-6">
+        {/* Analytics Dashboard Integration */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+            <CardHeader>
+              <CardTitle className="text-white flex items-center gap-3">
+                <BarChart3 className="h-5 w-5 text-blue-400" />
+                Analytics Overview
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <DashboardAnalytics />
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Settings Categories */}
         {settingsCategories.map((category, index) => (
           <motion.div
@@ -129,7 +139,7 @@ const Settings = () => {
                     onCheckedChange={(checked) =>
                       setNotifications(prev => ({ ...prev, [key]: checked }))
                     }
-                    className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-white/20"
+                    className="data-[state=checked]:bg-blue-500 data-[state=unchecked]:bg-white/30 border-white/20"
                   />
                 </div>
               ))}

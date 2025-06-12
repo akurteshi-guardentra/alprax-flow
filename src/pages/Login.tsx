@@ -6,9 +6,10 @@ import { NumberAuthForm } from "@/components/auth/NumberAuthForm";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
 import { useLogin } from "@/hooks/useLogin";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
+import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { LogIn } from "lucide-react";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -39,6 +40,13 @@ const Login = () => {
     } else {
       navigate("/welcome");
     }
+  };
+
+  const getTitle = () => {
+    if (showForgotPassword) return "Reset Password";
+    if (showTwoFactor) return "Two-Factor Authentication";
+    if (showNumberAuth) return "Phone Verification";
+    return "Welcome Back";
   };
 
   const renderAuthContent = () => {
@@ -83,43 +91,27 @@ const Login = () => {
   };
 
   return (
-    <div className="min-h-screen modern-gradient relative overflow-hidden">
-      {/* Enhanced premium background elements */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-modern-float" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/3 right-1/3 w-48 h-48 bg-cyan-500/15 rounded-full blur-xl animate-modern-pulse"></div>
+    <UnifiedLayout title={getTitle()} onBack={handleBackNavigation}>
+      <div className="max-w-md mx-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <Card className="bg-white/10 backdrop-blur-lg border-white/20">
+            <CardHeader className="text-center">
+              <div className="mx-auto w-16 h-16 bg-blue-500/20 rounded-full flex items-center justify-center mb-4">
+                <LogIn className="h-8 w-8 text-blue-400" />
+              </div>
+              <CardTitle className="text-white text-2xl">Sign In to AlpraxFlow</CardTitle>
+              <p className="text-white/70">Access your secure wallet</p>
+            </CardHeader>
+            <CardContent>
+              {renderAuthContent()}
+            </CardContent>
+          </Card>
+        </motion.div>
       </div>
-
-      <div className="relative z-10 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-md mx-auto">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-4 mb-8"
-          >
-            <Button 
-              variant="ghost" 
-              onClick={handleBackNavigation}
-              className="glass-card-hover text-white border-none"
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-            <h1 className="text-2xl font-bold text-gradient-modern">AlpraxFlow</h1>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="glass-card modern-shadow p-8"
-          >
-            {renderAuthContent()}
-          </motion.div>
-        </div>
-      </div>
-    </div>
+    </UnifiedLayout>
   );
 };
 

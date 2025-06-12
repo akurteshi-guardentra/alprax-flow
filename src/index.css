@@ -50,10 +50,15 @@
   body {
     @apply text-foreground font-sans antialiased min-h-screen;
     font-family: 'Inter', system-ui, sans-serif;
-    background: var(--gradient-primary);
+    background: hsl(var(--background));
     touch-action: manipulation;
     -webkit-touch-callout: none;
     overscroll-behavior-y: none;
+  }
+
+  #root {
+    min-height: 100vh;
+    background: hsl(var(--background));
   }
   
   /* Premium scrollbar design */

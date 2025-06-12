@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { KYCVerificationStatus, ProfileKYCLevel } from "../types";
 
 // Type-safe function to map KYC status to profile level
-function mapKYCStatusToProfileLevel(status: KYCVerificationStatus): ProfileKYCLevel {
+function mapKYCStatusToProfileLevel(status: KYCVerificationStatus): "pending" | "verified" | "basic" {
   switch (status) {
     case 'verified':
       return 'verified';
@@ -73,8 +73,8 @@ export function useKYCVerifications() {
 
       if (error) throw error;
 
-      // Use the type-safe mapping function
-      const profileKycLevel = mapKYCStatusToProfileLevel(status);
+      // Use the type-safe mapping function with explicit type assertion
+      const profileKycLevel: "pending" | "verified" | "basic" = mapKYCStatusToProfileLevel(status);
       
       const { error: profileError } = await supabase
         .from('profiles')

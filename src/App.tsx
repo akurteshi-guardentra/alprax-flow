@@ -48,7 +48,7 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/verify" element={<Route />} />
+              <Route path="/verify" element={<Verify />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
               <Route path="/cards" element={<Cards />} />
               <Route path="/help" element={<Help />} />

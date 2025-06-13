@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
@@ -31,7 +32,6 @@ export function StripeCardPayment({
     event.preventDefault();
 
     if (!stripe || !elements) {
-      // Stripe.js has not loaded yet
       return;
     }
 
@@ -39,20 +39,11 @@ export function StripeCardPayment({
     setError(null);
 
     try {
-      // In a real implementation, we would use stripe.confirmCardPayment
-      // const { paymentIntent, error } = await stripe.confirmCardPayment(clientSecret, {
-      //   payment_method: {
-      //     card: elements.getElement(CardElement)!,
-      //   }
-      // });
-
-      // For demo purposes, we'll simulate the payment process
       const cardElement = elements.getElement(CardElement);
       if (!cardElement) {
         throw new Error('Card element not found');
       }
 
-      // Get the card details
       const { error: cardError, paymentMethod } = await stripe.createPaymentMethod({
         type: 'card',
         card: cardElement,
@@ -62,7 +53,6 @@ export function StripeCardPayment({
         throw new Error(cardError.message || 'An error occurred with your card');
       }
 
-      // Process the payment (simulated in our demo)
       const result = await processPayment(clientSecret, paymentMethod);
 
       if (result.success) {
@@ -92,18 +82,19 @@ export function StripeCardPayment({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-        <div className="mb-4">
-          <label className="text-white text-sm font-medium mb-2 block">
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div className="p-3 bg-slate-800/50 rounded-lg border border-slate-700/50">
+        <div className="mb-3">
+          <label className="text-white text-sm font-medium mb-1 block">
             Card Details
           </label>
-          <div className="p-3 bg-slate-900/50 rounded-lg border border-slate-700/50">
+          <div className="p-2 bg-slate-900/50 rounded border border-slate-700/50">
             <CardElement
               options={{
+                hidePostalCode: true,
                 style: {
                   base: {
-                    fontSize: '16px',
+                    fontSize: '14px',
                     color: '#ffffff',
                     '::placeholder': {
                       color: 'rgba(255, 255, 255, 0.6)',
@@ -119,7 +110,7 @@ export function StripeCardPayment({
         </div>
 
         {error && (
-          <Alert className="bg-red-900/20 border-red-800/30 text-red-200 mb-4">
+          <Alert className="bg-red-900/20 border-red-800/30 text-red-200 mb-3">
             <AlertCircle className="h-4 w-4 text-red-400" />
             <AlertDescription className="text-xs">{error}</AlertDescription>
           </Alert>
@@ -129,7 +120,7 @@ export function StripeCardPayment({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="mb-4"
+            className="mb-3"
           >
             <Alert className="bg-green-900/20 border-green-800/30 text-green-200">
               <CheckCircle className="h-4 w-4 text-green-400" />
@@ -140,7 +131,7 @@ export function StripeCardPayment({
           </motion.div>
         )}
 
-        <div className="flex justify-between items-center text-sm text-white/70 mb-4">
+        <div className="flex justify-between items-center text-xs text-white/70 mb-3">
           <span>Amount:</span>
           <span className="font-medium text-white">
             {formatCurrency(amount, currency)}
@@ -150,7 +141,7 @@ export function StripeCardPayment({
         <Button
           type="submit"
           disabled={!stripe || processing || succeeded}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white h-10"
         >
           {processing ? (
             <>

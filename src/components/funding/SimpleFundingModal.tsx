@@ -21,7 +21,7 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
   const [step, setStep] = useState<Step>('amount');
   const [amount, setAmount] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('');
-  const { balance } = useStellarAccount();
+  const { balance, refreshBalance } = useStellarAccount();
 
   const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
 
@@ -35,9 +35,11 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
     }
   };
 
-  const handlePaymentComplete = () => {
+  const handlePaymentComplete = async () => {
     setStep('success');
     toast.success('Funds added successfully!');
+    // Refresh the balance after successful payment
+    await refreshBalance();
   };
 
   const handleClose = () => {

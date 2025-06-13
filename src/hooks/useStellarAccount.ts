@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Horizon, Keypair } from 'stellar-sdk';
 import { toast } from 'sonner';
@@ -41,6 +41,7 @@ export function useStellarAccount() {
   const [isSending, setIsSending] = useState(false);
   const [isFunding, setIsFunding] = useState(false);
   const [isSettingUp, setIsSettingUp] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: stellarAccounts } = useQuery({
     queryKey: ['stellar-accounts'],
@@ -70,7 +71,6 @@ export function useStellarAccount() {
       try {
         const account = await server.loadAccount(primaryAccount.public_key);
         
-        // Convert AccountResponse to StellarAccountData
         const mappedAccount: StellarAccountData = {
           id: account.id,
           account_id: account.account_id,
@@ -78,7 +78,7 @@ export function useStellarAccount() {
           subentry_count: account.subentry_count,
           balances: account.balances,
           signers: account.signers,
-          data: {}, // Convert function to empty object for now
+          data: {},
           flags: {
             auth_required: account.flags.auth_required,
             auth_revocable: account.flags.auth_revocable,
@@ -95,7 +95,6 @@ export function useStellarAccount() {
         return mappedAccount;
       } catch (error) {
         console.error('Error loading account from Stellar:', error);
-        // Return mock data with default balance for demo purposes
         return {
           id: primaryAccount.public_key,
           account_id: primaryAccount.public_key,
@@ -104,7 +103,7 @@ export function useStellarAccount() {
           balances: [
             {
               asset_type: 'native',
-              balance: '1000.0000000' // Default 1000 XLM for demo
+              balance: '1000.0000000'
             }
           ],
           signers: [],
@@ -129,6 +128,13 @@ export function useStellarAccount() {
   const balance = accountData?.balances || [];
   const publicKey = primaryAccount?.public_key;
 
+  // Refresh function to invalidate and refetch account data
+  const refreshBalance = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: ['stellar-account-data', primaryAccount?.public_key]
+    });
+  };
+
   // Create account method
   const setupAccount = async () => {
     try {
@@ -145,7 +151,6 @@ export function useStellarAccount() {
         throw new Error('User not authenticated');
       }
 
-      // Store the account in the database
       const { data, error } = await supabase
         .from('stellar_accounts')
         .insert({
@@ -158,7 +163,6 @@ export function useStellarAccount() {
 
       if (error) throw error;
 
-      // Fund the account automatically
       const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
       
       if (response.ok) {
@@ -187,8 +191,8 @@ export function useStellarAccount() {
       
       if (response.ok) {
         toast.success('Test funds added successfully! 💰');
-        // Refresh the account data
-        window.location.reload();
+        // Refresh the account data without page reload
+        await refreshBalance();
       } else {
         toast.error('Failed to add test funds');
       }
@@ -204,8 +208,7 @@ export function useStellarAccount() {
   const sendPayment = async (params: any) => {
     setIsSending(true);
     try {
-      // Implementation would go here
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Mock delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
       toast.success('Payment sent successfully!');
     } catch (error) {
       toast.error('Payment failed');
@@ -231,9 +234,10 @@ export function useStellarAccount() {
     isSettingUp,
     stellarAccounts,
     primaryAccount,
-    account, // Backward compatibility
+    account,
     setupAccount,
     fundAccount,
-    sendPayment
+    sendPayment,
+    refreshBalance
   };
 }

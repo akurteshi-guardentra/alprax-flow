@@ -17,7 +17,7 @@ import { CurrencySymbol } from "@/components/CurrencyDisplay";
 import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
 
 export function AccountBalance() {
-  const { balance, fundAccount, isFunding } = useStellarAccount();
+  const { balance, fundAccount, isFunding, refreshBalance } = useStellarAccount();
   const { fiatRate, defaultFiat } = useTransactionSubmission();
   const [showSuccess, setShowSuccess] = useState(false);
   

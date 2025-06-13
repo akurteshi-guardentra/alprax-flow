@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -38,7 +37,6 @@ function App() {
         <TooltipProvider>
           <Toaster />
           <BrowserRouter>
-            <TestnetBanner />
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/welcome" element={<Welcome />} />
@@ -48,7 +46,6 @@ function App() {
               <Route path="/settings" element={<Settings />} />
               <Route path="/analytics" element={<Analytics />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/modern-dashboard" element={<ModernDashboard />} />
               <Route path="/verify" element={<Verify />} />
               <Route path="/verification/document" element={<VerifyDocument />} />
               <Route path="/cards" element={<Cards />} />

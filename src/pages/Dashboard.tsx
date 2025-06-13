@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SimplifiedPaymentFlow } from "@/components/transaction/SimplifiedPaymentFlow";
@@ -17,6 +16,7 @@ import { signOut } from "@/lib/auth";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useState } from "react";
+import { QuickFundButton } from "@/components/funding/QuickFundButton";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -163,10 +163,10 @@ export default function Dashboard() {
           </Button>
         </motion.div>
 
-        {/* Quick Stats */}
+        {/* Quick Stats and Fund Button */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
         >
           {quickStats.map((stat, index) => (
             <Card key={stat.title} className="glass-card modern-shadow metrics-card">
@@ -185,11 +185,29 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           ))}
+          
+          {/* Quick Fund Button Card */}
+          <Card className="glass-card modern-shadow">
+            <CardContent className="p-6">
+              <QuickFundButton variant="card" showBalance={false} />
+            </CardContent>
+          </Card>
         </motion.div>
 
-        {/* Always show balance */}
+        {/* Always show balance with enhanced funding */}
         <motion.div variants={itemVariants}>
-          <StellarAccount />
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <div className="lg:col-span-2">
+              <StellarAccount />
+            </div>
+            <div>
+              <Card className="glass-card modern-shadow">
+                <CardContent className="p-6">
+                  <QuickFundButton showBalance={true} />
+                </CardContent>
+              </Card>
+            </div>
+          </div>
         </motion.div>
 
         {/* Section Navigation */}

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SimplifiedPaymentFlow } from "@/components/transaction/SimplifiedPaymentFlow";
@@ -16,7 +17,7 @@ import { signOut } from "@/lib/auth";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { LanguageSelector } from "@/components/LanguageSelector";
 import { useState } from "react";
-import { QuickFundButton } from "@/components/funding/QuickFundButton";
+import { CleanFundButton } from "@/components/funding/CleanFundButton";
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -163,10 +164,10 @@ export default function Dashboard() {
           </Button>
         </motion.div>
 
-        {/* Quick Stats and Fund Button */}
+        {/* Simplified Balance and Quick Stats */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8"
+          className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8"
         >
           {quickStats.map((stat, index) => (
             <Card key={stat.title} className="glass-card modern-shadow metrics-card">
@@ -181,33 +182,18 @@ export default function Dashboard() {
                   </span>
                 </div>
                 <div className="text-2xl font-bold text-white mb-1">{stat.value}</div>
-                <div className="text-white/70 text-sm">{stat.title}</div>
+                <div className="text-white/70 text-sm flex items-center justify-between">
+                  <span>{stat.title}</span>
+                  {index === 0 && <CleanFundButton variant="compact" />}
+                </div>
               </CardContent>
             </Card>
           ))}
-          
-          {/* Quick Fund Button Card */}
-          <Card className="glass-card modern-shadow">
-            <CardContent className="p-6">
-              <QuickFundButton variant="card" showBalance={false} />
-            </CardContent>
-          </Card>
         </motion.div>
 
-        {/* Always show balance with enhanced funding */}
-        <motion.div variants={itemVariants}>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            <div className="lg:col-span-2">
-              <StellarAccount />
-            </div>
-            <div>
-              <Card className="glass-card modern-shadow">
-                <CardContent className="p-6">
-                  <QuickFundButton showBalance={true} />
-                </CardContent>
-              </Card>
-            </div>
-          </div>
+        {/* Simplified Account Display */}
+        <motion.div variants={itemVariants} className="mb-8">
+          <StellarAccount />
         </motion.div>
 
         {/* Section Navigation */}

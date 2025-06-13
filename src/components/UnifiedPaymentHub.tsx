@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { FiatDisplay } from '@/components/currency/FiatDisplay';
 import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { PaymentMethodSelector } from '@/components/payment/PaymentMethodSelector';
 
 interface UnifiedPaymentHubProps {
   open: boolean;
@@ -24,6 +25,7 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
   const [action, setAction] = useState<Action>(defaultAction);
   const [amount, setAmount] = useState('');
   const [recipient, setRecipient] = useState('');
+  const [selectedMethod, setSelectedMethod] = useState('');
   const { balance } = useStellarAccount();
 
   const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
@@ -50,9 +52,6 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
     } else if (step === 'recipient' && recipient) {
       setStep('processing');
       simulateTransaction();
-    } else if (step === 'method') {
-      setStep('processing');
-      simulateTransaction();
     }
   };
 
@@ -63,10 +62,16 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
     }, 2000);
   };
 
+  const handlePaymentComplete = () => {
+    setStep('success');
+    toast.success('Funds added successfully!');
+  };
+
   const handleClose = () => {
     setStep('action');
     setAmount('');
     setRecipient('');
+    setSelectedMethod('');
     onOpenChange(false);
   };
 
@@ -79,6 +84,15 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
     }
   };
 
+  const getBackStep = () => {
+    switch (step) {
+      case 'amount': return 'action';
+      case 'recipient': return 'amount';
+      case 'method': return 'amount';
+      default: return 'action';
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="glass-card border-white/20 max-w-md">
@@ -88,7 +102,7 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setStep(step === 'amount' ? 'action' : step === 'recipient' ? 'amount' : step === 'method' ? 'amount' : 'action')}
+                onClick={() => setStep(getBackStep() as Step)}
                 className="h-6 w-6 text-white/70 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -246,27 +260,12 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
                 <div className="text-2xl font-bold text-white">${amount}</div>
               </div>
 
-              <div className="space-y-3">
-                <div className="p-4 rounded-lg border border-blue-500/50 bg-blue-500/10 cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-blue-500/20 rounded-full flex items-center justify-center">
-                      <Plus className="w-5 h-5 text-blue-400" />
-                    </div>
-                    <div>
-                      <p className="text-white font-medium">Credit Card</p>
-                      <p className="text-white/60 text-sm">Instant • 2.9% + $0.30</p>
-                    </div>
-                    <Check className="w-5 h-5 text-blue-400 ml-auto" />
-                  </div>
-                </div>
-
-                <Button
-                  onClick={handleNextStep}
-                  className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12"
-                >
-                  Add ${amount}
-                </Button>
-              </div>
+              <PaymentMethodSelector
+                onSelect={setSelectedMethod}
+                selected={selectedMethod}
+                amount={parseFloat(amount) * 100} // Convert to cents
+                onPaymentComplete={handlePaymentComplete}
+              />
             </motion.div>
           )}
 

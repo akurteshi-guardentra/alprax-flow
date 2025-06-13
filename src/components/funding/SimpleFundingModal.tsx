@@ -4,11 +4,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { CreditCard, ArrowLeft, Check } from 'lucide-react';
+import { ArrowLeft, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { FiatDisplay } from '@/components/currency/FiatDisplay';
 import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { PaymentMethodSelector } from '@/components/payment/PaymentMethodSelector';
 
 interface SimpleFundingModalProps {
   open: boolean;
@@ -20,7 +21,7 @@ type Step = 'amount' | 'method' | 'processing' | 'success';
 export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalProps) {
   const [step, setStep] = useState<Step>('amount');
   const [amount, setAmount] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('card');
+  const [selectedMethod, setSelectedMethod] = useState('');
   const { balance } = useStellarAccount();
 
   const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
@@ -33,19 +34,18 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
   const handleNextStep = () => {
     if (step === 'amount' && amount) {
       setStep('method');
-    } else if (step === 'method') {
-      setStep('processing');
-      // Simulate payment processing
-      setTimeout(() => {
-        setStep('success');
-        toast.success('Funds added successfully!');
-      }, 2000);
     }
+  };
+
+  const handlePaymentComplete = () => {
+    setStep('success');
+    toast.success('Funds added successfully!');
   };
 
   const handleClose = () => {
     setStep('amount');
     setAmount('');
+    setSelectedMethod('');
     onOpenChange(false);
   };
 
@@ -58,7 +58,7 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setStep(step === 'method' ? 'amount' : 'amount')}
+                onClick={() => setStep('amount')}
                 className="h-6 w-6 text-white/70 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -133,58 +133,12 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
                 <div className="text-2xl font-bold text-white">${amount}</div>
               </div>
 
-              <div className="space-y-3">
-                <div
-                  onClick={() => setSelectedMethod('card')}
-                  className={`p-4 rounded-lg border cursor-pointer transition-all ${
-                    selectedMethod === 'card'
-                      ? 'border-blue-500/50 bg-blue-500/10'
-                      : 'border-white/20 bg-white/5 hover:bg-white/10'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <CreditCard className="w-5 h-5 text-white/70" />
-                    <div>
-                      <p className="text-white font-medium">Credit Card</p>
-                      <p className="text-white/60 text-sm">Instant • 2.9% + $0.30</p>
-                    </div>
-                    {selectedMethod === 'card' && (
-                      <Check className="w-5 h-5 text-blue-400 ml-auto" />
-                    )}
-                  </div>
-                </div>
-
-                <details className="text-white/60">
-                  <summary className="text-sm cursor-pointer hover:text-white/80">
-                    More payment options
-                  </summary>
-                  <div className="mt-2 text-xs space-y-1">
-                    <p>• Bank Transfer - $0.25 fee, 1-3 days</p>
-                    <p>• Mobile Money - 1.5% fee, 30 minutes</p>
-                    <p>• Crypto Wallet - Network fees only</p>
-                  </div>
-                </details>
-              </div>
-
-              <Button
-                onClick={handleNextStep}
-                className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white h-12"
-              >
-                Add ${amount}
-              </Button>
-            </motion.div>
-          )}
-
-          {step === 'processing' && (
-            <motion.div
-              key="processing"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="text-center py-8"
-            >
-              <div className="w-16 h-16 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mx-auto mb-4"></div>
-              <p className="text-white font-medium">Processing payment...</p>
-              <p className="text-white/60 text-sm">This may take a few seconds</p>
+              <PaymentMethodSelector
+                onSelect={setSelectedMethod}
+                selected={selectedMethod}
+                amount={parseFloat(amount) * 100} // Convert to cents
+                onPaymentComplete={handlePaymentComplete}
+              />
             </motion.div>
           )}
 

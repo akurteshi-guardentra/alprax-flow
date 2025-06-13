@@ -1,26 +1,44 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import { ArrowUpRight, ArrowDownLeft, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatDistanceToNow } from "date-fns";
 
+// Simple mock data for now - replace with real data later
+const mockTransactions = [
+  {
+    id: '1',
+    transaction_type: 'received',
+    recipient_name: 'John Smith',
+    amount: '150.00',
+    created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // 30 minutes ago
+  },
+  {
+    id: '2',
+    transaction_type: 'sent',
+    recipient_name: 'Sarah Johnson', 
+    amount: '75.50',
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(), // 2 hours ago
+  },
+  {
+    id: '3',
+    transaction_type: 'received',
+    recipient_name: 'Mike Davis',
+    amount: '200.00', 
+    created_at: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(), // 1 day ago
+  }
+];
+
 export function SimpleTransactionHistory() {
-  const { transactions, isLoading, refetch, fiatRate, defaultFiat } = useTransactionHistory();
+  const [isLoading, setIsLoading] = React.useState(false);
 
-  const formatAmount = (transaction: any) => {
-    if (typeof fiatRate !== 'number' || isNaN(fiatRate) || fiatRate === null) {
-      return `Loading... ${defaultFiat}`;
-    }
-
-    const numericAmount = parseFloat(transaction.amount);
-    if (isNaN(numericAmount)) {
-      return `Invalid Data ${defaultFiat}`;
-    }
-
-    const calculatedFiatAmount = (numericAmount * fiatRate).toFixed(2);
-    return `${calculatedFiatAmount} ${defaultFiat}`;
+  const handleRefresh = () => {
+    setIsLoading(true);
+    // Simulate refresh
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 1000);
   };
 
   if (isLoading) {
@@ -47,18 +65,18 @@ export function SimpleTransactionHistory() {
         <Button
           variant="ghost"
           size="icon"
-          onClick={refetch}
+          onClick={handleRefresh}
           className="text-white/70 hover:text-white hover:bg-white/10"
         >
           <RefreshCw className="h-4 w-4" />
         </Button>
       </CardHeader>
       <CardContent>
-        {transactions && transactions.length > 0 ? (
+        {mockTransactions && mockTransactions.length > 0 ? (
           <div className="space-y-3">
-            {transactions.slice(0, 5).map((transaction, index) => (
+            {mockTransactions.map((transaction) => (
               <div
-                key={transaction.id || index}
+                key={transaction.id}
                 className="flex items-center justify-between p-3 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
               >
                 <div className="flex items-center gap-3">
@@ -84,7 +102,7 @@ export function SimpleTransactionHistory() {
                     transaction.transaction_type === 'sent' ? 'text-red-400' : 'text-green-400'
                   }`}>
                     {transaction.transaction_type === 'sent' ? '-' : '+'}
-                    {formatAmount(transaction)}
+                    ${transaction.amount}
                   </p>
                 </div>
               </div>

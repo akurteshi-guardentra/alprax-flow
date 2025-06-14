@@ -40,7 +40,7 @@ export function AlpraxLogo({
   };
   const Component = animated ? motion.div : 'div';
   return <Component className={cn("font-bold tracking-tight select-none", sizeClasses[size], variantClasses[variant], className)} {...animated ? logoAnimation : {}}>
-      <span className="font-display my-0 text-center px-0 mx-[71px]">Alprax</span>
+      <span className="font-display my-0 text-center px-0 mx-0">Alprax</span>
       <span className="font-light ml-1 opacity-80">Flow</span>
     </Component>;
 }

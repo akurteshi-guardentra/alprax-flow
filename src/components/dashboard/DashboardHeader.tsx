@@ -22,17 +22,17 @@ export function DashboardHeader() {
       animate={{ opacity: 1, y: 0 }}
       className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4"
     >
-      <div className="text-center sm:text-left">
-        <AlpraxBrandHeader size="sm" className="mb-2" />
+      <div className="text-center sm:text-left w-full sm:w-auto">
+        <AlpraxBrandHeader size="sm" className="mb-2 text-center sm:text-left" />
         <motion.h1 
-          className="text-2xl font-bold text-white"
+          className="text-2xl font-bold text-white text-center sm:text-left"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
         >
           {greeting}
         </motion.h1>
-        <p className="text-white/70">Welcome back to Alprax Flow</p>
+        <p className="text-white/70 text-center sm:text-left">Welcome back to Alprax Flow</p>
       </div>
       <Button
         variant="outline"

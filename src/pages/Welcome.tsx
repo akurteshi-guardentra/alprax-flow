@@ -64,8 +64,10 @@ const Welcome = () => {
           animate={{ opacity: 1, y: 0 }}
           className="flex justify-between items-center mb-16"
         >
-          <AlpraxBrandHeader size="lg" />
-          <div className="flex gap-4">
+          <div className="flex justify-center lg:justify-start w-full lg:w-auto">
+            <AlpraxBrandHeader size="lg" className="text-center" />
+          </div>
+          <div className="hidden lg:flex gap-4">
             <Button
               variant="ghost"
               onClick={() => navigate('/login')}
@@ -90,12 +92,12 @@ const Welcome = () => {
           transition={{ delay: 0.2 }}
           className="text-center mb-20"
         >
-          <div className="inline-flex items-center px-4 py-2 rounded-full glass-card mb-6">
+          <div className="inline-flex items-center px-4 py-2 rounded-full glass-card mb-6 mx-auto">
             <Sparkles className="h-4 w-4 text-blue-400 mr-2" />
             <span className="text-white/90 text-sm font-medium">The Future of Finance is Here</span>
           </div>
           
-          <h1 className="text-4xl md:text-7xl font-bold text-gradient-modern mb-8 leading-tight">
+          <h1 className="text-4xl md:text-7xl font-bold text-gradient-modern mb-8 leading-tight text-center">
             Send Money
             <br />
             <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
@@ -103,7 +105,7 @@ const Welcome = () => {
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed text-center">
             Experience the next generation of global payments with blockchain technology. 
             Lower fees, faster transfers, and complete transparency.
           </p>
@@ -118,13 +120,13 @@ const Welcome = () => {
                 transition={{ delay: 0.3 + index * 0.1 }}
                 className="glass-card p-3 text-center"
               >
-                <div className="text-white font-semibold text-sm">{tech.name}</div>
-                <div className="text-white/70 text-xs">{tech.description}</div>
+                <div className="text-white font-semibold text-sm text-center">{tech.name}</div>
+                <div className="text-white/70 text-xs text-center">{tech.description}</div>
               </motion.div>
             ))}
           </div>
           
-          <div className="flex flex-col sm:flex-row gap-6 justify-center">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Button
               size="lg"
               onClick={() => navigate('/signup')}
@@ -154,12 +156,12 @@ const Welcome = () => {
         >
           {stats.map((stat, index) => (
             <Card key={index} className="glass-card modern-shadow text-center metrics-card hover:scale-105 transition-all duration-300">
-              <CardContent className="p-6">
+              <CardContent className="p-6 text-center">
                 <stat.icon className="h-8 w-8 text-blue-400 mx-auto mb-3" />
-                <div className="text-3xl md:text-4xl font-bold text-white mb-2">
+                <div className="text-3xl md:text-4xl font-bold text-white mb-2 text-center">
                   {stat.value}
                 </div>
-                <div className="text-white/70 text-sm font-medium">
+                <div className="text-white/70 text-sm font-medium text-center">
                   {stat.label}
                 </div>
               </CardContent>
@@ -175,10 +177,10 @@ const Welcome = () => {
           className="mb-24"
         >
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 text-center">
               Why Choose Alprax Flow?
             </h2>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            <p className="text-xl text-white/80 max-w-2xl mx-auto text-center">
               Built with cutting-edge technology to provide the most secure, fast, and affordable way to send money globally.
             </p>
           </div>
@@ -198,10 +200,10 @@ const Welcome = () => {
                     <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-gradient-to-r from-blue-500/30 to-purple-500/30 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                       <feature.icon className="h-10 w-10 text-white" />
                     </div>
-                    <h3 className="text-2xl font-bold text-white mb-4">
+                    <h3 className="text-2xl font-bold text-white mb-4 text-center">
                       {feature.title}
                     </h3>
-                    <p className="text-white/80 leading-relaxed">
+                    <p className="text-white/80 leading-relaxed text-center">
                       {feature.description}
                     </p>
                   </CardContent>
@@ -219,13 +221,13 @@ const Welcome = () => {
           className="text-center mb-24"
         >
           <Card className="glass-card modern-shadow-lg max-w-4xl mx-auto security-card">
-            <CardContent className="p-12">
+            <CardContent className="p-12 text-center">
               <div className="flex justify-center mb-6">
                 {[...Array(5)].map((_, i) => (
                   <Star key={i} className="h-8 w-8 text-yellow-400 fill-current" />
                 ))}
               </div>
-              <blockquote className="text-2xl md:text-3xl text-white/95 mb-8 font-medium leading-relaxed">
+              <blockquote className="text-2xl md:text-3xl text-white/95 mb-8 font-medium leading-relaxed text-center">
                 "Alprax Flow transformed how I send money to my family. 
                 What used to take 3-5 days now happens in seconds, with fees 90% lower than traditional banks."
               </blockquote>
@@ -233,9 +235,9 @@ const Welcome = () => {
                 <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
                   <Users className="h-8 w-8 text-white" />
                 </div>
-                <div className="text-left">
-                  <div className="text-xl font-bold text-white">Sarah Chen</div>
-                  <div className="text-white/70">Small Business Owner, Singapore</div>
+                <div className="text-center">
+                  <div className="text-xl font-bold text-white text-center">Sarah Chen</div>
+                  <div className="text-white/70 text-center">Small Business Owner, Singapore</div>
                 </div>
               </div>
             </CardContent>
@@ -250,12 +252,12 @@ const Welcome = () => {
           className="text-center"
         >
           <Card className="glass-card modern-shadow-lg">
-            <CardContent className="p-16">
+            <CardContent className="p-16 text-center">
               <TrendingUp className="h-20 w-20 mx-auto mb-8 text-blue-400" />
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6 text-center">
                 Ready to Transform Your Finances?
               </h2>
-              <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed">
+              <p className="text-xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed text-center">
                 Join millions of users who trust Alprax Flow for their global money transfers. 
                 Sign up today and get your first transfer with zero fees.
               </p>
@@ -267,7 +269,7 @@ const Welcome = () => {
                 Create Free Account
                 <ArrowRight className="ml-3 h-6 w-6" />
               </Button>
-              <p className="text-white/60 text-sm mt-6">
+              <p className="text-white/60 text-sm mt-6 text-center">
                 No hidden fees • Free to start • Instant verification
               </p>
             </CardContent>

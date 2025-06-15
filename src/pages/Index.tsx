@@ -42,32 +42,34 @@ const Index = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <div className="text-center max-w-2xl mx-auto">
+        <div className="text-center max-w-2xl mx-auto w-full">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="flex flex-col items-center justify-center"
+            className="flex flex-col items-center justify-center w-full"
           >
-            <AlpraxBrandHeader size="xl" showTagline className="mb-8" />
+            <div className="mb-8 w-full flex justify-center">
+              <AlpraxBrandHeader size="xl" showTagline className="text-center" />
+            </div>
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-col items-center space-y-6 w-full"
+              className="flex flex-col items-center space-y-6 w-full max-w-xs mx-auto"
             >
               <Button
                 onClick={() => navigate('/welcome')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full max-w-xs"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full text-center justify-center"
               >
                 Get Started
               </Button>
               
-              <div className="text-center">
+              <div className="text-center w-full">
                 <button 
                   onClick={() => navigate('/login')}
-                  className="text-white/60 hover:text-white transition-colors underline text-sm"
+                  className="text-white/60 hover:text-white transition-colors underline text-sm text-center"
                 >
                   Already have an account? Sign in
                 </button>

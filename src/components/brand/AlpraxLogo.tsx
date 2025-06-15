@@ -49,7 +49,7 @@ export function AlpraxLogo({
   return (
     <Component 
       className={cn(
-        "font-bold tracking-tight select-none text-center flex items-center justify-center", 
+        "font-bold tracking-tight select-none text-center flex items-center justify-center w-full", 
         sizeClasses[size], 
         variantClasses[variant], 
         className
@@ -73,7 +73,7 @@ export function AlpraxTagline({
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3, duration: 0.5 }}
-      className={cn("text-white/70 text-sm font-medium text-center", className)}
+      className={cn("text-white/70 text-sm font-medium text-center w-full", className)}
     >
       Send money anywhere, instantly
     </motion.p>
@@ -91,9 +91,9 @@ export function AlpraxBrandHeader({
   className?: string;
 }) {
   return (
-    <div className={cn("text-center flex flex-col items-center justify-center", className)}>
-      <AlpraxLogo size={size} variant="gradient" animated />
-      {showTagline && <AlpraxTagline className="mt-2" />}
+    <div className={cn("text-center flex flex-col items-center justify-center w-full", className)}>
+      <AlpraxLogo size={size} variant="gradient" animated className="w-full" />
+      {showTagline && <AlpraxTagline className="mt-2 w-full" />}
     </div>
   );
 }

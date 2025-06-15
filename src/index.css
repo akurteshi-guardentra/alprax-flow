@@ -295,14 +295,28 @@
     animation: gradientShift 8s ease infinite;
   }
 
-  /* Modern input styles */
+  /* Modern input styles with proper alignment */
   .modern-input {
     @apply bg-white/[0.08] border border-white/[0.15] rounded-xl px-4 py-3 text-white placeholder-white/60 focus:bg-white/[0.12] focus:border-blue-400/50 focus:outline-none transition-all duration-300;
     backdrop-filter: blur(12px);
+    text-align: left !important; /* Force left alignment for all inputs */
   }
 
   .modern-input:focus {
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+  }
+
+  /* Override any centered text in inputs */
+  input[type="email"], 
+  input[type="password"], 
+  input[type="text"], 
+  input[type="number"] {
+    text-align: left !important;
+  }
+
+  /* Ensure placeholders are left-aligned */
+  input::placeholder {
+    text-align: left;
   }
 
   /* Modern form styles */
@@ -315,7 +329,7 @@
   }
 
   .modern-form label {
-    @apply text-white/90 font-medium text-sm;
+    @apply text-white/90 font-medium text-sm text-left;
   }
 
   /* Status indicators */
@@ -337,5 +351,22 @@
 
   .status-active {
     @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
+  }
+
+  /* Unified layout styles for consistent alignment */
+  .unified-header {
+    @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8;
+  }
+
+  .unified-back-button {
+    @apply flex items-center gap-2 text-white/70 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10;
+  }
+
+  .unified-title {
+    @apply text-2xl sm:text-3xl font-bold text-white text-left;
+  }
+
+  .unified-subtitle {
+    @apply text-white/60 mt-2 text-left;
   }
 }

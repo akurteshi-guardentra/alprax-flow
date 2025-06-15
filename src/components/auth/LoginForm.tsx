@@ -5,7 +5,6 @@ import { Mail, KeyRound, Fingerprint, Hash, Eye, EyeOff, LogIn } from "lucide-re
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { cn } from "@/lib/utils";
 
 interface LoginFormProps {
   email: string;
@@ -35,15 +34,14 @@ export const LoginForm = ({
   
   return (
     <>
-      <div className="text-center space-y-3">
+      <div className="unified-header">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
-          className="text-center"
         >
-          <h2 className="text-3xl font-bold text-white text-center">Welcome back</h2>
-          <p className="text-white/60 mt-2 text-center">
+          <h2 className="unified-title">Welcome back</h2>
+          <p className="unified-subtitle">
             Log in to manage your money
           </p>
         </motion.div>
@@ -58,7 +56,7 @@ export const LoginForm = ({
               placeholder="Email" 
               value={email} 
               onChange={e => setEmail(e.target.value)} 
-              className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
+              className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
               required 
             />
           </div>
@@ -69,7 +67,7 @@ export const LoginForm = ({
               placeholder="Password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              className="pl-10 pr-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
+              className="pl-10 pr-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
               required 
             />
             <button
@@ -88,7 +86,7 @@ export const LoginForm = ({
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-sm text-white/60 hover:text-primary-light transition-colors text-center"
+              className="text-sm text-white/60 hover:text-primary-light transition-colors"
             >
               Forgot password?
             </button>
@@ -148,7 +146,7 @@ export const LoginForm = ({
           </div>
 
           <div className="text-center mt-6">
-            <p className="text-sm text-white/60 text-center">
+            <p className="text-sm text-white/60">
               Don't have an account?{" "}
               <button 
                 type="button" 

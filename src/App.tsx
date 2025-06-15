@@ -11,6 +11,7 @@ import Splash from "./pages/Splash";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import Profile from "./pages/Profile";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +50,11 @@ const App = () => (
             <Route path="/dashboard" element={
               <AuthGuard requireAuth={true}>
                 <Dashboard />
+              </AuthGuard>
+            } />
+            <Route path="/profile" element={
+              <AuthGuard requireAuth={true}>
+                <Profile />
               </AuthGuard>
             } />
           </Routes>

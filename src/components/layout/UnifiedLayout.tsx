@@ -1,30 +1,27 @@
 
-import { ReactNode } from 'react';
-import { motion } from 'framer-motion';
-import { AlpraxBrandHeader } from '@/components/brand/AlpraxLogo';
-import { TestnetBanner } from '@/components/TestnetBanner';
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { motion } from "framer-motion";
 
 interface UnifiedLayoutProps {
-  children: ReactNode;
-  showBrand?: boolean;
+  children: React.ReactNode;
   showBackButton?: boolean;
   onBack?: () => void;
   title?: string;
   subtitle?: string;
+  className?: string;
 }
 
-export function UnifiedLayout({ 
-  children, 
-  showBrand = false, 
+export const UnifiedLayout = ({
+  children,
   showBackButton = false,
   onBack,
   title,
-  subtitle
-}: UnifiedLayoutProps) {
+  subtitle,
+  className = ""
+}: UnifiedLayoutProps) => {
   return (
-    <div className="min-h-screen modern-gradient relative overflow-hidden">
-      <TestnetBanner />
-      
+    <div className={`min-h-screen modern-gradient ${className}`}>
       {/* Enhanced premium background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-modern-float"></div>
@@ -33,44 +30,38 @@ export function UnifiedLayout({
       </div>
 
       <div className="relative z-10 p-4 sm:p-6 lg:p-8">
-        <div className="max-w-7xl mx-auto">
-          {showBrand && (
+        <div className="max-w-6xl mx-auto">
+          {(showBackButton || title) && (
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="mb-8"
+              className="unified-header"
             >
-              <AlpraxBrandHeader size="lg" />
+              <div className="flex items-start gap-4">
+                {showBackButton && onBack && (
+                  <Button 
+                    variant="ghost" 
+                    onClick={onBack}
+                    className="unified-back-button flex-shrink-0"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                    Back
+                  </Button>
+                )}
+                {title && (
+                  <div className="flex-1 min-w-0">
+                    <h1 className="unified-title">{title}</h1>
+                    {subtitle && <p className="unified-subtitle">{subtitle}</p>}
+                  </div>
+                )}
+              </div>
             </motion.div>
           )}
-
-          {(title || showBackButton) && (
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-4 mb-8"
-            >
-              {showBackButton && onBack && (
-                <button 
-                  onClick={onBack}
-                  className="glass-card-hover text-white border-none px-4 py-2 rounded-lg"
-                >
-                  ← Back
-                </button>
-              )}
-              {title && (
-                <div>
-                  <h1 className="text-2xl font-bold text-gradient-modern">{title}</h1>
-                  {subtitle && <p className="text-white/70 mt-1">{subtitle}</p>}
-                </div>
-              )}
-            </motion.div>
-          )}
-
+          
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+            transition={{ delay: title ? 0.2 : 0 }}
           >
             {children}
           </motion.div>
@@ -78,4 +69,4 @@ export function UnifiedLayout({
       </div>
     </div>
   );
-}
+};

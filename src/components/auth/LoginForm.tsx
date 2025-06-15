@@ -5,6 +5,7 @@ import { Mail, KeyRound, Fingerprint, Hash, Eye, EyeOff, LogIn } from "lucide-re
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface LoginFormProps {
   email: string;
@@ -57,7 +58,7 @@ export const LoginForm = ({
               placeholder="Email" 
               value={email} 
               onChange={e => setEmail(e.target.value)} 
-              className="pl-10 pr-4 py-3 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
+              className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
               required 
             />
           </div>
@@ -68,7 +69,7 @@ export const LoginForm = ({
               placeholder="Password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              className="pl-10 pr-10 py-3 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
+              className="pl-10 pr-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
               required 
             />
             <button

@@ -4,7 +4,6 @@ import { motion } from "framer-motion";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { KeyRound } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface NumberAuthFormProps {
   onSubmit: (code: string) => Promise<void>;
@@ -44,7 +43,7 @@ export const NumberAuthForm = ({ onSubmit, isLoading, onBack }: NumberAuthFormPr
             placeholder="Enter 6-digit code"
             value={code}
             onChange={(e) => setCode(e.target.value.slice(0, 6))}
-            className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12"
+            className="pl-10 pr-4 py-3 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
             required
           />
         </div>
@@ -57,7 +56,7 @@ export const NumberAuthForm = ({ onSubmit, isLoading, onBack }: NumberAuthFormPr
         >
           <Button 
             type="submit" 
-            className="w-full bg-white text-black hover:bg-white/90 h-12 text-base"
+            className="w-full bg-primary hover:bg-primary-light text-white h-12 text-base font-medium"
             disabled={isLoading || code.length !== 6}
           >
             {isLoading ? 'Verifying...' : 'Verify Code'}

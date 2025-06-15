@@ -2,7 +2,6 @@
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { KeyRound } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 interface TwoFactorFormProps {
   twoFactorCode: string;
@@ -34,7 +33,7 @@ export const TwoFactorForm = ({ twoFactorCode, setTwoFactorCode, isLoading, onSu
               placeholder="6-digit code"
               value={twoFactorCode}
               onChange={(e) => setTwoFactorCode(e.target.value.replace(/[^0-9]/g, ''))}
-              className="w-full pl-10 bg-white/10 border border-white/10 text-white placeholder:text-white/40 h-12 rounded-md"
+              className="w-full pl-10 pr-4 py-3 bg-white/10 border border-white/10 text-white placeholder:text-white/40 h-12 rounded-md focus:ring-2 focus:ring-primary/50 focus:border-primary/50 transition-all"
               maxLength={6}
               pattern="[0-9]*"
               inputMode="numeric"
@@ -46,7 +45,7 @@ export const TwoFactorForm = ({ twoFactorCode, setTwoFactorCode, isLoading, onSu
         <div className="space-y-4">
           <Button 
             type="submit" 
-            className="w-full bg-white text-black hover:bg-white/90 h-12 text-base"
+            className="w-full bg-primary hover:bg-primary-light text-white h-12 text-base font-medium"
             disabled={isLoading || twoFactorCode.length !== 6}
           >
             {isLoading ? 'Verifying...' : 'Verify'}

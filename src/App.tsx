@@ -12,6 +12,10 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
+import Payments from "./pages/Payments";
+import RequestMoney from "./pages/RequestMoney";
+import AddFunds from "./pages/AddFunds";
+import Contacts from "./pages/Contacts";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +59,26 @@ const App = () => (
             <Route path="/profile" element={
               <AuthGuard requireAuth={true}>
                 <Profile />
+              </AuthGuard>
+            } />
+            <Route path="/payments" element={
+              <AuthGuard requireAuth={true}>
+                <Payments />
+              </AuthGuard>
+            } />
+            <Route path="/request" element={
+              <AuthGuard requireAuth={true}>
+                <RequestMoney />
+              </AuthGuard>
+            } />
+            <Route path="/add-funds" element={
+              <AuthGuard requireAuth={true}>
+                <AddFunds />
+              </AuthGuard>
+            } />
+            <Route path="/contacts" element={
+              <AuthGuard requireAuth={true}>
+                <Contacts />
               </AuthGuard>
             } />
           </Routes>

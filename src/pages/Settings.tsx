@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Settings as SettingsIcon, Shield, Bell, Palette, Globe, User, Lock } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
+import { toast } from "sonner";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -32,16 +33,28 @@ const Settings = () => {
       items: [
         { label: "Two-Factor Authentication", action: () => navigate('/setup-2fa') },
         { label: "Biometric Login", action: () => navigate('/biometric-setup') },
-        { label: "Change Password", action: () => {} }
+        { 
+          label: "Change Password", 
+          action: () => toast.info("Password change functionality coming soon!")
+        }
       ]
     },
     {
       title: "Preferences",
       icon: Palette,
       items: [
-        { label: "Language", action: () => {} },
-        { label: "Currency", action: () => {} },
-        { label: "Time Zone", action: () => {} }
+        { 
+          label: "Language", 
+          action: () => toast.info("Language settings coming soon!")
+        },
+        { 
+          label: "Currency", 
+          action: () => toast.info("Currency preferences coming soon!")
+        },
+        { 
+          label: "Time Zone", 
+          action: () => toast.info("Time zone settings coming soon!")
+        }
       ]
     }
   ];
@@ -64,7 +77,7 @@ const Settings = () => {
           >
             <Button 
               variant="ghost" 
-              onClick={() => navigate(-1)}
+              onClick={() => navigate('/dashboard')}
               className="glass-card-hover text-white border-none"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
@@ -132,9 +145,10 @@ const Settings = () => {
                       </div>
                       <Switch
                         checked={value}
-                        onCheckedChange={(checked) =>
-                          setNotifications(prev => ({ ...prev, [key]: checked }))
-                        }
+                        onCheckedChange={(checked) => {
+                          setNotifications(prev => ({ ...prev, [key]: checked }));
+                          toast.success(`${key} notifications ${checked ? 'enabled' : 'disabled'}`);
+                        }}
                       />
                     </div>
                   ))}
@@ -155,9 +169,18 @@ const Settings = () => {
                 <CardContent className="space-y-4">
                   {[
                     { label: "Help Center", action: () => navigate('/help') },
-                    { label: "Contact Support", action: () => {} },
-                    { label: "Terms & Privacy", action: () => navigate('/terms') },
-                    { label: "About", action: () => {} }
+                    { 
+                      label: "Contact Support", 
+                      action: () => toast.info("Contact support: support@alpraxflow.com")
+                    },
+                    { 
+                      label: "Terms & Privacy", 
+                      action: () => toast.info("Terms and Privacy coming soon!")
+                    },
+                    { 
+                      label: "About", 
+                      action: () => toast.info("AlpraxFlow v1.0 - Modern payment solution")
+                    }
                   ].map((item, index) => (
                     <div
                       key={index}

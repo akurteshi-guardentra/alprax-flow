@@ -40,9 +40,10 @@ export const LoginForm = ({
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
+          className="text-center"
         >
-          <h2 className="text-3xl font-bold text-white">Welcome back</h2>
-          <p className="text-white/60 mt-2">
+          <h2 className="text-3xl font-bold text-white text-center">Welcome back</h2>
+          <p className="text-white/60 mt-2 text-center">
             Log in to manage your money
           </p>
         </motion.div>
@@ -57,7 +58,7 @@ export const LoginForm = ({
               placeholder="Email" 
               value={email} 
               onChange={e => setEmail(e.target.value)} 
-              className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
+              className="pl-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
               required 
             />
           </div>
@@ -68,7 +69,7 @@ export const LoginForm = ({
               placeholder="Password" 
               value={password} 
               onChange={e => setPassword(e.target.value)} 
-              className="pl-10 pr-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50" 
+              className="pl-10 pr-10 bg-white/10 border-white/10 text-white placeholder:text-white/40 h-12 transition-all focus:ring-2 focus:ring-primary/50 text-center" 
               required 
             />
             <button
@@ -83,11 +84,11 @@ export const LoginForm = ({
               )}
             </button>
           </div>
-          <div className="flex justify-end">
+          <div className="flex justify-center">
             <button
               type="button"
               onClick={onForgotPassword}
-              className="text-sm text-white/60 hover:text-primary-light transition-colors"
+              className="text-sm text-white/60 hover:text-primary-light transition-colors text-center"
             >
               Forgot password?
             </button>
@@ -97,7 +98,7 @@ export const LoginForm = ({
         <div className="space-y-4">
           <Button 
             type="submit" 
-            className="w-full bg-primary hover:bg-primary-light text-white h-12 text-base font-medium transition-all" 
+            className="w-full bg-primary hover:bg-primary-light text-white h-12 text-base font-medium transition-all flex items-center justify-center" 
             disabled={isLoading}
           >
             {isLoading ? (
@@ -120,7 +121,7 @@ export const LoginForm = ({
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t border-white/10" />
             </div>
-            <span className="relative px-4 text-sm text-white/40 font-normal">
+            <span className="relative px-4 text-sm text-white/40 font-normal text-center">
               Or continue with
             </span>
           </div>
@@ -129,7 +130,7 @@ export const LoginForm = ({
             <Button 
               type="button" 
               onClick={onFingerprint} 
-              className="bg-white/10 hover:bg-white/20 text-white h-12 transition-all" 
+              className="bg-white/10 hover:bg-white/20 text-white h-12 transition-all flex items-center justify-center" 
               disabled={isLoading}
             >
               <Fingerprint className="mr-2 h-5 w-5" />
@@ -138,7 +139,7 @@ export const LoginForm = ({
             <Button 
               type="button" 
               onClick={onNumberAuth} 
-              className="bg-white/10 hover:bg-white/20 text-white h-12 transition-all" 
+              className="bg-white/10 hover:bg-white/20 text-white h-12 transition-all flex items-center justify-center" 
               disabled={isLoading}
             >
               <Hash className="mr-2 h-5 w-5" />
@@ -147,7 +148,7 @@ export const LoginForm = ({
           </div>
 
           <div className="text-center mt-6">
-            <p className="text-sm text-white/60">
+            <p className="text-sm text-white/60 text-center">
               Don't have an account?{" "}
               <button 
                 type="button" 

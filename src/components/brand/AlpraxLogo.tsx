@@ -92,8 +92,8 @@ export function AlpraxBrandHeader({
 }) {
   return (
     <div className={cn("text-center flex flex-col items-center justify-center w-full", className)}>
-      <AlpraxLogo size={size} variant="gradient" animated className="w-full" />
-      {showTagline && <AlpraxTagline className="mt-2 w-full" />}
+      <AlpraxLogo size={size} variant="gradient" animated className="w-full text-center" />
+      {showTagline && <AlpraxTagline className="mt-2 w-full text-center" />}
     </div>
   );
 }

@@ -62,22 +62,22 @@ const Welcome = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex justify-between items-center mb-16"
+          className="flex flex-col lg:flex-row justify-between items-center mb-16 text-center lg:text-left"
         >
-          <div className="flex justify-center lg:justify-start w-full lg:w-auto">
+          <div className="flex justify-center w-full lg:w-auto mb-4 lg:mb-0">
             <AlpraxBrandHeader size="lg" className="text-center" />
           </div>
-          <div className="hidden lg:flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-end">
             <Button
               variant="ghost"
               onClick={() => navigate('/login')}
-              className="glass-card-hover text-white border-none px-6 py-3"
+              className="glass-card-hover text-white border-none px-6 py-3 text-center flex items-center justify-center"
             >
               Sign In
             </Button>
             <Button
               onClick={() => navigate('/signup')}
-              className="premium-button animate-modern-glow"
+              className="premium-button animate-modern-glow text-center flex items-center justify-center"
             >
               Get Started Free
               <Sparkles className="ml-2 h-4 w-4" />
@@ -130,7 +130,7 @@ const Welcome = () => {
             <Button
               size="lg"
               onClick={() => navigate('/signup')}
-              className="premium-button text-lg px-12 py-6 animate-modern-glow"
+              className="premium-button text-lg px-12 py-6 animate-modern-glow flex items-center justify-center"
             >
               Start Sending Money
               <ArrowRight className="ml-2 h-6 w-6" />
@@ -139,7 +139,7 @@ const Welcome = () => {
               size="lg"
               variant="outline"
               onClick={() => navigate('/dashboard')}
-              className="glass-card-hover text-white border-white/20 px-12 py-6 text-lg"
+              className="glass-card-hover text-white border-white/20 px-12 py-6 text-lg flex items-center justify-center"
             >
               <Lock className="mr-2 h-5 w-5" />
               View Live Demo
@@ -264,7 +264,7 @@ const Welcome = () => {
               <Button
                 size="lg"
                 onClick={() => navigate('/signup')}
-                className="premium-button text-xl px-16 py-8 animate-modern-glow"
+                className="premium-button text-xl px-16 py-8 animate-modern-glow flex items-center justify-center mx-auto"
               >
                 Create Free Account
                 <ArrowRight className="ml-3 h-6 w-6" />

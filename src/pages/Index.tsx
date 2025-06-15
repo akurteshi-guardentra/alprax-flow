@@ -47,26 +47,26 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8 }}
-            className="flex flex-col items-center justify-center w-full"
+            className="flex flex-col items-center justify-center w-full text-center"
           >
             <div className="mb-8 w-full flex justify-center">
-              <AlpraxBrandHeader size="xl" showTagline className="text-center" />
+              <AlpraxBrandHeader size="xl" showTagline className="text-center w-full" />
             </div>
             
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-col items-center space-y-6 w-full max-w-xs mx-auto"
+              className="flex flex-col items-center justify-center space-y-6 w-full max-w-xs mx-auto text-center"
             >
               <Button
                 onClick={() => navigate('/welcome')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full text-center justify-center"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full text-center flex items-center justify-center"
               >
                 Get Started
               </Button>
               
-              <div className="text-center w-full">
+              <div className="text-center w-full flex justify-center">
                 <button 
                   onClick={() => navigate('/login')}
                   className="text-white/60 hover:text-white transition-colors underline text-sm text-center"

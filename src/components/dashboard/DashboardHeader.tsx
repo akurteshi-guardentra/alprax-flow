@@ -20,7 +20,7 @@ export function DashboardHeader() {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4"
+      className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4 text-center sm:text-left"
     >
       <div className="text-center sm:text-left w-full sm:w-auto">
         <AlpraxBrandHeader size="sm" className="mb-2 text-center sm:text-left" />
@@ -34,13 +34,15 @@ export function DashboardHeader() {
         </motion.h1>
         <p className="text-white/70 text-center sm:text-left">Welcome back to Alprax Flow</p>
       </div>
-      <Button
-        variant="outline"
-        className="border-white/20 text-white hover:bg-white/10"
-        onClick={() => navigate("/profile")}
-      >
-        Profile
-      </Button>
+      <div className="flex justify-center">
+        <Button
+          variant="outline"
+          className="border-white/20 text-white hover:bg-white/10 flex items-center justify-center"
+          onClick={() => navigate("/profile")}
+        >
+          Profile
+        </Button>
+      </div>
     </motion.div>
   );
 }

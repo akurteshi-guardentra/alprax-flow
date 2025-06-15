@@ -60,6 +60,13 @@ const Signup = () => {
     >
       <div className="max-w-md mx-auto">
         <div className="glass-card modern-shadow p-8">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold text-white text-center">Create Account</h2>
+            <p className="text-white/60 mt-2 text-center">
+              Join AlpraxFlow and start sending money globally
+            </p>
+          </div>
+          
           <form onSubmit={handleSignUp} className="space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Input
@@ -67,7 +74,7 @@ const Signup = () => {
                 placeholder="First Name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="bg-white/10 border-white/10 text-white placeholder:text-white/40"
+                className="bg-white/10 border-white/10 text-white placeholder:text-white/40 text-center"
                 required
               />
               <Input
@@ -75,7 +82,7 @@ const Signup = () => {
                 placeholder="Last Name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="bg-white/10 border-white/10 text-white placeholder:text-white/40"
+                className="bg-white/10 border-white/10 text-white placeholder:text-white/40 text-center"
                 required
               />
             </div>
@@ -85,7 +92,7 @@ const Signup = () => {
               placeholder="Email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="bg-white/10 border-white/10 text-white placeholder:text-white/40"
+              className="bg-white/10 border-white/10 text-white placeholder:text-white/40 text-center"
               required
             />
             
@@ -94,14 +101,14 @@ const Signup = () => {
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="bg-white/10 border-white/10 text-white placeholder:text-white/40"
+              className="bg-white/10 border-white/10 text-white placeholder:text-white/40 text-center"
               required
             />
             
             <div className="space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-white text-black hover:bg-white/90"
+                className="w-full bg-white text-black hover:bg-white/90 flex items-center justify-center"
                 disabled={isLoading}
               >
                 {isLoading ? 'Creating account...' : 'Create Account'}
@@ -111,7 +118,7 @@ const Signup = () => {
                 <button 
                   type="button"
                   onClick={() => navigate("/login")}
-                  className="text-sm text-white/60 hover:text-white transition-colors"
+                  className="text-sm text-white/60 hover:text-white transition-colors text-center"
                 >
                   Already have an account? Sign in
                 </button>

@@ -30,10 +30,10 @@ const Splash = () => {
               restDelta: 0.001
             }
           }}
-          className="flex flex-col items-center space-y-6 w-full"
+          className="flex flex-col items-center justify-center space-y-6 w-full text-center"
         >
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-white text-center w-full">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-200 to-blue-400 block">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-200 to-blue-400 block text-center">
               Alprax
             </span>
           </h1>

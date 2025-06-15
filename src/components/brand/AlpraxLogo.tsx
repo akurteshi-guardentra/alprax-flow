@@ -1,12 +1,15 @@
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+
 interface AlpraxLogoProps {
   size?: 'sm' | 'md' | 'lg' | 'xl';
   variant?: 'default' | 'gradient' | 'white';
   animated?: boolean;
   className?: string;
 }
+
 export function AlpraxLogo({
   size = 'md',
   variant = 'default',
@@ -19,11 +22,13 @@ export function AlpraxLogo({
     lg: 'text-4xl',
     xl: 'text-6xl'
   };
+
   const variantClasses = {
     default: 'text-white',
     gradient: 'bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent',
     white: 'text-white'
   };
+
   const logoAnimation = {
     initial: {
       opacity: 0,
@@ -38,11 +43,23 @@ export function AlpraxLogo({
       ease: "easeOut"
     }
   };
+
   const Component = animated ? motion.div : 'div';
-  return <Component className={cn("font-bold tracking-tight select-none", sizeClasses[size], variantClasses[variant], className)} {...animated ? logoAnimation : {}}>
-      <span className="font-display my-0 text-center px-0 mx-0">Alprax</span>
+
+  return (
+    <Component 
+      className={cn(
+        "font-bold tracking-tight select-none text-center flex items-center justify-center", 
+        sizeClasses[size], 
+        variantClasses[variant], 
+        className
+      )} 
+      {...(animated ? logoAnimation : {})}
+    >
+      <span className="font-display">Alprax</span>
       <span className="font-light ml-1 opacity-80">Flow</span>
-    </Component>;
+    </Component>
+  );
 }
 
 // Brand tagline component
@@ -51,18 +68,16 @@ export function AlpraxTagline({
 }: {
   className?: string;
 }) {
-  return <motion.p initial={{
-    opacity: 0,
-    y: 10
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    delay: 0.3,
-    duration: 0.5
-  }} className={cn("text-white/70 text-sm font-medium", className)}>
+  return (
+    <motion.p 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.3, duration: 0.5 }}
+      className={cn("text-white/70 text-sm font-medium text-center", className)}
+    >
       Send money anywhere, instantly
-    </motion.p>;
+    </motion.p>
+  );
 }
 
 // Complete brand header component
@@ -75,8 +90,10 @@ export function AlpraxBrandHeader({
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }) {
-  return <div className={cn("text-center", className)}>
+  return (
+    <div className={cn("text-center flex flex-col items-center justify-center", className)}>
       <AlpraxLogo size={size} variant="gradient" animated />
       {showTagline && <AlpraxTagline className="mt-2" />}
-    </div>;
+    </div>
+  );
 }

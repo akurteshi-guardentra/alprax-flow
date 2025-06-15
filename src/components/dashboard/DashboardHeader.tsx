@@ -20,12 +20,12 @@ export function DashboardHeader() {
     <motion.div
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex items-center justify-between mb-8"
+      className="flex flex-col sm:flex-row items-center justify-between mb-8 gap-4"
     >
-      <div>
-        <AlpraxBrandHeader size="sm" />
+      <div className="text-center sm:text-left">
+        <AlpraxBrandHeader size="sm" className="mb-2" />
         <motion.h1 
-          className="text-2xl font-bold text-white mt-2"
+          className="text-2xl font-bold text-white"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}

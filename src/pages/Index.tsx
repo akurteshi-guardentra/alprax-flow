@@ -42,37 +42,39 @@ const Index = () => {
       </div>
 
       <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8 }}
-          className="text-center"
-        >
-          <AlpraxBrandHeader size="xl" showTagline />
-          
+        <div className="text-center max-w-2xl mx-auto">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5, duration: 0.6 }}
-            className="mt-8 space-y-4"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8 }}
+            className="flex flex-col items-center justify-center"
           >
-            <Button
-              onClick={() => navigate('/welcome')}
-              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg"
-            >
-              Get Started
-            </Button>
+            <AlpraxBrandHeader size="xl" showTagline className="mb-8" />
             
-            <div className="text-white/60 text-sm">
-              <button 
-                onClick={() => navigate('/login')}
-                className="hover:text-white transition-colors underline"
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.6 }}
+              className="flex flex-col items-center space-y-6 w-full"
+            >
+              <Button
+                onClick={() => navigate('/welcome')}
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full max-w-xs"
               >
-                Already have an account? Sign in
-              </button>
-            </div>
+                Get Started
+              </Button>
+              
+              <div className="text-center">
+                <button 
+                  onClick={() => navigate('/login')}
+                  className="text-white/60 hover:text-white transition-colors underline text-sm"
+                >
+                  Already have an account? Sign in
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        </div>
       </div>
     </div>
   );

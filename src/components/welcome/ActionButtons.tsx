@@ -27,7 +27,10 @@ export function ActionButtons() {
     <motion.div 
       initial="hidden"
       animate="visible"
-      className={cn(`space-y-3 sm:space-y-0 ${isMobile ? 'space-y-3 w-full' : 'sm:space-x-4 sm:flex-row w-auto'} flex flex-col`)}
+      className={cn(
+        "flex flex-col sm:flex-row gap-4 w-full justify-center lg:justify-start",
+        isMobile ? "items-center" : "items-start"
+      )}
     >
       <motion.div
         variants={buttonVariants}
@@ -40,9 +43,10 @@ export function ActionButtons() {
           to="/login"
           variant="primary"
           icon={<ArrowRight className="ml-2 h-5 w-5" />}
-          className={cn(`w-full sm:w-auto font-semibold
-                    ${isMobile ? 'text-base py-4 px-6' : 'sm:text-lg sm:py-6 sm:px-8'} 
-                    rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`)}
+          className={cn(
+            "w-full sm:w-auto font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300",
+            isMobile ? 'text-base py-4 px-6' : 'sm:text-lg sm:py-6 sm:px-8'
+          )}
         >
           Start Sending Money
         </EnhancedActionButton>
@@ -60,9 +64,10 @@ export function ActionButtons() {
           to="/signup"
           variant="secondary"
           icon={<UserPlus className="ml-2 h-5 w-5" />}
-          className={cn(`w-full sm:w-auto font-semibold
-                    ${isMobile ? 'text-base py-4 px-6' : 'sm:text-lg sm:py-6 sm:px-8'} 
-                    rounded-xl shadow-lg hover:shadow-xl transition-all duration-300`)}
+          className={cn(
+            "w-full sm:w-auto font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300",
+            isMobile ? 'text-base py-4 px-6' : 'sm:text-lg sm:py-6 sm:px-8'
+          )}
         >
           Create Free Account
         </EnhancedActionButton>

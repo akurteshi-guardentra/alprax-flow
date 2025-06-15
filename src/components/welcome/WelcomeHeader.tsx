@@ -9,8 +9,8 @@ export function WelcomeHeader() {
   const isMobile = useIsMobile();
 
   return (
-    <div className="text-left space-y-4 sm:space-y-6">
-      <div className="flex justify-between items-start flex-wrap gap-4">
+    <div className="text-center lg:text-left space-y-4 sm:space-y-6 w-full">
+      <div className="flex justify-center lg:justify-between items-start flex-wrap gap-4">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -21,14 +21,16 @@ export function WelcomeHeader() {
             {t('welcome.tagline')}
           </span>
         </motion.div>
-        <LanguageSelector />
+        <div className="flex justify-center lg:justify-end w-full lg:w-auto">
+          <LanguageSelector />
+        </div>
       </div>
       
       <motion.h1 
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, delay: 0.2 }}
-        className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight"
+        className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white leading-tight text-center lg:text-left"
       >
         {t('welcome.title')}
         <br />
@@ -41,7 +43,7 @@ export function WelcomeHeader() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
-        className="text-base sm:text-lg text-white/80 max-w-xl"
+        className="text-base sm:text-lg text-white/80 max-w-xl text-center lg:text-left mx-auto lg:mx-0"
       >
         {t('welcome.description')}
       </motion.p>

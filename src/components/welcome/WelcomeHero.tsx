@@ -29,9 +29,9 @@ export function WelcomeHero() {
   return (
     <motion.div
       variants={containerVariants}
-      className={`flex flex-col ${isMobile ? '' : 'lg:flex-row'} items-center justify-between gap-8 sm:gap-12 px-4`}
+      className={`flex flex-col ${isMobile ? '' : 'lg:flex-row'} items-center justify-between gap-8 sm:gap-12 px-4 max-w-7xl mx-auto`}
     >
-      <div className={`w-full ${isMobile ? '' : 'lg:w-1/2'} space-y-6 sm:space-y-8`}>
+      <div className={`w-full ${isMobile ? '' : 'lg:w-1/2'} space-y-6 sm:space-y-8 flex flex-col items-center lg:items-start text-center lg:text-left`}>
         <motion.div variants={itemVariants}>
           <WelcomeHeader />
         </motion.div>
@@ -49,7 +49,7 @@ export function WelcomeHero() {
       {!isMobile && (
         <motion.div 
           variants={containerVariants}
-          className="w-full lg:w-1/2 mt-8 lg:mt-0"
+          className="w-full lg:w-1/2 mt-8 lg:mt-0 flex justify-center"
         >
           <BenefitsPreview />
         </motion.div>

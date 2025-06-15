@@ -51,8 +51,8 @@ const Login = () => {
         <div className="max-w-md mx-auto">
           <div className="glass-card modern-shadow p-8">
             <TwoFactorForm
-              code={loginHook.twoFactorCode}
-              setCode={loginHook.setTwoFactorCode}
+              twoFactorCode={loginHook.twoFactorCode}
+              setTwoFactorCode={loginHook.setTwoFactorCode}
               isLoading={loginHook.isLoading}
               onSubmit={loginHook.handleTwoFactorSubmit}
             />

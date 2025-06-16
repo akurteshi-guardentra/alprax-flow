@@ -17,7 +17,8 @@ import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
-import Payments from "./pages/Payments";
+import ModernPayments from "./pages/ModernPayments"; // The actual send money form
+import Payments from "./pages/Payments"; // Payment methods management
 import RequestMoney from "./pages/RequestMoney";
 import AddFunds from "./pages/AddFunds";
 import Contacts from "./pages/Contacts";
@@ -91,6 +92,11 @@ const AppContent = () => {
                     </AuthGuard>
                   } />
                   <Route path="/payments" element={
+                    <AuthGuard requireAuth={true}>
+                      <ModernPayments />
+                    </AuthGuard>
+                  } />
+                  <Route path="/payment-methods" element={
                     <AuthGuard requireAuth={true}>
                       <Payments />
                     </AuthGuard>

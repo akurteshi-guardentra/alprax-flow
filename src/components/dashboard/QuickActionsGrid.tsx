@@ -11,7 +11,7 @@ const quickActions = [
     title: "Send Money",
     description: "Transfer funds globally",
     color: "from-blue-500 to-purple-600",
-    route: "/payments",
+    route: "/payments", // Now correctly routes to ModernPayments
     benefits: ["Instant transfers", "Low fees", "Global reach"],
     popular: true
   },
@@ -64,19 +64,20 @@ export function QuickActionsGrid() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.4 }}
-      className="mb-8"
+      className="space-y-4"
     >
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between">
         <h2 className="text-lg font-semibold text-white">Quick Actions</h2>
         {hasLowBalance && (
           <div className="flex items-center gap-2 text-orange-300 text-sm">
             <TrendingUp className="w-4 h-4" />
-            <span>Consider adding funds for better experience</span>
+            <span className="hidden sm:inline">Consider adding funds</span>
           </div>
         )}
       </div>
       
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Changed to proper 2x2 grid for sidebar layout */}
+      <div className="grid grid-cols-2 gap-3">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.title}
@@ -87,44 +88,34 @@ export function QuickActionsGrid() {
             <ModernCard 
               variant="glass" 
               className={`relative bg-white/5 border border-white/10 group hover:bg-white/10 transition-all duration-300 cursor-pointer ${
-                action.popular ? 'ring-2 ring-blue-500/30' : ''
+                action.popular ? 'ring-1 ring-blue-500/20' : ''
               }`}
               interactive={true}
               onClick={() => handleActionClick(action)}
             >
-              <ModernCardContent className="p-4">
+              <ModernCardContent className="p-3">
                 {action.popular && (
-                  <div className="absolute -top-2 -right-2 bg-blue-500 text-white text-xs px-2 py-1 rounded-full">
+                  <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px]">
                     Popular
                   </div>
                 )}
                 
-                <div className="text-center space-y-3">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center mx-auto group-hover:scale-110 transition-transform duration-300`}>
-                    <action.icon className="w-6 h-6 text-white" />
+                <div className="text-center space-y-2">
+                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center mx-auto group-hover:scale-105 transition-transform duration-300`}>
+                    <action.icon className="w-5 h-5 text-white" />
                   </div>
                   
                   <div>
-                    <h3 className="font-semibold text-white text-sm mb-1">{action.title}</h3>
-                    <p className="text-white/60 text-xs mb-2">{action.description}</p>
+                    <h3 className="font-medium text-white text-sm mb-1">{action.title}</h3>
+                    <p className="text-white/60 text-xs leading-tight">{action.description}</p>
                   </div>
                   
-                  {/* Show benefits on hover */}
+                  {/* Simplified benefits display */}
                   <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="space-y-1">
-                      {action.benefits.slice(0, 2).map((benefit, idx) => (
-                        <div key={idx} className="flex items-center gap-1 text-xs text-white/70">
-                          <div className="w-1 h-1 bg-green-400 rounded-full"></div>
-                          <span>{benefit}</span>
-                        </div>
-                      ))}
+                    <div className="flex justify-center gap-1 mt-1">
+                      <Clock className="w-3 h-3 text-green-400" />
+                      <Shield className="w-3 h-3 text-blue-400" />
                     </div>
-                  </div>
-                  
-                  {/* Special indicators */}
-                  <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <Clock className="w-3 h-3 text-green-400" />
-                    <Shield className="w-3 h-3 text-blue-400" />
                   </div>
                 </div>
               </ModernCardContent>
@@ -133,23 +124,23 @@ export function QuickActionsGrid() {
         ))}
       </div>
       
-      {/* Helpful tip section */}
+      {/* Helpful tip section - more compact */}
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 1.0 }}
-        className="mt-6 p-4 bg-white/5 rounded-xl border border-white/10"
+        className="p-3 bg-white/5 rounded-lg border border-white/10"
       >
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-            <TrendingUp className="w-4 h-4 text-blue-400" />
+        <div className="flex items-start gap-2">
+          <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+            <TrendingUp className="w-3 h-3 text-blue-400" />
           </div>
           <div>
-            <h4 className="text-white font-medium text-sm mb-1">Pro Tip</h4>
-            <p className="text-white/70 text-xs">
+            <h4 className="text-white font-medium text-xs mb-1">Pro Tip</h4>
+            <p className="text-white/70 text-[11px] leading-tight">
               {hasLowBalance 
-                ? "Add funds first to enjoy seamless money transfers with no interruptions."
-                : "Your account is ready! Send money instantly to anyone, anywhere in the world."
+                ? "Add funds first for seamless transfers."
+                : "Your account is ready for instant global transfers."
               }
             </p>
           </div>

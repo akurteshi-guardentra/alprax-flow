@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
@@ -15,7 +14,8 @@ import {
   MessageSquare,
   CreditCard,
   Clock,
-  Shield
+  Shield,
+  Settings
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { hapticFeedback } from '@/lib/haptics';
@@ -93,20 +93,31 @@ const ModernPayments = () => {
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4"
+          className="flex items-center justify-between"
         >
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleBack}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="text-2xl font-bold text-white">Send Payment</h1>
+              <p className="text-white/70">Send money instantly worldwide</p>
+            </div>
+          </div>
           <Button
             variant="ghost"
             size="icon"
-            onClick={handleBack}
+            onClick={() => navigate('/payment-methods')}
             className="text-white hover:bg-white/10"
+            title="Payment Methods"
           >
-            <ArrowLeft className="w-5 h-5" />
+            <Settings className="w-5 h-5" />
           </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-white">Send Payment</h1>
-            <p className="text-white/70">Send money instantly worldwide</p>
-          </div>
         </motion.div>
 
         {/* Balance Display */}
@@ -155,6 +166,16 @@ const ModernPayments = () => {
                   placeholder="Enter recipient's wallet address"
                   className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                 />
+                <div className="flex justify-end">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/contacts')}
+                    className="text-blue-400 hover:text-blue-300 hover:bg-white/10 text-xs"
+                  >
+                    Choose from contacts
+                  </Button>
+                </div>
               </div>
 
               {/* Amount */}

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, CreditCard, Building, Wallet, Plus } from "lucide-react";
+import { ArrowLeft, CreditCard, Building, Wallet, Plus, Send } from "lucide-react";
 
 const Payments = () => {
   const navigate = useNavigate();
@@ -55,10 +55,19 @@ const Payments = () => {
                 <Wallet className="h-6 w-6" />
                 Payment Methods
               </CardTitle>
-              <Button className="bg-primary hover:bg-primary/90 text-white">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Method
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => navigate('/payments')}
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Money
+                </Button>
+                <Button className="bg-primary hover:bg-primary/90 text-white">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Method
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -96,6 +105,23 @@ const Payments = () => {
                     </Card>
                   </motion.div>
                 ))}
+              </div>
+              
+              <div className="mt-6 p-4 bg-white/5 rounded-lg border border-white/10">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-white font-medium">Need to send money?</h3>
+                    <p className="text-white/70 text-sm">Use our quick send money feature</p>
+                  </div>
+                  <Button 
+                    onClick={() => navigate('/payments')}
+                    variant="outline"
+                    className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send Now
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

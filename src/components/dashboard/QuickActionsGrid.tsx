@@ -76,7 +76,7 @@ export function QuickActionsGrid() {
         )}
       </div>
       
-      {/* Changed to proper 2x2 grid for sidebar layout */}
+      {/* Properly structured 2x2 grid */}
       <div className="grid grid-cols-2 gap-3">
         {quickActions.map((action, index) => (
           <motion.div
@@ -95,7 +95,7 @@ export function QuickActionsGrid() {
             >
               <ModernCardContent className="p-3">
                 {action.popular && (
-                  <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px]">
+                  <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px] z-10">
                     Popular
                   </div>
                 )}

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { getTestCards } from '@/services/paymentService';
+import { getTestCards } from '@/services/PaymentService';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';

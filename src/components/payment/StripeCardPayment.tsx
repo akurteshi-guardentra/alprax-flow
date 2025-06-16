@@ -4,7 +4,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { processPayment } from '@/services/paymentService';
+import { processPayment } from '@/services/PaymentService';
 import { motion } from 'framer-motion';
 
 interface StripeCardPaymentProps {

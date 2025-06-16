@@ -14,7 +14,7 @@ import { Elements } from "@stripe/react-stripe-js";
 import { stripePromise } from "@/lib/stripe";
 import { StripeCardPayment } from "./StripeCardPayment";
 import { TestCards } from "./TestCards";
-import { createPaymentIntent, PaymentIntentRequest } from "@/services/paymentService";
+import { createPaymentIntent, PaymentIntentRequest } from "@/services/PaymentService";
 
 interface PaymentMethodProps {
   onSelect: (methodId: string) => void;

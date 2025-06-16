@@ -15,11 +15,25 @@ export interface PaymentRequest {
   };
 }
 
+export interface PaymentIntentRequest {
+  amount: number;
+  currency: string;
+  payment_method_type: string;
+  description: string;
+}
+
 export interface PaymentResult {
   success: boolean;
   transactionId?: string;
   error?: string;
   estimatedTime?: number;
+}
+
+export interface TestCard {
+  name: string;
+  number: string;
+  expiry: string;
+  cvc: string;
 }
 
 export class PaymentService {
@@ -174,3 +188,71 @@ export class PaymentService {
 
 // Export singleton instance
 export const paymentService = PaymentService.getInstance();
+
+// Standalone functions for compatibility with existing components
+export function getTestCards(): TestCard[] {
+  return [
+    {
+      name: "Visa Test Card",
+      number: "4242 4242 4242 4242",
+      expiry: "12/28",
+      cvc: "123"
+    },
+    {
+      name: "Visa Debit",
+      number: "4000 0566 5566 5556",
+      expiry: "12/28",
+      cvc: "123"
+    },
+    {
+      name: "Mastercard",
+      number: "5555 5555 5555 4444",
+      expiry: "12/28",
+      cvc: "123"
+    },
+    {
+      name: "American Express",
+      number: "3782 822463 10005",
+      expiry: "12/28",
+      cvc: "1234"
+    }
+  ];
+}
+
+export async function createPaymentIntent(request: PaymentIntentRequest): Promise<{
+  clientSecret: string;
+  id: string;
+  amount: number;
+  currency: string;
+}> {
+  // Mock implementation for demo purposes
+  // In a real app, this would call your backend to create a Stripe PaymentIntent
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        clientSecret: `pi_mock_${Date.now()}_secret_${Math.random().toString(36).substr(2, 9)}`,
+        id: `pi_mock_${Date.now()}`,
+        amount: request.amount,
+        currency: request.currency
+      });
+    }, 1000);
+  });
+}
+
+export async function processPayment(clientSecret: string, paymentMethod: any): Promise<{
+  success: boolean;
+  error?: string;
+}> {
+  // Mock implementation for demo purposes
+  // In a real app, this would confirm the payment with Stripe
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Simulate random success/failure for demo
+      const success = Math.random() > 0.2; // 80% success rate
+      resolve({
+        success,
+        error: success ? undefined : 'Payment failed - this is a test environment'
+      });
+    }, 2000);
+  });
+}

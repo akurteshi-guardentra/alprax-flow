@@ -49,22 +49,16 @@ export function decryptSecretKey(encryptedKey: string, password: string): string
       iterations: 10000
     });
     
-    // Create proper CipherParams object for decryption
-    const cipherParams = CryptoJS.lib.CipherParams.create({
-      ciphertext: ciphertext,
-      key: key,
-      iv: salt,
-      algorithm: CryptoJS.algo.AES,
-      mode: CryptoJS.mode.CBC,
-      padding: CryptoJS.pad.Pkcs7
-    });
-    
-    // Decrypt using the proper CipherParams object
-    const decrypted = CryptoJS.AES.decrypt(cipherParams, key, {
-      iv: salt,
-      padding: CryptoJS.pad.Pkcs7,
-      mode: CryptoJS.mode.CBC
-    });
+    // Decrypt the ciphertext directly using AES
+    const decrypted = CryptoJS.AES.decrypt(
+      ciphertext.toString(CryptoJS.enc.Base64),
+      key,
+      {
+        iv: salt,
+        padding: CryptoJS.pad.Pkcs7,
+        mode: CryptoJS.mode.CBC
+      }
+    );
     
     const decryptedText = decrypted.toString(CryptoJS.enc.Utf8);
     

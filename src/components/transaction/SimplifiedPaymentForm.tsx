@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Lock, Wallet, Send, Info, Loader2, AlertCircle } from "lucide-react";
@@ -69,8 +68,8 @@ export function SimplifiedPaymentForm({
       effectiveFiatRate
     );
     
-    if (!validation.valid) {
-      const errorMessage = validation.reason;
+    if (!validation.isValid) {
+      const errorMessage = Object.values(validation.errors)[0] || 'Please check your payment details';
       toast.error(errorMessage);
       setPaymentStatus('error');
       setStatusMessage(errorMessage);

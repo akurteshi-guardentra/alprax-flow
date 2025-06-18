@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { CreditCard, Landmark, Smartphone, Wallet, CheckCircle2, Info, Clock, ArrowRight, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,8 @@ import { stripePromise } from "@/lib/stripe";
 import { StripeCardPayment } from "./StripeCardPayment";
 import { TestCards } from "./TestCards";
 import { createPaymentIntent, PaymentIntentRequest } from "@/services/PaymentService";
+import { toast } from "sonner";
+import { hapticFeedback } from "@/lib/haptics";
 
 interface PaymentMethodProps {
   onSelect: (methodId: string) => void;
@@ -40,32 +43,64 @@ export function PaymentMethodSelector({
   const [paymentError, setPaymentError] = useState<string | null>(null);
 
   const handleProceedToPayment = async () => {
-    if (selected === 'card') {
-      setIsCreatingIntent(true);
-      setPaymentError(null);
+    setIsCreatingIntent(true);
+    setPaymentError(null);
+    
+    try {
+      hapticFeedback('medium');
+      toast.loading('Preparing payment...', { id: 'payment-setup' });
       
-      try {
-        // Create a payment intent
+      if (selected === 'card') {
+        // Create a payment intent for card payments
         const paymentIntentRequest: PaymentIntentRequest = {
           amount,
           currency: 'usd',
           payment_method_type: 'card',
-          description: 'Test payment'
+          description: `Add funds - $${(amount / 100).toFixed(2)}`
         };
         
         const intent = await createPaymentIntent(paymentIntentRequest);
         setPaymentIntent(intent);
         setShowStripeForm(true);
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
-        setPaymentError('Failed to initialize payment. Please try again.');
-      } finally {
-        setIsCreatingIntent(false);
+        toast.success('Payment ready!', { id: 'payment-setup' });
+      } else if (selected === 'bank') {
+        // Simulate bank transfer processing
+        toast.loading('Processing bank transfer...', { id: 'payment-setup' });
+        setTimeout(() => {
+          toast.success('Bank transfer initiated! Funds will be available in 1-3 business days.', { id: 'payment-setup' });
+          hapticFeedback('success');
+          if (onPaymentComplete) onPaymentComplete();
+        }, 2000);
+      } else if (selected === 'wallet') {
+        // Simulate digital wallet processing
+        toast.loading('Connecting to digital wallet...', { id: 'payment-setup' });
+        setTimeout(() => {
+          toast.success('Digital wallet payment completed!', { id: 'payment-setup' });
+          hapticFeedback('success');
+          if (onPaymentComplete) onPaymentComplete();
+        }, 1500);
+      } else if (selected === 'mobile') {
+        // Simulate mobile money processing
+        toast.loading('Processing mobile money transfer...', { id: 'payment-setup' });
+        setTimeout(() => {
+          toast.success('Mobile money transfer completed!', { id: 'payment-setup' });
+          hapticFeedback('success');
+          if (onPaymentComplete) onPaymentComplete();
+        }, 2500);
       }
+    } catch (error) {
+      console.error('Error creating payment intent:', error);
+      setPaymentError('Failed to initialize payment. Please try again.');
+      toast.error('Failed to prepare payment. Please try again.', { id: 'payment-setup' });
+      hapticFeedback('error');
+    } finally {
+      setIsCreatingIntent(false);
     }
   };
   
   const handlePaymentSuccess = () => {
+    toast.success('Payment completed successfully!');
+    hapticFeedback('success');
     if (onPaymentComplete) {
       onPaymentComplete();
     }
@@ -73,6 +108,7 @@ export function PaymentMethodSelector({
   
   const handlePaymentError = (error: string) => {
     setPaymentError(error);
+    hapticFeedback('error');
   };
   
   const handleCloseStripeForm = () => {
@@ -142,7 +178,7 @@ export function PaymentMethodSelector({
       <Alert className="bg-blue-500/10 border-blue-500/20 text-blue-200 mb-4">
         <Info className="h-4 w-4 text-blue-300" />
         <AlertDescription className="text-xs">
-          This is a demo environment using Stripe test mode. No actual charges will be made.
+          This is a demo environment. For card payments, use Stripe test mode. No actual charges will be made.
         </AlertDescription>
       </Alert>
       

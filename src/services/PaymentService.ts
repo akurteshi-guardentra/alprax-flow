@@ -123,136 +123,97 @@ export class PaymentService {
    * Validate payment request
    */
   private validatePaymentRequest(request: PaymentRequest): void {
-    if (!request.recipientId || request.recipientId.trim() === '') {
-      throw new Error('Recipient address is required');
+    if (!request.recipientId) {
+      throw new Error('Recipient is required');
     }
     
     if (!request.amount || parseFloat(request.amount) <= 0) {
-      throw new Error('Amount must be greater than 0');
+      throw new Error('Valid amount is required');
     }
     
-    if (!request.description || request.description.trim() === '') {
+    if (!request.description) {
       throw new Error('Payment description is required');
     }
-    
-    // Validate Stellar address format
-    if (!request.recipientId.startsWith('G') || request.recipientId.length !== 56) {
-      throw new Error('Invalid recipient address format');
-    }
   }
 
   /**
-   * Convert technical errors to user-friendly messages
+   * Convert blockchain/technical errors to user-friendly messages
    */
   private getUserFriendlyError(error: any): string {
-    const errorMessage = error?.message || error || 'Unknown error';
-    
-    if (errorMessage.includes('insufficient')) {
-      return "You don't have enough funds for this payment. Please add funds and try again.";
+    if (error instanceof Error) {
+      const message = error.message.toLowerCase();
+      
+      if (message.includes('insufficient') || message.includes('balance')) {
+        return 'You don\'t have enough funds for this payment';
+      }
+      
+      if (message.includes('destination') || message.includes('recipient')) {
+        return 'The recipient could not be found. Please check the details';
+      }
+      
+      if (message.includes('network') || message.includes('timeout')) {
+        return 'Network issue. Please try again in a moment';
+      }
+      
+      if (message.includes('invalid') || message.includes('format')) {
+        return 'Invalid payment details. Please check and try again';
+      }
+      
+      // Return original message if it's already user-friendly
+      if (!message.includes('stellar') && !message.includes('xlm') && !message.includes('blockchain')) {
+        return error.message;
+      }
     }
     
-    if (errorMessage.includes('no_destination') || errorMessage.includes('not found')) {
-      return "The recipient address couldn't be found. Please check the address and try again.";
-    }
-    
-    if (errorMessage.includes('timeout') || errorMessage.includes('network')) {
-      return "Network error occurred. Please check your connection and try again.";
-    }
-    
-    if (errorMessage.includes('rate limit') || errorMessage.includes('too many')) {
-      return "Too many requests. Please wait a moment and try again.";
-    }
-    
-    if (errorMessage.includes('invalid') && errorMessage.includes('address')) {
-      return "The recipient address format is invalid. Please check and try again.";
-    }
-    
-    // Default fallback
-    return "Payment failed. Please try again or contact support if the problem persists.";
+    return 'Payment could not be processed. Please try again or contact support';
   }
 
   /**
-   * Get pending transactions
+   * Get pending transactions count
    */
-  public getPendingTransactions(): PaymentRequest[] {
-    return Array.from(this.pendingTransactions.values());
+  public getPendingTransactionsCount(): number {
+    return this.pendingTransactions.size;
   }
 
   /**
-   * Cancel pending transaction
+   * Cancel a pending transaction
    */
   public cancelTransaction(transactionId: string): boolean {
     return this.pendingTransactions.delete(transactionId);
   }
 }
 
-// Export singleton instance
+// Export singleton instance for easy access
 export const paymentService = PaymentService.getInstance();
 
-// Standalone functions for compatibility with existing components
-export function getTestCards(): TestCard[] {
-  return [
-    {
-      name: "Visa Test Card",
-      number: "4242 4242 4242 4242",
-      expiry: "12/28",
-      cvc: "123"
-    },
-    {
-      name: "Visa Debit",
-      number: "4000 0566 5566 5556",
-      expiry: "12/28",
-      cvc: "123"
-    },
-    {
-      name: "Mastercard",
-      number: "5555 5555 5555 4444",
-      expiry: "12/28",
-      cvc: "123"
-    },
-    {
-      name: "American Express",
-      number: "3782 822463 10005",
-      expiry: "12/28",
-      cvc: "1234"
+// Mock payment intent creation for funding
+export async function createPaymentIntent(request: PaymentIntentRequest) {
+  console.log('Creating payment intent:', request);
+  
+  // Simulate API delay
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  // Mock response
+  return {
+    clientSecret: `pi_mock_${Date.now()}_secret`,
+    id: `pi_mock_${Date.now()}`,
+    amount: request.amount,
+    currency: request.currency
+  };
+}
+
+// Mock payment processing
+export async function processPayment(clientSecret: string, paymentMethod: any) {
+  console.log('Processing payment:', { clientSecret, paymentMethod });
+  
+  // Simulate processing
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  return {
+    success: true,
+    paymentIntent: {
+      id: clientSecret.replace('_secret', ''),
+      status: 'succeeded'
     }
-  ];
-}
-
-export async function createPaymentIntent(request: PaymentIntentRequest): Promise<{
-  clientSecret: string;
-  id: string;
-  amount: number;
-  currency: string;
-}> {
-  // Mock implementation for demo purposes
-  // In a real app, this would call your backend to create a Stripe PaymentIntent
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        clientSecret: `pi_mock_${Date.now()}_secret_${Math.random().toString(36).substr(2, 9)}`,
-        id: `pi_mock_${Date.now()}`,
-        amount: request.amount,
-        currency: request.currency
-      });
-    }, 1000);
-  });
-}
-
-export async function processPayment(clientSecret: string, paymentMethod: any): Promise<{
-  success: boolean;
-  error?: string;
-}> {
-  // Mock implementation for demo purposes
-  // In a real app, this would confirm the payment with Stripe
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Simulate random success/failure for demo
-      const success = Math.random() > 0.2; // 80% success rate
-      resolve({
-        success,
-        error: success ? undefined : 'Payment failed - this is a test environment'
-      });
-    }, 2000);
-  });
+  };
 }

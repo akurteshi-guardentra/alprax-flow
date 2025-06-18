@@ -1,7 +1,7 @@
-// Simplified payment form with automatic Stellar account handling
+
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Shield, Lock, Wallet, Send, Info, Loader2 } from "lucide-react";
+import { Shield, Lock, Wallet, Send, Info, Loader2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,6 +12,8 @@ import { toast } from "sonner";
 import { hapticFeedback } from "@/lib/haptics";
 import { SimplifiedRecipientFinder } from "./SimplifiedRecipientFinder";
 import { BlockchainInfoBanner } from "./BlockchainInfoBanner";
+import { PaymentStatusIndicator, PaymentStatus } from "@/components/payment/PaymentStatusIndicator";
+import { validatePaymentForm } from "@/components/payment/PaymentFormValidation";
 import { ensureSufficientFunds } from "@/lib/stellar/enhanced-account";
 import { StellarAccount } from "@/lib/stellar/types";
 import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
@@ -38,77 +40,60 @@ export function SimplifiedPaymentForm({
   defaultFiat = "EUR",
   fiatRate = 0
 }: SimplifiedPaymentFormProps) {
-  // Get fiat conversion utilities
   const { fiatAmount, setFiatAmount, fiatRate: hookFiatRate, defaultFiat: hookDefaultFiat } = useTransactionSubmission();
   
-  // Use props if provided, otherwise use hook values
   const effectiveFiatRate = fiatRate || hookFiatRate;
   const effectiveDefaultFiat = defaultFiat || hookDefaultFiat;
   
-  // Form state
   const [selectedRecipient, setSelectedRecipient] = useState<FavoriteRecipient | null>(null);
   const [description, setDescription] = useState("");
   const [showRecipientSelector, setShowRecipientSelector] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
+  const [statusMessage, setStatusMessage] = useState<string>('');
 
-  // Handle recipient selection
   const handleSelectRecipient = (recipient: FavoriteRecipient) => {
     setSelectedRecipient(recipient);
     setShowRecipientSelector(false);
   };
-  // Validate form data
-  const validateForm = () => {
-    if (!selectedRecipient) {
-      return { valid: false, reason: "Please select a recipient" };
-    }
 
-    if (!fiatAmount || isNaN(parseFloat(fiatAmount)) || parseFloat(fiatAmount) <= 0) {
-      return { valid: false, reason: "Please enter a valid amount" };
-    }
-
-    // Convert fiat to XLM for validation against available funds
-    const fiatAmountNum = parseFloat(fiatAmount);
-    const xlmAmount = effectiveFiatRate > 0 ? fiatAmountNum / effectiveFiatRate : 0;
-    
-    if (xlmAmount > availableFunds) {
-      return { valid: false, reason: "Insufficient funds" };
-    }
-
-    if (!description.trim()) {
-      return { valid: false, reason: "Please enter a payment description" };
-    }
-
-    return { valid: true, reason: "" };
-  };
-
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    const validation = validateForm();
+    setPaymentStatus('validating');
+    setStatusMessage('Validating payment details...');
+    
+    const validation = validatePaymentForm(
+      selectedRecipient,
+      fiatAmount,
+      availableFunds * effectiveFiatRate,
+      effectiveFiatRate
+    );
+    
     if (!validation.valid) {
-      toast.error(validation.reason);
+      const errorMessage = validation.reason;
+      toast.error(errorMessage);
+      setPaymentStatus('error');
+      setStatusMessage(errorMessage);
       hapticFeedback("error");
       return;
     }
 
     if (!selectedRecipient) return;
 
-    setIsSubmitting(true);
+    setPaymentStatus('processing');
+    setStatusMessage('Processing payment...');
     hapticFeedback("medium");
 
     try {
-      // First ensure the account has sufficient funds
       const hasFunds = await ensureSufficientFunds(stellarAccount);
       
       if (!hasFunds) {
-        toast.error("Failed to ensure sufficient funds for transaction");
-        return;
-      }      // Convert fiat amount to XLM for the payment
+        throw new Error("Failed to ensure sufficient funds for transaction");
+      }
+
       const fiatAmountNum = parseFloat(fiatAmount);
       const xlmAmount = effectiveFiatRate > 0 ? fiatAmountNum / effectiveFiatRate : 0;
       
-      // Proceed with the payment using XLM amount
       const result = await onSubmitPayment(
         selectedRecipient.stellar_address,
         xlmAmount.toString(),
@@ -120,6 +105,8 @@ export function SimplifiedPaymentForm({
       );
 
       if (result.success) {
+        setPaymentStatus('success');
+        setStatusMessage('Payment sent successfully!');
         toast.success("Payment sent successfully!");
         hapticFeedback("success");
         
@@ -128,17 +115,24 @@ export function SimplifiedPaymentForm({
         setDescription("");
         setSelectedRecipient(null);
       } else {
-        toast.error(result.error || "Failed to send payment");
-        hapticFeedback("error");
+        throw new Error(result.error || "Failed to send payment");
       }
     } catch (error) {
       console.error("Payment error:", error);
+      const errorMessage = error instanceof Error ? error.message : "An error occurred";
+      setPaymentStatus('error');
+      setStatusMessage(errorMessage);
       toast.error(error instanceof Error ? error.message : "An error occurred");
       hapticFeedback("error");
-    } finally {
-      setIsSubmitting(false);
     }
   };
+
+  const validation = validatePaymentForm(
+    selectedRecipient,
+    fiatAmount,
+    availableFunds * effectiveFiatRate,
+    effectiveFiatRate
+  );
 
   return (
     <motion.form
@@ -156,17 +150,21 @@ export function SimplifiedPaymentForm({
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-blue-400" />
           <h3 className="text-lg sm:text-xl font-semibold text-white">Send Money</h3>
-        </div>        <div className="flex items-center text-white/70 text-sm">
+        </div>
+        <div className="flex items-center text-white/70 text-sm">
           <Wallet className="h-4 w-4 mr-1 text-white/60" />
           <span>
             {effectiveFiatRate > 0 
               ? `${(availableFunds * effectiveFiatRate).toFixed(2)} ${effectiveDefaultFiat}`
-              : `-- ${effectiveDefaultFiat}` // Show placeholder when rate is loading
+              : `-- ${effectiveDefaultFiat}`
             }
           </span>
         </div>
       </div>
-        <BlockchainInfoBanner className="mb-1" />
+
+      <BlockchainInfoBanner className="mb-1" />
+      
+      <PaymentStatusIndicator status={paymentStatus} message={statusMessage} />
       
       <div className="space-y-4">
         {/* Recipient Selection */}
@@ -187,7 +185,8 @@ export function SimplifiedPaymentForm({
           ) : (
             <div className="space-y-3">
               {selectedRecipient ? (
-                <div className="flex justify-between items-center p-3 rounded-lg border border-white/20 bg-white/5">                  <div>
+                <div className="flex justify-between items-center p-3 rounded-lg border border-white/20 bg-white/5">
+                  <div>
                     <p className="text-white font-medium">{selectedRecipient.recipient_name}</p>
                     <p className="text-white/60 text-sm truncate max-w-[180px]">{selectedRecipient.relationship || 'Contact'}</p>
                   </div>
@@ -211,13 +210,22 @@ export function SimplifiedPaymentForm({
               )}
             </div>
           )}
-        </div>        {/* Amount Input */}
+          {validation.errors.recipient && (
+            <div className="flex items-center gap-1 text-red-400 text-sm">
+              <AlertCircle className="w-3 h-3" />
+              {validation.errors.recipient}
+            </div>
+          )}
+        </div>
+
+        {/* Amount Input */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
-            <Label htmlFor="amount" className="text-white">Amount ({effectiveDefaultFiat})</Label>            <span className="text-xs text-white/50">
+            <Label htmlFor="amount" className="text-white">Amount ({effectiveDefaultFiat})</Label>
+            <span className="text-xs text-white/50">
               Available: {effectiveFiatRate > 0 
                 ? `${(availableFunds * effectiveFiatRate).toFixed(2)} ${effectiveDefaultFiat}`
-                : `-- ${effectiveDefaultFiat}` // Show placeholder when rate is loading
+                : `-- ${effectiveDefaultFiat}`
               }
             </span>
           </div>
@@ -231,7 +239,7 @@ export function SimplifiedPaymentForm({
               step="0.01"
               min="0.01"
               className="bg-white/10 border-white/20 text-white pr-12"
-              disabled={isSubmitting}
+              disabled={paymentStatus === 'processing'}
             />
             <div className="absolute right-3 top-0 bottom-0 flex items-center">
               <span className="text-white/60">{effectiveDefaultFiat}</span>
@@ -246,11 +254,23 @@ export function SimplifiedPaymentForm({
                 const maxFiatAmount = effectiveFiatRate > 0 ? availableFunds * effectiveFiatRate : availableFunds;
                 setFiatAmount(maxFiatAmount.toString());
               }}
-              disabled={availableFunds <= 0 || isSubmitting}
+              disabled={availableFunds <= 0 || paymentStatus === 'processing'}
             >
               Max
             </Button>
           </div>
+          {validation.errors.amount && (
+            <div className="flex items-center gap-1 text-red-400 text-sm">
+              <AlertCircle className="w-3 h-3" />
+              {validation.errors.amount}
+            </div>
+          )}
+          {validation.errors.balance && (
+            <div className="flex items-center gap-1 text-red-400 text-sm">
+              <AlertCircle className="w-3 h-3" />
+              {validation.errors.balance}
+            </div>
+          )}
         </div>
         
         {/* Payment Description */}
@@ -262,10 +282,11 @@ export function SimplifiedPaymentForm({
             onChange={(e) => setDescription(e.target.value)}
             placeholder="What's this payment for?"
             className="min-h-[80px] bg-white/10 border-white/20 text-white"
-            disabled={isSubmitting}
+            disabled={paymentStatus === 'processing'}
           />
         </div>
-          {/* Info note */}
+
+        {/* Info note */}
         <div className="flex items-start gap-2 p-3 rounded-lg bg-slate-700/30 border border-slate-600/30">
           <Info className="h-4 w-4 text-white/60 mt-0.5 shrink-0" />
           <p className="text-xs text-white/70">
@@ -277,9 +298,9 @@ export function SimplifiedPaymentForm({
         <Button 
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base"
-          disabled={isProcessing || isSubmitting || !selectedRecipient}
+          disabled={!validation.isValid || isProcessing || paymentStatus === 'processing' || !selectedRecipient}
         >
-          {isSubmitting ? (
+          {paymentStatus === 'processing' ? (
             <>
               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
               Sending...

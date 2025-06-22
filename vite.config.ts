@@ -7,7 +7,20 @@ import { componentTagger } from "lovable-tagger";
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
   const isProduction = mode === 'production';
-  const base = isProduction ? '/alprax-flow/' : '/';
+  
+  // Determine base path based on deployment environment
+  let base = '/';
+  
+  if (isProduction) {
+    // Check if we're on GitHub Actions (GitHub Pages deployment)
+    if (process.env.GITHUB_ACTIONS === 'true' || process.env.CI === 'true') {
+      base = '/alprax-flow/';
+    }
+    // For Lovable hosting and other platforms, use root path
+    else {
+      base = '/';
+    }
+  }
   
   return {
     base,

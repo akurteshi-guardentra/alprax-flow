@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Shield, Lock, Wallet, Send, Info, Loader2, AlertCircle } from "lucide-react";
@@ -17,7 +16,6 @@ import { validatePaymentForm } from "@/components/payment/PaymentFormValidation"
 import { ensureSufficientFunds } from "@/lib/stellar/enhanced-account";
 import { StellarAccount } from "@/lib/stellar/types";
 import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
-import { paymentService } from "@/services/PaymentService";
 
 interface SimplifiedPaymentFormProps {
   stellarAccount: StellarAccount;
@@ -86,23 +84,29 @@ export function SimplifiedPaymentForm({
     hapticFeedback("medium");
 
     try {
-      // Use the enhanced payment service
-      const result = await paymentService.processPayment({
-        recipientId: selectedRecipient.stellar_address,
-        amount: fiatAmount,
-        description: description || `Payment of ${fiatAmount} ${effectiveDefaultFiat}`,
-        recipientName: selectedRecipient.recipient_name,
-        metadata: {
-          recipient_country: selectedRecipient.country || 'Unknown',
-          transfer_purpose: 'personal',
-          transfer_category: 'money_transfer'
+      const hasFunds = await ensureSufficientFunds(stellarAccount);
+      
+      if (!hasFunds) {
+        throw new Error("Failed to ensure sufficient funds for transaction");
+      }
+
+      const fiatAmountNum = parseFloat(fiatAmount);
+      const xlmAmount = effectiveFiatRate > 0 ? fiatAmountNum / effectiveFiatRate : 0;
+      
+      const result = await onSubmitPayment(
+        selectedRecipient.stellar_address,
+        xlmAmount.toString(),
+        description,
+        {
+          name: selectedRecipient.recipient_name,
+          id: selectedRecipient.id
         }
-      });
+      );
 
       if (result.success) {
         setPaymentStatus('success');
         setStatusMessage('Payment sent successfully!');
-        toast.success(`Payment sent successfully to ${selectedRecipient.recipient_name}!`);
+        toast.success("Payment sent successfully!");
         hapticFeedback("success");
         
         // Reset form
@@ -117,7 +121,7 @@ export function SimplifiedPaymentForm({
       const errorMessage = error instanceof Error ? error.message : "An error occurred";
       setPaymentStatus('error');
       setStatusMessage(errorMessage);
-      toast.error(errorMessage);
+      toast.error(error instanceof Error ? error.message : "An error occurred");
       hapticFeedback("error");
     }
   };
@@ -141,7 +145,6 @@ export function SimplifiedPaymentForm({
         isMobile ? "p-4" : "p-6"
       )}
     >
-      {/* Header */}
       <div className="flex justify-between items-center mb-2 sm:mb-4">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-blue-400" />

@@ -19,22 +19,26 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({
   children,
-  defaultTheme = "light", // Changed to light as default for better UX
+  defaultTheme = "dark", // Default to dark theme
   storageKey = "theme",
 }: ThemeProviderProps) {
   const [theme, setThemeState] = useState<Theme>(() => {
     const storedTheme = localStorage.getItem(storageKey) as Theme | null;
     return storedTheme || defaultTheme;
   });
-  const [systemTheme, setSystemTheme] = useState<"dark" | "light">("light");
+  const [systemTheme, setSystemTheme] = useState<"dark" | "light">("dark");
 
   useEffect(() => {
+    // Add system theme detection
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleChange = () => {
       setSystemTheme(mediaQuery.matches ? "dark" : "light");
     };
     
+    // Set initial system theme
     handleChange();
+    
+    // Listen for changes
     mediaQuery.addEventListener("change", handleChange);
     
     return () => {
@@ -50,17 +54,9 @@ export function ThemeProvider({
     const activeTheme = theme === "system" ? systemTheme : theme;
     root.classList.add(activeTheme);
     
-    // Update CSS custom properties based on theme
-    if (activeTheme === "dark") {
-      root.style.setProperty('--bg-primary', 'var(--bg-primary-dark)');
-      root.style.setProperty('--bg-secondary', 'var(--bg-secondary-dark)');
-      root.style.setProperty('--bg-tertiary', 'var(--bg-tertiary-dark)');
-      root.style.setProperty('--text-primary', 'var(--text-primary-dark)');
-      root.style.setProperty('--text-secondary', 'var(--text-secondary-dark)');
-      root.style.setProperty('--text-tertiary', 'var(--text-tertiary-dark)');
-      root.style.setProperty('--border-light', 'var(--border-light-dark)');
-      root.style.setProperty('--border-medium', 'var(--border-medium-dark)');
-      root.style.setProperty('--border-strong', 'var(--border-strong-dark)');
+    // Always apply dark class since we're defaulting to dark theme
+    if (activeTheme === "dark" || theme === "system") {
+      root.classList.add("dark");
     }
   }, [theme, systemTheme]);
 

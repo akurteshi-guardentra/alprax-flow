@@ -1,96 +1,197 @@
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap');
+/* Import the unified design system */
+@import './styles/unified-design-system.css';
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: dark light;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
+/* Override Tailwind with our design system where needed */
 @layer base {
   * {
     @apply border-border;
   }
   
   body {
-    @apply bg-background text-foreground;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    line-height: var(--line-height-normal);
   }
 
-  /* Fix link colors globally */
+  /* Improved link styling */
   a {
-    @apply text-blue-400 hover:text-blue-300 transition-colors;
+    color: var(--color-primary);
     text-decoration: none;
+    transition: color var(--duration-fast) var(--easing-ease);
+  }
+
+  a:hover {
+    color: var(--color-primary-dark);
   }
 
   a:visited {
-    @apply text-blue-500;
+    color: var(--color-secondary);
   }
 
-  /* Button links should maintain their styling */
+  /* Navigation links should be neutral */
+  nav a {
+    color: var(--text-secondary);
+  }
+
+  nav a:hover {
+    color: var(--text-primary);
+  }
+
+  /* Button links maintain their styling */
   button a,
   [role="button"] a {
-    @apply text-inherit;
-  }
-
-  /* Navigation links */
-  nav a {
-    @apply text-white/80 hover:text-white;
-  }
-
-  /* Card and component links */
-  .card a,
-  .glass-card a {
-    @apply text-blue-400 hover:text-blue-300;
+    color: inherit;
   }
 }
 
 @layer components {
+  /* Modern glass card effect - subtle and elegant */
   .glass-card {
-    @apply bg-white/5 backdrop-blur-lg border border-white/10 rounded-xl;
+    background: rgba(248, 250, 252, 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
   }
 
+  .dark .glass-card {
+    background: rgba(30, 41, 59, 0.8);
+    border-color: var(--border-light-dark);
+  }
+
+  .glass-card-hover {
+    @apply glass-card;
+    transition: all var(--duration-normal) var(--easing-ease);
+    cursor: pointer;
+  }
+
+  .glass-card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--border-medium);
+  }
+
+  /* Modern gradient backgrounds */
+  .modern-gradient {
+    background: linear-gradient(135deg, 
+      var(--bg-primary) 0%, 
+      var(--bg-secondary) 50%, 
+      var(--bg-tertiary) 100%
+    );
+  }
+
+  .modern-gradient-brand {
+    background: linear-gradient(135deg, 
+      var(--color-primary) 0%, 
+      var(--color-secondary) 100%
+    );
+  }
+
+  /* Improved shadows */
   .modern-shadow {
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: var(--shadow-md);
   }
 
-  .modern-input {
-    @apply bg-white/10 border-white/20 text-white placeholder:text-white/50 focus:border-blue-400 focus:ring-blue-400/20;
+  .modern-shadow-lg {
+    box-shadow: var(--shadow-lg);
   }
 
+  /* Premium button styles */
   .premium-button {
-    @apply bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium transition-all duration-200;
+    @apply btn-primary;
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-secondary) 100%);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .premium-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    transition: left 0.5s;
+  }
+
+  .premium-button:hover::before {
+    left: 100%;
+  }
+
+  /* Status colors */
+  .success-button {
+    background-color: var(--color-success);
+    color: white;
+  }
+
+  .warning-button {
+    background-color: var(--color-warning);
+    color: white;
   }
 
   .danger-button {
-    @apply bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white;
+    background-color: var(--color-error);
+    color: white;
   }
 
-  .success-button {
-    @apply bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white;
+  /* Improved form styling */
+  .modern-input {
+    @apply form-input;
+  }
+
+  .modern-input:focus {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  }
+
+  /* Card variants */
+  .metrics-card {
+    @apply modern-card;
+    background: linear-gradient(135deg, 
+      rgba(99, 102, 241, 0.05) 0%, 
+      rgba(139, 92, 246, 0.05) 100%
+    );
+    border-color: rgba(99, 102, 241, 0.2);
+  }
+
+  .security-card {
+    @apply modern-card;
+    background: linear-gradient(135deg, 
+      rgba(16, 185, 129, 0.05) 0%, 
+      rgba(5, 150, 105, 0.05) 100%
+    );
+    border-color: rgba(16, 185, 129, 0.2);
+  }
+
+  .warning-card {
+    @apply modern-card;
+    background: linear-gradient(135deg, 
+      rgba(245, 158, 11, 0.05) 0%, 
+      rgba(217, 119, 6, 0.05) 100%
+    );
+    border-color: rgba(245, 158, 11, 0.2);
+  }
+
+  .danger-card {
+    @apply modern-card;
+    background: linear-gradient(135deg, 
+      rgba(239, 68, 68, 0.05) 0%, 
+      rgba(220, 38, 38, 0.05) 100%
+    );
+    border-color: rgba(239, 68, 68, 0.2);
   }
 }
 
-/* Specific component overrides */
-.payment-link {
-  @apply text-blue-400 hover:text-blue-300 underline underline-offset-2;
-}
-
-.nav-link {
-  @apply text-white/70 hover:text-white transition-colors;
-}
-
-.card-link {
-  @apply text-blue-400 hover:text-blue-300 no-underline hover:underline;
+/* Responsive improvements */
+@media (max-width: 768px) {
+  .glass-card {
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+  }
 }

@@ -4,7 +4,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { processPayment } from '@/services/PaymentService';
+import { processPayment } from '@/services/StripePaymentService';
 import { motion } from 'framer-motion';
 
 interface StripeCardPaymentProps {
@@ -61,7 +61,8 @@ export function StripeCardPayment({
           onSuccess();
         }, 1000);
       } else {
-        throw new Error(result.error || 'Payment failed');
+        // Handle the case where success is false but no error property exists
+        throw new Error('Payment failed - please try again');
       }
     } catch (err: any) {
       console.error('Payment error:', err);

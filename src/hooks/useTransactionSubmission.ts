@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { useTransactions, Transaction } from "@/hooks/useTransactions";
 import { useStellarAccount } from "@/hooks/useStellarAccount";
@@ -12,44 +13,44 @@ export interface TransactionFormState {
   amount: string;
   description: string;
   selectedRecipient: FavoriteRecipient | null;
-  countryCode: string; // changed from string | undefined to string (always defined)
+  countryCode: string;
   selectedPaymentMethod: string;
   verificationCompleted: boolean;
   securityCheck: "processing" | "verified" | "warning" | null;
   threatLevel: "low" | "medium" | "high";
-  transferPurpose: string; // always defined
-  transferCategory: string; // always defined
+  transferPurpose: string;
+  transferCategory: string;
 }
 
 export function useTransactionSubmission() {
   const { addTransaction, isAdding } = useTransactions();
-  const { isSending, balance } = useStellarAccount();
+  const { isSending, balance, refreshBalance } = useStellarAccount();
   const [availableFunds, setAvailableFunds] = useState(0);
   const [formState, setFormState] = useState<TransactionFormState>({
     amount: "",
     description: "",
     selectedRecipient: null,
-    countryCode: "", // default to empty string
-    selectedPaymentMethod: "card",
+    countryCode: "",
+    selectedPaymentMethod: "stellar",
     verificationCompleted: false,
     securityCheck: null,
     threatLevel: "low",
-    transferPurpose: "", // default to empty string
-    transferCategory: "" // default to empty string
+    transferPurpose: "",
+    transferCategory: ""
   });
   
-  // New state for transaction flow
+  // Transaction flow state
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [isSuccessOpen, setIsSuccessOpen] = useState(false);
   const [completedTransactionId, setCompletedTransactionId] = useState("");
+  const [isExecuting, setIsExecuting] = useState(false);
 
-  // --- Fiat currency conversion logic ---
-  // Default fiat currency (can be "USD" or "EUR")
+  // Fiat currency conversion logic
   const DEFAULT_FIAT = "EUR";
-  const [fiatRate, setFiatRate] = useState(0.0); // XLM to EUR
+  const [fiatRate, setFiatRate] = useState(0.0);
   const [fiatAmount, setFiatAmount] = useState("");
 
-  // Fetch XLM to EUR rate (could be moved to a custom hook)
+  // Fetch XLM to EUR rate
   useEffect(() => {
     async function fetchRate() {
       try {
@@ -57,6 +58,7 @@ export function useTransactionSubmission() {
         const data = await res.json();
         setFiatRate(data.stellar[DEFAULT_FIAT.toLowerCase()]);
       } catch (e) {
+        console.error("Failed to fetch fiat rate:", e);
         setFiatRate(0.0);
       }
     }
@@ -79,7 +81,7 @@ export function useTransactionSubmission() {
   const setTransferCategory = (transferCategory: string) =>
     setFormState(prev => ({ ...prev, transferCategory }));
 
-  // When user enters a fiat amount, update XLM amount
+  // Fiat amount handling
   const setFiatAmountAndUpdate = (value: string) => {
     setFiatAmount(value);
     const num = parseFloat(value);
@@ -90,7 +92,7 @@ export function useTransactionSubmission() {
     }
   };
 
-  // When XLM amount changes, update fiat amount
+  // Update fiat amount when XLM amount changes
   useEffect(() => {
     const xlm = parseFloat(formState.amount);
     if (!isNaN(xlm) && fiatRate > 0) {
@@ -100,14 +102,14 @@ export function useTransactionSubmission() {
     }
   }, [formState.amount, fiatRate]);
 
-  // Use the enhanced security analysis hook
+  // Use security analysis hook
   const { securityResult, isAnalyzing } = useSecurityAnalysis(
     formState.amount,
     formState.selectedRecipient,
     formState.countryCode
   );
   
-  // Update security check status based on security analysis result
+  // Update security check status
   useEffect(() => {
     if (securityResult.status !== formState.securityCheck || 
         securityResult.threatLevel !== formState.threatLevel) {
@@ -119,11 +121,12 @@ export function useTransactionSubmission() {
     }
   }, [securityResult]);
 
-  // Effect to update available funds from balance
+  // Update available funds from balance
   useEffect(() => {
     if (balance && balance.length > 0) {
       try {
-        setAvailableFunds(parseFloat(balance[0].balance));
+        const xlmBalance = parseFloat(balance[0].balance);
+        setAvailableFunds(xlmBalance);
       } catch (error) {
         console.error("Error parsing balance:", error);
         setAvailableFunds(0);
@@ -133,7 +136,7 @@ export function useTransactionSubmission() {
     }
   }, [balance]);
 
-  // Form validation
+  // Enhanced form validation
   const validateForm = () => {
     const { amount, description, selectedRecipient, countryCode, selectedPaymentMethod } = formState;
     
@@ -141,11 +144,11 @@ export function useTransactionSubmission() {
       return { valid: false, reason: "Please select a recipient" };
     }
     
-    if (!countryCode) {
-      return { valid: false, reason: "Please select a country" };
+    if (!selectedRecipient.stellar_address || selectedRecipient.stellar_address.trim() === "") {
+      return { valid: false, reason: "Invalid recipient address" };
     }
     
-    if (!amount) {
+    if (!amount || amount.trim() === "") {
       return { valid: false, reason: "Please enter an amount" };
     }
     
@@ -155,18 +158,13 @@ export function useTransactionSubmission() {
     }
     
     if (amountValue > availableFunds) {
-      return { valid: false, reason: "Insufficient funds available" };
+      return { valid: false, reason: `Insufficient funds. Available: ${availableFunds.toFixed(4)} XLM` };
     }
     
-    if (!description) {
+    if (!description || description.trim() === "") {
       return { valid: false, reason: "Please enter a purpose for this transfer" };
     }
     
-    if (!selectedPaymentMethod) {
-      return { valid: false, reason: "Please select a payment method" };
-    }
-    
-    // If high threat level and verification not completed, require verification
     if (securityResult.threatLevel === "high" && !formState.verificationCompleted) {
       return { valid: false, reason: "High risk transaction requires verification" };
     }
@@ -176,29 +174,28 @@ export function useTransactionSubmission() {
   
   const formValidation = useMemo(() => validateForm(), [formState, availableFunds, securityResult]);
   
-  const isFormDisabled = !formValidation.valid || isAnalyzing;
+  const isFormDisabled = !formValidation.valid || isAnalyzing || isExecuting;
   
   const getDisabledReason = () => {
+    if (isExecuting) return "Processing payment...";
     if (isAnalyzing) return "Analyzing transaction security...";
     return formValidation.reason;
   };
 
-  // Security verification handler
+  // Security verification handlers
   const handleSecurityVerify = () => {
-    // In a real app, this would show additional verification UI
     toast.info("Additional verification completed");
     hapticFeedback("success");
     setVerificationCompleted(true);
   };
   
-  // Handler for users choosing to ignore warnings
   const handleIgnoreWarning = () => {
     toast.info("Proceeding despite security warning");
     hapticFeedback("warning");
     setVerificationCompleted(true);
   };
 
-  // Form submission handling with enhanced feedback
+  // Form submission handling
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -209,39 +206,37 @@ export function useTransactionSubmission() {
       return;
     }
     
-    // Open confirmation modal instead of immediately processing
     setIsConfirmationOpen(true);
     hapticFeedback("light");
   };
-    // Actual transaction execution after confirmation
-  const executeTransaction = async () => {
+
+  // Enhanced transaction execution with retry mechanism
+  const executeTransaction = async (retryCount = 0) => {
+    const MAX_RETRIES = 2;
+    
     try {
-      const { amount, description, selectedRecipient, selectedPaymentMethod, countryCode, transferPurpose, transferCategory } = formState;
+      setIsExecuting(true);
+      const { amount, description, selectedRecipient, countryCode, transferPurpose, transferCategory } = formState;
+      
       if (!selectedRecipient) {
         throw new Error("Recipient is required");
       }
+
+      console.log("Executing transaction:", {
+        recipient: selectedRecipient.stellar_address,
+        amount,
+        description
+      });
+
       hapticFeedback("medium");
-      toast.info("Processing your transaction...");
+      toast.loading("Processing your payment...", { id: "payment-processing" });
       
-      console.log("Executing transaction to recipient:", selectedRecipient);
-      
-      // First ensure we can get or create a Stellar account for the recipient
-      // by their email/phone/name if they don't already have one
-      if (!selectedRecipient.stellar_address.startsWith('G')) {
-        try {
-          // Try to find recipient by email or phone
-          const users = await UserProfileService.findUserByIdentifier(selectedRecipient.recipient_name);
-          if (users.length > 0) {
-            // Create or get their Stellar account
-            const stellarAccount = await UserProfileService.getOrCreateStellarAccount(users[0].id);
-            selectedRecipient.stellar_address = stellarAccount.publicKey;
-          }
-        } catch (err) {
-          console.error("Failed to get/create recipient Stellar account:", err);
-        }
+      // Validate Stellar address format
+      if (!selectedRecipient.stellar_address.startsWith('G') || selectedRecipient.stellar_address.length !== 56) {
+        throw new Error("Invalid recipient Stellar address format");
       }
       
-      // Call the direct sendPayment function, passing extra metadata
+      // Call the sendPayment function with proper error handling
       const paymentResult = await sendPayment(
         selectedRecipient.stellar_address,
         amount,
@@ -260,46 +255,70 @@ export function useTransactionSubmission() {
         throw new Error(paymentResult.error || 'Payment failed');
       }
       
-      // Use the transaction hash from the payment result
-      const transactionId = paymentResult.hash || `tx_${Math.random().toString(36).substring(2, 15)}`;
+      // Success handling
+      const transactionId = paymentResult.hash || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      toast.dismiss("payment-processing");
+      toast.success("Payment sent successfully!");
+      hapticFeedback("success");
       
       setCompletedTransactionId(transactionId);
       setIsConfirmationOpen(false);
       setIsSuccessOpen(true);
-      setAvailableFunds(prevFunds => {
-        const newFunds = prevFunds - parseFloat(amount);
-        console.log(`Updated available funds: ${prevFunds} -> ${newFunds}`);
-        return newFunds;
-      });
-      toast.success("Transaction successfully completed!");
-      hapticFeedback("success");    } catch (error) {
-      console.error("Payment error:", error);      // Ensure any blockchain-specific error messages are replaced with user-friendly messages
+      
+      // Update available funds and refresh balance
+      setAvailableFunds(prev => Math.max(0, prev - parseFloat(amount)));
+      
+      // Refresh balance from network
+      setTimeout(() => {
+        refreshBalance();
+      }, 1000);
+      
+    } catch (error: any) {
+      console.error("Payment execution error:", error);
+      
+      // Retry logic for network-related errors
+      if (retryCount < MAX_RETRIES && 
+          (error.message?.includes('network') || 
+           error.message?.includes('timeout') || 
+           error.message?.includes('tx_bad_seq'))) {
+        
+        console.log(`Retrying payment (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        toast.dismiss("payment-processing");
+        toast.loading(`Retrying payment (${retryCount + 1}/${MAX_RETRIES})...`, { id: "payment-retry" });
+        
+        // Wait before retry
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        return executeTransaction(retryCount + 1);
+      }
+      
+      // Enhanced error handling
       let errorMessage = "Your payment could not be processed. Please try again or contact support.";
       
-      if (error instanceof Error) {
-        // Replace blockchain-specific error messages with user-friendly versions
-        if (error.message.includes("op_no_destination") || error.message.includes("Destination account")) {
-          errorMessage = "The recipient could not be found. Please check the payment details and try again.";
-        } else if (error.message.includes("underfunded") || error.message.includes("insufficient") || error.message.includes("Insufficient")) {
+      if (error.message) {
+        if (error.message.includes("underfunded") || error.message.includes("insufficient")) {
           errorMessage = "You don't have enough funds available for this payment.";
-        } else if (error.message.includes("tx_bad_seq") || error.message.includes("sequence")) {
-          errorMessage = "Your payment couldn't be completed. Please try again later.";
-        } else if (!error.message.includes("blockchain") && !error.message.includes("Stellar") && !error.message.includes("XLM")) {
-          // Use original message only if it doesn't contain blockchain terminology
-          errorMessage = "Payment failed: " + error.message;
+        } else if (error.message.includes("no_destination") || error.message.includes("not found")) {
+          errorMessage = "The recipient address couldn't be found. Please check the address and try again.";
+        } else if (error.message.includes("Invalid recipient")) {
+          errorMessage = "The recipient address format is invalid. Please check and try again.";
+        } else if (error.message.includes("network") || error.message.includes("timeout")) {
+          errorMessage = "Network error occurred. Please check your connection and try again.";
+        } else if (!error.message.includes("Stellar") && !error.message.includes("blockchain")) {
+          errorMessage = error.message;
         }
       }
       
+      toast.dismiss("payment-processing");
+      toast.dismiss("payment-retry");
       toast.error(errorMessage);
       hapticFeedback("error");
       setIsConfirmationOpen(false);
+      
+    } finally {
+      setIsExecuting(false);
     }
-  };
-  
-  // Handle closing confirmation modal
-  const handleConfirmationClose = () => {
-    setIsConfirmationOpen(false);
-    setVerificationCompleted(false);
   };
 
   // Handle closing success screen
@@ -313,16 +332,18 @@ export function useTransactionSubmission() {
       description: "",
       selectedRecipient: null,
       countryCode: "",
-      selectedPaymentMethod: "card",
+      selectedPaymentMethod: "stellar",
       verificationCompleted: false,
       securityCheck: null,
       threatLevel: "low",
       transferPurpose: "",
       transferCategory: ""
     });
+    
+    setFiatAmount("");
   };
 
-  const isProcessing = isAdding || isSending || isAnalyzing;
+  const isProcessing = isAdding || isSending || isAnalyzing || isExecuting;
 
   return {
     formState,
@@ -350,8 +371,8 @@ export function useTransactionSubmission() {
     setIsSuccessOpen,
     completedTransactionId,
     handleSuccessClose,
-    handleConfirmationClose, // <-- Expose confirmation close handler
     handleSecurityVerify,
-    handleIgnoreWarning
+    handleIgnoreWarning,
+    isExecuting
   };
 }

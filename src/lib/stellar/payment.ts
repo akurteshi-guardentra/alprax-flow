@@ -1,3 +1,4 @@
+
 import { Keypair, TransactionBuilder, Operation, Asset, Memo } from 'stellar-sdk';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -9,7 +10,7 @@ import { recordEnhancedTransaction } from './enhanced-transaction';
 
 export async function sendPayment(
   destinationId: string,
-  amount: string,  // Amount must be string for Stellar SDK
+  amount: string,
   asset: string = 'XLM',
   recipientName?: string,
   recipientId?: string,
@@ -21,83 +22,107 @@ export async function sendPayment(
   }
 ): Promise<StellarTransactionResult> {
   try {
-    console.log(`Sending payment to ${destinationId} with amount ${amount} XLM`);
-    if (recipientId) {
-      console.log(`Recipient ID: ${recipientId}, Name: ${recipientName || 'unknown'}`);
+    console.log(`Initiating payment to ${destinationId} with amount ${amount} XLM`);
+    
+    // Validate inputs
+    if (!destinationId || destinationId.trim() === '') {
+      throw new Error('Destination address is required');
+    }
+    
+    if (!destinationId.startsWith('G') || destinationId.length !== 56) {
+      throw new Error('Invalid Stellar address format');
+    }
+    
+    const amountValue = parseFloat(amount);
+    if (isNaN(amountValue) || amountValue <= 0) {
+      throw new Error('Invalid amount');
     }
     
     const account = await getAccount();
-    if (!account) throw new Error('No Stellar account found');
+    if (!account) {
+      throw new Error('No Stellar account found. Please create an account first.');
+    }
 
-    // Decrypt secret key (implement proper decryption in production)
+    // Decrypt secret key
     const secretKey = atob(account.encryptedSecret);
     const sourceKeypair = Keypair.fromSecret(secretKey);
 
-    // Get account details from network
+    // Load source account from network
+    console.log('Loading source account from Stellar network...');
     const sourceAccount = await server.loadAccount(account.publicKey);
 
-    // Get the transaction fee before building the transaction
-    const fee = (await server.fetchBaseFee()).toString();
+    // Check if destination account exists
+    try {
+      await server.loadAccount(destinationId);
+      console.log('Destination account verified');
+    } catch (error) {
+      throw new Error('Destination account not found on the network');
+    }
+
+    // Get current network fee
+    const fee = await server.fetchBaseFee();
+    console.log(`Using network fee: ${fee} stroops`);
 
     // Build the transaction
     let transactionBuilder = new TransactionBuilder(sourceAccount, {
-      fee,
+      fee: fee.toString(),
       networkPassphrase,
     })
-      .addOperation(
-        Operation.payment({
-          destination: destinationId,
-          asset: Asset.native(), // Using XLM for now
-          amount: amount, // amount is already a string
-        })
-      );
+    .addOperation(
+      Operation.payment({
+        destination: destinationId,
+        asset: Asset.native(),
+        amount: amount,
+      })
+    );
       
     // Add memo if provided
-    if (memo) {
-      // Use the correct Memo.text() from stellar-sdk
+    if (memo && memo.trim() !== '') {
       transactionBuilder = transactionBuilder.addMemo(Memo.text(memo));
     }
     
-    // Build the transaction
-    const transaction = transactionBuilder.setTimeout(30).build();    // Sign and submit transaction
+    // Build and sign transaction
+    const transaction = transactionBuilder.setTimeout(30).build();
     transaction.sign(sourceKeypair);
+    
     console.log('Submitting transaction to Stellar network...');
     const result = await server.submitTransaction(transaction);
-    console.log('Transaction successful:', result);
+    console.log('Transaction successful:', result.hash);
     
     // Get the current user for recording the transaction
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-    
-    // Record the transaction
-    const timestamp = new Date().toISOString();
-    
-    try {
-      await recordEnhancedTransaction({
-        user_id: user.id,
-        stellar_tx_hash: result.hash,
-        transaction_type: 'payment',
-        from_asset: 'XLM',
-        to_asset: 'XLM',
-        amount: parseFloat(amount),
-        fee: parseFloat(fee),
-        status: 'completed',
-        created_at: timestamp,
-        completed_at: timestamp,
-        memo: memo || '',
-        recipient_country: extra?.recipient_country,
-        transfer_purpose: extra?.transfer_purpose,
-        transfer_category: extra?.transfer_category,
-        recipient_name: recipientName || ''
-      }, { recordReceipt: true });
+    if (!user) {
+      console.warn('User not authenticated, skipping transaction recording');
+    } else {
+      // Record the transaction
+      const timestamp = new Date().toISOString();
       
-      console.log('Transaction recorded successfully');
-    } catch (recordError) {
-      console.error('Error recording transaction:', recordError);
-      // Don't throw here as the main transaction was successful
+      try {
+        await recordEnhancedTransaction({
+          user_id: user.id,
+          stellar_tx_hash: result.hash,
+          transaction_type: 'payment',
+          from_asset: 'XLM',
+          to_asset: 'XLM',
+          amount: parseFloat(amount),
+          fee: parseFloat(fee.toString()) / 10000000, // Convert stroops to XLM
+          status: 'completed',
+          created_at: timestamp,
+          completed_at: timestamp,
+          memo: memo || '',
+          recipient_country: extra?.recipient_country,
+          transfer_purpose: extra?.transfer_purpose,
+          transfer_category: extra?.transfer_category,
+          recipient_name: recipientName || ''
+        }, { recordReceipt: true });
+        
+        console.log('Transaction recorded successfully');
+      } catch (recordError) {
+        console.error('Error recording transaction:', recordError);
+        // Don't throw here as the main transaction was successful
+      }
     }
 
-    toast.success('Payment sent successfully');
     hapticFeedback('success');
     
     return {
@@ -109,37 +134,49 @@ export async function sendPayment(
     
     let errorMessage = 'Your payment could not be completed. Please try again or contact support.';
     
-    // Handle common Stellar errors
+    // Handle common Stellar errors with better user messages
     if (error.response) {
       try {
         const resultCodes = error.response.data.extras.result_codes;
         if (resultCodes) {
-          if (resultCodes.operations && resultCodes.operations.length > 0) {            if (resultCodes.operations.includes('op_underfunded')) {
-              errorMessage = 'Insufficient funds available for this payment';} else if (resultCodes.operations.includes('op_no_destination')) {
-              errorMessage = 'The recipient could not be found. Please check the payment details and try again.';
+          if (resultCodes.operations && resultCodes.operations.length > 0) {
+            if (resultCodes.operations.includes('op_underfunded')) {
+              errorMessage = 'Insufficient funds available for this payment';
+            } else if (resultCodes.operations.includes('op_no_destination')) {
+              errorMessage = 'The recipient account could not be found. Please check the address and try again.';
             }
-          } else if (resultCodes.transaction) {          if (resultCodes.transaction === 'tx_bad_seq') {
-              errorMessage = 'Payment failed due to a temporary issue. Please try again';
+          } else if (resultCodes.transaction) {
+            if (resultCodes.transaction === 'tx_bad_seq') {
+              errorMessage = 'Payment failed due to a sequence error. Please try again.';
+            } else if (resultCodes.transaction === 'tx_insufficient_fee') {
+              errorMessage = 'Transaction fee too low. Please try again.';
             }
           }
         }
       } catch (parseError) {
         console.error('Error parsing Stellar error response:', parseError);
       }
+    } else if (error.message) {
+      // Handle client-side validation errors
+      if (error.message.includes('Invalid') || error.message.includes('required')) {
+        errorMessage = error.message;
+      } else if (error.message.includes('not found')) {
+        errorMessage = 'The recipient account could not be found. Please check the address and try again.';
+      }
     }
     
-    toast.error(errorMessage);
     hapticFeedback('error');
     
     return {
       success: false,
-      error: error instanceof Error ? error.message : 'Unknown error sending payment'
+      error: errorMessage
     };
   }
 }
 
 export async function fundTestAccount(publicKey: string): Promise<StellarTransactionResult> {
   try {
+    console.log('Requesting test funds for account:', publicKey);
     toast.loading('Adding test funds to your account...');
     
     const response = await fetch(
@@ -150,7 +187,8 @@ export async function fundTestAccount(publicKey: string): Promise<StellarTransac
       const errorText = await response.text();
       throw new Error(`Funding failed: ${errorText}`);
     }
-      const responseData = await response.json();
+      
+    const responseData = await response.json();
     console.log('Funding response:', responseData);
     
     // Record the funding transaction
@@ -162,7 +200,6 @@ export async function fundTestAccount(publicKey: string): Promise<StellarTransac
       
       if (user) {
         try {
-          // Add transaction record
           await recordEnhancedTransaction({
             user_id: user.id,
             stellar_tx_hash: responseData.hash,
@@ -187,13 +224,12 @@ export async function fundTestAccount(publicKey: string): Promise<StellarTransac
         const accountData = await server.loadAccount(publicKey);
         const xlmBalance = accountData.balances.find(b => b.asset_type === 'native');
         console.log('Updated balance after funding:', xlmBalance?.balance);
-        
-        // Could update a local cache here if needed
       } catch (balanceError) {
         console.error('Error fetching updated balance:', balanceError);
       }
     }
-      toast.dismiss();
+      
+    toast.dismiss();
     toast.success('Test funds added successfully!');
     hapticFeedback('success');
     

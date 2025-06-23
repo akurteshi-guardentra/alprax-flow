@@ -32,6 +32,7 @@ import { PaymentStatusIndicator, PaymentStatus } from '@/components/payment/Paym
 import { validatePaymentForm } from '@/components/payment/PaymentFormValidation';
 import { sendPayment } from '@/lib/stellar/payment';
 import { PaymentFormData } from '@/types/payment';
+import { CountrySelector } from '@/components/CountrySelector';
 
 const ModernPayments = () => {
   const navigate = useNavigate();
@@ -47,6 +48,9 @@ const ModernPayments = () => {
     currency: 'EUR'
   });
   
+  // Add country state
+  const [countryCode, setCountryCode] = useState<string>('');
+  
   // UI state
   const [showContactPicker, setShowContactPicker] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -57,6 +61,18 @@ const ModernPayments = () => {
   const xlmBalance = balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0;
   const currentRate = rates[formData.currency] || 0;
   const fiatBalance = xlmBalance * currentRate;
+
+  // Debug logging
+  useEffect(() => {
+    console.log('ModernPayments Debug:', {
+      formData,
+      countryCode,
+      xlmBalance,
+      currentRate,
+      fiatBalance,
+      ratesLoading
+    });
+  }, [formData, countryCode, xlmBalance, currentRate, fiatBalance, ratesLoading]);
 
   // Handle contact selection from navigation state
   useEffect(() => {
@@ -74,6 +90,10 @@ const ModernPayments = () => {
   const handleContactSelect = (contact: FavoriteRecipient) => {
     setFormData(prev => ({ ...prev, recipient: contact }));
     setShowContactPicker(false);
+    // Auto-set country from recipient if available
+    if (contact.country) {
+      setCountryCode(contact.country);
+    }
     hapticFeedback('light');
   };
 
@@ -85,6 +105,8 @@ const ModernPayments = () => {
   };
 
   const handleSendPayment = () => {
+    console.log('Send Payment clicked - validating form...');
+    
     setPaymentStatus('validating');
     setStatusMessage('Validating payment details...');
     
@@ -95,8 +117,11 @@ const ModernPayments = () => {
       currentRate
     );
     
+    console.log('Validation result:', validation);
+    
     if (!validation.isValid) {
       const errorMessage = Object.values(validation.errors)[0] || 'Please check your payment details';
+      console.log('Validation failed:', errorMessage);
       toast.error(errorMessage);
       setPaymentStatus('error');
       setStatusMessage(errorMessage);
@@ -104,6 +129,17 @@ const ModernPayments = () => {
       return;
     }
     
+    // Additional check for country if recipient doesn't have one
+    if (!countryCode && (!formData.recipient?.country)) {
+      console.log('Country required but not provided');
+      toast.error('Please select a country');
+      setPaymentStatus('error');
+      setStatusMessage('Please select a country');
+      hapticFeedback('error');
+      return;
+    }
+    
+    console.log('All validations passed, opening confirmation');
     setPaymentStatus('idle');
     setStatusMessage('');
     hapticFeedback('medium');
@@ -128,7 +164,7 @@ const ModernPayments = () => {
         formData.recipient.id,
         formData.memo || `Payment of ${formData.amount} ${formData.currency}`,
         {
-          recipient_country: formData.recipient.country,
+          recipient_country: countryCode || formData.recipient.country,
           transfer_purpose: 'personal',
           transfer_category: 'money_transfer'
         }
@@ -147,6 +183,7 @@ const ModernPayments = () => {
           memo: '',
           currency: 'EUR'
         });
+        setCountryCode('');
         setShowConfirmation(false);
         
         // Navigate back after success
@@ -173,6 +210,21 @@ const ModernPayments = () => {
 
   // Form validation for UI feedback
   const validation = validatePaymentForm(formData.recipient, formData.amount, fiatBalance, currentRate);
+  
+  // Enhanced validation check
+  const isFormValid = validation.isValid && 
+    (countryCode || formData.recipient?.country) && 
+    xlmBalance > 0 && 
+    !ratesLoading;
+
+  console.log('Form validation state:', {
+    validationResult: validation,
+    countryCode,
+    recipientCountry: formData.recipient?.country,
+    xlmBalance,
+    ratesLoading,
+    isFormValid
+  });
 
   return (
     <PaymentErrorBoundary>
@@ -228,6 +280,11 @@ const ModernPayments = () => {
                 <div className="text-sm text-white/60">
                   {xlmBalance.toFixed(7)} XLM
                 </div>
+                {xlmBalance === 0 && (
+                  <div className="text-xs text-red-400 mt-1">
+                    ⚠️ Account needs funding to send payments
+                  </div>
+                )}
               </ModernCardContent>
             </ModernCard>
           </motion.div>
@@ -285,6 +342,22 @@ const ModernPayments = () => {
                     <div className="flex items-center gap-1 text-red-400 text-sm">
                       <AlertCircle className="w-3 h-3" />
                       {validation.errors.recipient}
+                    </div>
+                  )}
+                </div>
+
+                {/* Country Selection */}
+                <div className="space-y-2">
+                  <Label className="text-white/90">Country</Label>
+                  <CountrySelector
+                    value={countryCode || formData.recipient?.country || ''}
+                    onSelect={setCountryCode}
+                    className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
+                  />
+                  {!countryCode && !formData.recipient?.country && (
+                    <div className="flex items-center gap-1 text-red-400 text-sm">
+                      <AlertCircle className="w-3 h-3" />
+                      Please select a country
                     </div>
                   )}
                 </div>
@@ -382,8 +455,8 @@ const ModernPayments = () => {
                 {/* Send Button */}
                 <Button
                   onClick={handleSendPayment}
-                  disabled={!validation.isValid || isSending || paymentStatus === 'processing' || ratesLoading}
-                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 h-12"
+                  disabled={!isFormValid || isSending || paymentStatus === 'processing'}
+                  className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-3 h-12 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {paymentStatus === 'processing' ? (
                     <>
@@ -397,6 +470,17 @@ const ModernPayments = () => {
                     </>
                   )}
                 </Button>
+
+                {/* Debug info (remove in production) */}
+                {!isFormValid && (
+                  <div className="text-xs text-red-400 bg-red-900/20 p-2 rounded">
+                    Debug: Button disabled because:
+                    {!validation.isValid && ' • Form validation failed'}
+                    {!countryCode && !formData.recipient?.country && ' • Country required'}
+                    {xlmBalance <= 0 && ' • Insufficient XLM balance'}
+                    {ratesLoading && ' • Exchange rates loading'}
+                  </div>
+                )}
 
                 {/* Security Notice */}
                 <div className="flex items-start gap-2 p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">

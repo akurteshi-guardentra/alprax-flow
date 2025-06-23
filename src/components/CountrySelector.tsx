@@ -117,11 +117,11 @@ export function CountrySelector({ value, onSelect, className }: CountrySelectorP
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 bg-slate-800/95 backdrop-blur-xl border-slate-700/50 w-full min-w-[280px] max-w-[350px] rounded-xl z-[100] shadow-2xl">
+      <PopoverContent className="p-0 bg-slate-800/95 backdrop-blur-xl border-slate-700/50 w-full min-w-[280px] max-w-[350px] rounded-xl z-[9999] shadow-2xl">
         <Command className="bg-transparent text-white rounded-lg">
           <CommandInput 
             placeholder="Search country..." 
-            className="bg-black/20 text-white border-slate-600/50 focus-within:ring-1 focus-within:ring-white/20 rounded-t-lg"
+            className="bg-slate-900/50 text-white border-slate-600/50 focus-within:ring-1 focus-within:ring-white/20 rounded-t-lg"
             autoFocus
             id="country-search"
             value={searchQuery}

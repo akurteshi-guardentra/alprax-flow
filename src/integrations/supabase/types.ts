@@ -367,6 +367,56 @@ export type Database = {
         }
         Relationships: []
       }
+      funding_transactions: {
+        Row: {
+          amount_usd: number
+          amount_xlm: number | null
+          completed_at: string | null
+          created_at: string
+          error_message: string | null
+          exchange_rate: number | null
+          id: string
+          payment_intent_id: string | null
+          status: string
+          stellar_tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_usd: number
+          amount_xlm?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          exchange_rate?: number | null
+          id?: string
+          payment_intent_id?: string | null
+          status?: string
+          stellar_tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_usd?: number
+          amount_xlm?: number | null
+          completed_at?: string | null
+          created_at?: string
+          error_message?: string | null
+          exchange_rate?: number | null
+          id?: string
+          payment_intent_id?: string | null
+          status?: string
+          stellar_tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "funding_transactions_payment_intent_id_fkey"
+            columns: ["payment_intent_id"]
+            isOneToOne: false
+            referencedRelation: "payment_intents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kyc_verifications: {
         Row: {
           additional_documents: Json | null
@@ -416,6 +466,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      payment_intents: {
+        Row: {
+          amount: number
+          client_secret: string | null
+          created_at: string
+          currency: string
+          id: string
+          metadata: Json | null
+          status: string
+          stripe_payment_intent_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          client_secret?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_payment_intent_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          client_secret?: string | null
+          created_at?: string
+          currency?: string
+          id?: string
+          metadata?: Json | null
+          status?: string
+          stripe_payment_intent_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       payment_method_credentials: {
         Row: {
@@ -864,6 +953,45 @@ export type Database = {
           transaction_type?: string
           transfer_category?: string | null
           transfer_purpose?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      stored_payment_methods: {
+        Row: {
+          card_brand: string | null
+          card_exp_month: number | null
+          card_exp_year: number | null
+          card_last4: string | null
+          created_at: string
+          id: string
+          is_default: boolean | null
+          stripe_payment_method_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          stripe_payment_method_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          card_brand?: string | null
+          card_exp_month?: number | null
+          card_exp_year?: number | null
+          card_last4?: string | null
+          created_at?: string
+          id?: string
+          is_default?: boolean | null
+          stripe_payment_method_id?: string
+          type?: string
           user_id?: string
         }
         Relationships: []

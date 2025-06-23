@@ -63,14 +63,26 @@ export function CountrySelector({ value, onSelect, className }: CountrySelectorP
   };
   
   // Handle direct selection of a country
-  const handleSelectCountry = (value: string) => {
-    const country = countries.find(c => c.value === value);
+  const handleSelectCountry = (countryValue: string) => {
+    console.log('Country selected:', countryValue);
+    const country = countries.find(c => c.value === countryValue);
     if (country) {
       setSelectedCountry(country);
-      onSelect(value);
+      onSelect(countryValue);
       setOpen(false);
+      setSearchQuery(""); // Clear search on selection
     }
   };
+
+  // Log debug information
+  useEffect(() => {
+    console.log('CountrySelector Debug:', {
+      open,
+      selectedCountry,
+      value,
+      filteredCountriesCount: filteredCountries.length
+    });
+  }, [open, selectedCountry, value, filteredCountries.length]);
   
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -117,8 +129,21 @@ export function CountrySelector({ value, onSelect, className }: CountrySelectorP
           </div>
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="p-0 bg-slate-800/95 backdrop-blur-xl border-slate-700/50 w-full min-w-[280px] max-w-[350px] rounded-xl z-[9999] shadow-2xl">
-        <Command className="bg-transparent text-white rounded-lg">
+      <PopoverContent 
+        className="p-0 w-full min-w-[280px] max-w-[350px] rounded-xl shadow-2xl"
+        style={{ 
+          zIndex: 50,
+          backgroundColor: 'rgba(30, 41, 59, 0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(148, 163, 184, 0.5)'
+        }}
+        side="bottom"
+        align="start"
+      >
+        <Command 
+          className="bg-transparent text-white rounded-lg"
+          style={{ backgroundColor: 'transparent' }}
+        >
           <CommandInput 
             placeholder="Search country..." 
             className="bg-slate-900/50 text-white border-slate-600/50 focus-within:ring-1 focus-within:ring-white/20 rounded-t-lg"
@@ -127,9 +152,17 @@ export function CountrySelector({ value, onSelect, className }: CountrySelectorP
             value={searchQuery}
             onValueChange={setSearchQuery}
           />
-          <CommandEmpty className="text-white/70 py-2">No country found.</CommandEmpty>
+          <CommandEmpty className="text-white/70 py-6 text-center">
+            No country found.
+          </CommandEmpty>
           <CommandGroup>
-          <CommandList className="max-h-[300px] overflow-auto custom-scrollbar">
+            <CommandList 
+              className="max-h-[300px] overflow-auto"
+              style={{
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(148, 163, 184, 0.3) transparent'
+              }}
+            >
               <AnimatePresence>
                 {filteredCountries.map((country) => (
                   <motion.div
@@ -140,22 +173,18 @@ export function CountrySelector({ value, onSelect, className }: CountrySelectorP
                     transition={{ duration: 0.15 }}
                   >
                     <CommandItem
-                      key={country.value}
                       value={country.value}
-                      onSelect={(currentValue) => {
-                        handleSelectCountry(currentValue);
-                        setOpen(false);
-                      }}
-                      keywords={[country.label]}
-                      className="text-white hover:bg-white/10 cursor-pointer data-[selected=true]:bg-white/20 transition-colors flex items-center py-2 px-2 rounded-md active-scale"
+                      onSelect={() => handleSelectCountry(country.value)}
+                      keywords={[country.label, country.value]}
+                      className="text-white hover:bg-white/10 cursor-pointer data-[selected=true]:bg-white/20 transition-colors flex items-center justify-between py-3 px-3 rounded-md m-1"
                     >
                       <div className="flex items-center">
-                        <span className="mr-2 text-lg">{country.flag}</span>
-                        <span>{country.label}</span>
+                        <span className="mr-3 text-lg">{country.flag}</span>
+                        <span className="font-medium">{country.label}</span>
                       </div>
                       <Check
                         className={cn(
-                          "ml-auto h-4 w-4",
+                          "h-4 w-4 shrink-0",
                           value === country.value ? "opacity-100 text-indigo-400" : "opacity-0"
                         )}
                       />

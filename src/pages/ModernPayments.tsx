@@ -17,7 +17,9 @@ import {
   Shield,
   Settings,
   Users,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  Wallet
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { hapticFeedback } from '@/lib/haptics';
@@ -37,7 +39,7 @@ import { CountrySelector } from '@/components/CountrySelector';
 const ModernPayments = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { balance, isSending } = useStellarAccount();
+  const { balance, isSending, fundAccount, isFunding, isLoading, publicKey } = useStellarAccount();
   const { rates, isLoading: ratesLoading } = useRealTimeExchangeRates();
   
   // Form state
@@ -62,17 +64,19 @@ const ModernPayments = () => {
   const currentRate = rates[formData.currency] || 0;
   const fiatBalance = xlmBalance * currentRate;
 
-  // Debug logging
+  // Debug logging with more detail
   useEffect(() => {
-    console.log('ModernPayments Debug:', {
-      formData,
-      countryCode,
-      xlmBalance,
-      currentRate,
-      fiatBalance,
-      ratesLoading
-    });
-  }, [formData, countryCode, xlmBalance, currentRate, fiatBalance, ratesLoading]);
+    console.log('=== ModernPayments Debug Info ===');
+    console.log('Form Data:', formData);
+    console.log('Country Code:', countryCode);
+    console.log('XLM Balance:', xlmBalance);
+    console.log('Current Rate:', currentRate);
+    console.log('Fiat Balance:', fiatBalance);
+    console.log('Rates Loading:', ratesLoading);
+    console.log('Public Key:', publicKey);
+    console.log('Balance Array:', balance);
+    console.log('================================');
+  }, [formData, countryCode, xlmBalance, currentRate, fiatBalance, ratesLoading, publicKey, balance]);
 
   // Handle contact selection from navigation state
   useEffect(() => {
@@ -104,7 +108,18 @@ const ModernPayments = () => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFundAccount = async () => {
+    if (!publicKey) {
+      toast.error('No Stellar account found');
+      return;
+    }
+    
+    console.log('Funding account:', publicKey);
+    await fundAccount();
+  };
+
   const handleSendPayment = () => {
+    console.log('=== Send Payment Validation ===');
     console.log('Send Payment clicked - validating form...');
     
     setPaymentStatus('validating');
@@ -118,6 +133,9 @@ const ModernPayments = () => {
     );
     
     console.log('Validation result:', validation);
+    console.log('XLM Balance check:', xlmBalance);
+    console.log('Country check:', countryCode, formData.recipient?.country);
+    console.log('Rates loading check:', ratesLoading);
     
     if (!validation.isValid) {
       const errorMessage = Object.values(validation.errors)[0] || 'Please check your payment details';
@@ -135,6 +153,16 @@ const ModernPayments = () => {
       toast.error('Please select a country');
       setPaymentStatus('error');
       setStatusMessage('Please select a country');
+      hapticFeedback('error');
+      return;
+    }
+    
+    // Check XLM balance
+    if (xlmBalance <= 0) {
+      console.log('Insufficient XLM balance');
+      toast.error('Your account needs to be funded with XLM to send payments');
+      setPaymentStatus('error');
+      setStatusMessage('Account needs funding');
       hapticFeedback('error');
       return;
     }
@@ -211,20 +239,20 @@ const ModernPayments = () => {
   // Form validation for UI feedback
   const validation = validatePaymentForm(formData.recipient, formData.amount, fiatBalance, currentRate);
   
-  // Enhanced validation check
-  const isFormValid = validation.isValid && 
-    (countryCode || formData.recipient?.country) && 
-    xlmBalance > 0 && 
-    !ratesLoading;
+  // Enhanced validation check with detailed logging
+  const hasCountry = !!(countryCode || formData.recipient?.country);
+  const hasBalance = xlmBalance > 0;
+  const hasRates = !ratesLoading && currentRate > 0;
+  
+  const isFormValid = validation.isValid && hasCountry && hasBalance && hasRates;
 
-  console.log('Form validation state:', {
-    validationResult: validation,
-    countryCode,
-    recipientCountry: formData.recipient?.country,
-    xlmBalance,
-    ratesLoading,
-    isFormValid
-  });
+  console.log('=== Form Validation Summary ===');
+  console.log('Validation passed:', validation.isValid);
+  console.log('Has country:', hasCountry);
+  console.log('Has balance:', hasBalance);
+  console.log('Has rates:', hasRates);
+  console.log('Final form valid:', isFormValid);
+  console.log('==============================');
 
   return (
     <PaymentErrorBoundary>
@@ -261,7 +289,7 @@ const ModernPayments = () => {
             </Button>
           </motion.div>
 
-          {/* Balance Display */}
+          {/* Balance Display with Fund Button */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -281,8 +309,27 @@ const ModernPayments = () => {
                   {xlmBalance.toFixed(7)} XLM
                 </div>
                 {xlmBalance === 0 && (
-                  <div className="text-xs text-red-400 mt-1">
-                    ⚠️ Account needs funding to send payments
+                  <div className="mt-3 space-y-2">
+                    <div className="text-xs text-red-400">
+                      ⚠️ Account needs funding to send payments
+                    </div>
+                    <Button
+                      onClick={handleFundAccount}
+                      disabled={isFunding || !publicKey}
+                      className="bg-blue-600 hover:bg-blue-700 text-white text-sm h-8"
+                    >
+                      {isFunding ? (
+                        <>
+                          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-white mr-2" />
+                          Adding Funds...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="w-3 h-3 mr-2" />
+                          Add Test Funds
+                        </>
+                      )}
+                    </Button>
                   </div>
                 )}
               </ModernCardContent>
@@ -354,7 +401,7 @@ const ModernPayments = () => {
                     onSelect={setCountryCode}
                     className="w-full bg-white/10 border-white/20 text-white hover:bg-white/20"
                   />
-                  {!countryCode && !formData.recipient?.country && (
+                  {!hasCountry && (
                     <div className="flex items-center gap-1 text-red-400 text-sm">
                       <AlertCircle className="w-3 h-3" />
                       Please select a country
@@ -471,14 +518,14 @@ const ModernPayments = () => {
                   )}
                 </Button>
 
-                {/* Debug info (remove in production) */}
+                {/* Enhanced Debug Info */}
                 {!isFormValid && (
-                  <div className="text-xs text-red-400 bg-red-900/20 p-2 rounded">
-                    Debug: Button disabled because:
-                    {!validation.isValid && ' • Form validation failed'}
-                    {!countryCode && !formData.recipient?.country && ' • Country required'}
-                    {xlmBalance <= 0 && ' • Insufficient XLM balance'}
-                    {ratesLoading && ' • Exchange rates loading'}
+                  <div className="text-xs text-red-400 bg-red-900/20 p-3 rounded space-y-1">
+                    <div className="font-medium">Send button disabled because:</div>
+                    {!validation.isValid && <div>• Form validation failed: {Object.values(validation.errors)[0]}</div>}
+                    {!hasCountry && <div>• Country selection required</div>}
+                    {!hasBalance && <div>• XLM balance is zero - click "Add Test Funds" above</div>}
+                    {!hasRates && <div>• Exchange rates loading or unavailable</div>}
                   </div>
                 )}
 

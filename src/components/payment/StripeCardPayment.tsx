@@ -4,7 +4,7 @@ import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Loader2, CreditCard, AlertCircle, CheckCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { processPayment } from '@/services/PaymentService';
+import { PaymentService } from '@/services/PaymentService';
 import { motion } from 'framer-motion';
 
 interface StripeCardPaymentProps {
@@ -53,7 +53,7 @@ export function StripeCardPayment({
         throw new Error(cardError.message || 'An error occurred with your card');
       }
 
-      const result = await processPayment(clientSecret, paymentMethod);
+      const result = await PaymentService.processPayment(clientSecret, paymentMethod);
 
       if (result.success) {
         setSucceeded(true);

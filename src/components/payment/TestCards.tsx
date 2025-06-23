@@ -1,5 +1,6 @@
+
 import { useState } from 'react';
-import { getTestCards } from '@/services/PaymentService';
+import { PaymentService } from '@/services/PaymentService';
 import { Button } from '@/components/ui/button';
 import { Copy, Check, CreditCard } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,7 +11,7 @@ interface TestCardsProps {
 }
 
 export function TestCards({ onSelectCard }: TestCardsProps) {
-  const testCards = getTestCards();
+  const testCards = PaymentService.getTestCards();
   const [copiedCard, setCopiedCard] = useState<string | null>(null);
 
   const handleCopyCard = (cardNumber: string) => {

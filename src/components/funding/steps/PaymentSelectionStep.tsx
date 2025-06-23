@@ -17,7 +17,7 @@ export function PaymentSelectionStep({
 }: PaymentSelectionStepProps) {
   return (
     <motion.div
-      key="method"
+      key="payment-selection"
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
@@ -26,6 +26,9 @@ export function PaymentSelectionStep({
       <div className="text-center">
         <p className="text-white/70 text-sm">Adding</p>
         <div className="text-2xl font-bold text-white">${amount}</div>
+        <p className="text-white/50 text-xs mt-1">
+          Funds will be converted to XLM and added to your account
+        </p>
       </div>
 
       <PaymentMethodSelector

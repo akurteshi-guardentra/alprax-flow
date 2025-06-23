@@ -1,271 +1,178 @@
-import { useState } from "react";
-import { CreditCard, Landmark, Smartphone, Wallet, CheckCircle2, Info, Clock, ArrowRight, X } from "lucide-react";
-import { cn } from "@/lib/utils";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
-import { motion } from "framer-motion";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Elements } from "@stripe/react-stripe-js";
-import { stripePromise } from "@/lib/stripe";
-import { StripeCardPayment } from "./StripeCardPayment";
-import { TestCards } from "./TestCards";
-import { createPaymentIntent, PaymentIntentRequest } from "@/services/PaymentService";
 
-interface PaymentMethodProps {
-  onSelect: (methodId: string) => void;
+import { useState } from 'react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { CreditCard, Smartphone, Building } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { usePaymentFlow } from '@/hooks/usePaymentFlow';
+import { toast } from 'sonner';
+
+interface PaymentMethod {
+  id: string;
+  name: string;
+  icon: React.ReactNode;
+  description: string;
+  enabled: boolean;
+}
+
+interface PaymentMethodSelectorProps {
+  onSelect: (method: string) => void;
   selected: string;
-  amount?: number;
-  onPaymentComplete?: () => void;
+  amount: number; // Amount in cents
+  onPaymentComplete: () => void;
 }
 
 export function PaymentMethodSelector({ 
   onSelect, 
   selected, 
-  amount = 1000, // Default to $10.00 (in cents)
+  amount, 
   onPaymentComplete 
-}: PaymentMethodProps) {
-  const [showStripeForm, setShowStripeForm] = useState(false);
-  const [paymentIntent, setPaymentIntent] = useState<{
-    clientSecret: string;
-    id: string;
-    amount: number;
-    currency: string;
-  } | null>(null);
-  const [isCreatingIntent, setIsCreatingIntent] = useState(false);
-  const [paymentError, setPaymentError] = useState<string | null>(null);
+}: PaymentMethodSelectorProps) {
+  const [isProcessing, setIsProcessing] = useState(false);
+  const { createPaymentIntent, confirmPayment, isProcessing: flowProcessing } = usePaymentFlow();
 
-  const handleProceedToPayment = async () => {
-    if (selected === 'card') {
-      setIsCreatingIntent(true);
-      setPaymentError(null);
-      
-      try {
-        // Create a payment intent
-        const paymentIntentRequest: PaymentIntentRequest = {
-          amount,
-          currency: 'usd',
-          payment_method_type: 'card',
-          description: 'Test payment'
-        };
-        
-        const intent = await createPaymentIntent(paymentIntentRequest);
-        setPaymentIntent(intent);
-        setShowStripeForm(true);
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
-        setPaymentError('Failed to initialize payment. Please try again.');
-      } finally {
-        setIsCreatingIntent(false);
-      }
-    }
-  };
-  
-  const handlePaymentSuccess = () => {
-    if (onPaymentComplete) {
-      onPaymentComplete();
-    }
-  };
-  
-  const handlePaymentError = (error: string) => {
-    setPaymentError(error);
-  };
-  
-  const handleCloseStripeForm = () => {
-    setShowStripeForm(false);
-    setPaymentIntent(null);
-    setPaymentError(null);
-  };
-  
-  const paymentMethods = [
-    { 
-      id: "card", 
-      name: "Credit Card", 
-      icon: CreditCard,
-      description: "Fast processing with most major cards accepted",
-      processingTime: "Instant",
-      fees: "2.9% + $0.30",
-      color: "from-blue-600/20 to-blue-400/10"
+  const paymentMethods: PaymentMethod[] = [
+    {
+      id: 'card',
+      name: 'Credit/Debit Card',
+      icon: <CreditCard className="h-5 w-5" />,
+      description: 'Visa, Mastercard, American Express',
+      enabled: true
     },
-    { 
-      id: "bank", 
-      name: "Bank Transfer", 
-      icon: Landmark,
-      description: "Low fees but may take 1-3 business days",
-      processingTime: "1-3 days",
-      fees: "$0.25 flat fee",
-      color: "from-green-600/20 to-green-400/10"
+    {
+      id: 'apple_pay',
+      name: 'Apple Pay',
+      icon: <Smartphone className="h-5 w-5" />,
+      description: 'Pay with Touch ID or Face ID',
+      enabled: true
     },
-    { 
-      id: "mobile", 
-      name: "Mobile Money", 
-      icon: Smartphone,
-      description: "Quick transfers using your mobile wallet", 
-      processingTime: "30 minutes",
-      fees: "1.5%",
-      color: "from-purple-600/20 to-purple-400/10"
-    },
-    { 
-      id: "wallet", 
-      name: "Digital Wallet", 
-      icon: Wallet,
-      description: "Instant transfers from your cryptocurrency wallet",
-      processingTime: "Instant",
-      fees: "Network fee only",
-      color: "from-yellow-600/20 to-yellow-400/10"
+    {
+      id: 'bank_transfer',
+      name: 'Bank Transfer',
+      icon: <Building className="h-5 w-5" />,
+      description: 'Direct bank account transfer',
+      enabled: false // Disabled for now
     }
   ];
 
+  const handlePaymentMethodSelect = (methodId: string) => {
+    onSelect(methodId);
+  };
+
+  const handleProcessPayment = async () => {
+    if (!selected) {
+      toast.error('Please select a payment method');
+      return;
+    }
+
+    try {
+      setIsProcessing(true);
+      
+      // Create payment intent
+      const paymentIntent = await createPaymentIntent(amount);
+      if (!paymentIntent) {
+        toast.error('Failed to initialize payment');
+        return;
+      }
+
+      // Simulate payment processing based on selected method
+      if (selected === 'card') {
+        toast.loading('Processing card payment...', { id: 'payment-processing' });
+        // Simulate card payment flow
+        await new Promise(resolve => setTimeout(resolve, 3000));
+      } else if (selected === 'apple_pay') {
+        toast.loading('Processing Apple Pay...', { id: 'payment-processing' });
+        // Simulate Apple Pay flow
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
+
+      // Confirm the payment
+      const success = await confirmPayment(paymentIntent.id);
+      
+      toast.dismiss('payment-processing');
+      
+      if (success) {
+        onPaymentComplete();
+      }
+    } catch (error) {
+      console.error('Payment processing error:', error);
+      toast.dismiss('payment-processing');
+      toast.error('Payment failed. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const isLoading = isProcessing || flowProcessing;
+
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <label className="text-white font-medium flex items-center gap-2">
-          <Wallet className="h-4 w-4 text-white/70" />
-          Payment Method
-        </label>
-        <span className="text-xs text-white/50 bg-white/10 px-2 py-0.5 rounded-full">Required</span>
-      </div>
-      
-      {paymentError && (
-        <Alert className="bg-red-500/10 border-red-500/20 text-red-200 mb-4">
-          <Info className="h-4 w-4 text-red-300" />
-          <AlertDescription className="text-xs">
-            {paymentError}
-          </AlertDescription>
-        </Alert>
-      )}
-      
-      <Alert className="bg-blue-500/10 border-blue-500/20 text-blue-200 mb-4">
-        <Info className="h-4 w-4 text-blue-300" />
-        <AlertDescription className="text-xs">
-          This is a demo environment using Stripe test mode. No actual charges will be made.
-        </AlertDescription>
-      </Alert>
-      
-      {showStripeForm && paymentIntent ? (
-        <div className="space-y-4">
-          <div className="flex justify-between items-center">
-            <h3 className="text-white font-medium flex items-center">
-              <CreditCard className="mr-2 h-4 w-4 text-blue-400" />
-              Card Payment
-            </h3>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleCloseStripeForm}
-              className="h-8 w-8 text-white/70 hover:text-white"
+      <div className="space-y-2">
+        {paymentMethods.map((method) => (
+          <motion.div
+            key={method.id}
+            whileHover={{ scale: method.enabled ? 1.02 : 1 }}
+            whileTap={{ scale: method.enabled ? 0.98 : 1 }}
+          >
+            <Card 
+              className={`cursor-pointer transition-all duration-200 ${
+                method.enabled 
+                  ? selected === method.id 
+                    ? 'border-blue-500 bg-blue-500/10' 
+                    : 'border-white/20 bg-white/5 hover:bg-white/10'
+                  : 'border-white/10 bg-white/5 opacity-50 cursor-not-allowed'
+              }`}
+              onClick={() => method.enabled && handlePaymentMethodSelect(method.id)}
             >
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          
-          <Elements stripe={stripePromise}>
-            <StripeCardPayment
-              clientSecret={paymentIntent.clientSecret}
-              amount={paymentIntent.amount}
-              currency={paymentIntent.currency}
-              onSuccess={handlePaymentSuccess}
-              onError={handlePaymentError}
-            />
-          </Elements>
-          
-          <div className="mt-6">
-            <TestCards />
-          </div>
-        </div>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 gap-3">
-            {paymentMethods.map((method) => {
-              const isSelected = selected === method.id;
-              
-              return (
-                <motion.div
-                  key={method.id}
-                  onClick={() => onSelect(method.id)}
-                  whileTap={{ scale: 0.98 }}
-                  transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  className={cn(
-                    "flex flex-col p-3 rounded-xl cursor-pointer border transition-all duration-300 bg-gradient-to-br backdrop-blur-sm",
-                    isSelected
-                      ? `${method.color} border-blue-500/30 shadow-lg shadow-blue-500/10`
-                      : "bg-white/5 border-white/10 hover:bg-white/10"
-                  )}
-                >
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={cn(
-                      "p-1.5 rounded-full",
-                      isSelected ? "bg-blue-500/20" : "bg-white/10"
-                    )}>
-                      <method.icon className={cn(
-                        "h-4 w-4",
-                        isSelected ? "text-blue-400" : "text-white/70"
-                      )} />
-                    </div>
-                    <span className={cn(
-                      "text-sm transition-all duration-300",
-                      isSelected ? "text-white font-medium" : "text-white/80"
-                    )}>
-                      {method.name}
-                    </span>
-                    {isSelected && (
-                      <CheckCircle2 className="h-4 w-4 text-blue-400 ml-auto" />
-                    )}
+              <CardContent className="flex items-center space-x-3 p-4">
+                <div className={`${method.enabled ? 'text-white' : 'text-white/50'}`}>
+                  {method.icon}
+                </div>
+                <div className="flex-1">
+                  <div className={`font-medium ${method.enabled ? 'text-white' : 'text-white/50'}`}>
+                    {method.name}
                   </div>
-
-                  <div className="ml-8 space-y-2">
-                    <p className="text-xs text-white/70">{method.description}</p>
-                    
-                    <div className="flex items-center text-xs space-x-2">
-                      <span className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded-full",
-                        isSelected ? "bg-black/30" : "bg-black/20"
-                      )}>
-                        <Clock className="h-3 w-3 text-white/70" />
-                        <span className="text-white/80">{method.processingTime}</span>
-                      </span>
-                      <span className={cn(
-                        "flex items-center gap-1 px-1.5 py-0.5 rounded-full",
-                        isSelected ? "bg-black/30" : "bg-black/20"
-                      )}>
-                        <span className="text-white/80">{method.fees}</span>
-                      </span>
-                    </div>
-
-                    {isSelected && (
-                      <div className="flex items-center text-xs text-blue-400 font-medium mt-1">
-                        <span>Selected</span>
-                        <ArrowRight className="h-3 w-3 ml-1" />
-                      </div>
-                    )}
+                  <div className={`text-sm ${method.enabled ? 'text-white/70' : 'text-white/30'}`}>
+                    {method.description}
                   </div>
-                </motion.div>
-              );
-            })}
-          </div>
-          
-          {selected && (
-            <div className="mt-4">
-              <Button
-                type="button"
-                onClick={handleProceedToPayment}
-                disabled={isCreatingIntent}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              >
-                {isCreatingIntent ? (
-                  <>Processing...</>
-                ) : (
-                  <>Proceed to Payment</>
+                </div>
+                {selected === method.id && method.enabled && (
+                  <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full" />
+                  </div>
                 )}
-              </Button>
-            </div>
-          )}
-        </>
+                {!method.enabled && (
+                  <div className="text-xs text-white/50 font-medium">
+                    Coming Soon
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+
+      {selected && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="pt-4"
+        >
+          <Button
+            onClick={handleProcessPayment}
+            disabled={isLoading}
+            className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white py-3"
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                Processing Payment...
+              </>
+            ) : (
+              `Pay $${(amount / 100).toFixed(2)}`
+            )}
+          </Button>
+        </motion.div>
       )}
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useMemo } from "react";
 import { useTransactions, Transaction } from "@/hooks/useTransactions";
 import { useStellarAccount } from "@/hooks/useStellarAccount";
@@ -81,23 +80,30 @@ export function useTransactionSubmission() {
   const setTransferCategory = (transferCategory: string) =>
     setFormState(prev => ({ ...prev, transferCategory }));
 
-  // Fiat amount handling
+  // Fiat amount handling with proper conversion
   const setFiatAmountAndUpdate = (value: string) => {
     setFiatAmount(value);
-    const num = parseFloat(value);
-    if (!isNaN(num) && fiatRate > 0) {
-      setAmount((num / fiatRate).toFixed(4));
+    const fiatNum = parseFloat(value);
+    if (!isNaN(fiatNum) && fiatRate > 0) {
+      // Convert fiat to XLM for the actual transaction
+      const xlmAmount = (fiatNum / fiatRate).toFixed(7);
+      setAmount(xlmAmount);
+      console.log(`Converting ${fiatNum} ${DEFAULT_FIAT} to ${xlmAmount} XLM at rate ${fiatRate}`);
     } else {
       setAmount("");
     }
   };
 
-  // Update fiat amount when XLM amount changes
+  // Update fiat amount when XLM amount changes (but avoid loops)
   useEffect(() => {
     const xlm = parseFloat(formState.amount);
     if (!isNaN(xlm) && fiatRate > 0) {
-      setFiatAmount((xlm * fiatRate).toFixed(2));
-    } else {
+      const fiatValue = (xlm * fiatRate).toFixed(2);
+      // Only update if it's significantly different to avoid loops
+      if (Math.abs(parseFloat(fiatAmount) - parseFloat(fiatValue)) > 0.01) {
+        setFiatAmount(fiatValue);
+      }
+    } else if (formState.amount === "") {
       setFiatAmount("");
     }
   }, [formState.amount, fiatRate]);
@@ -224,7 +230,8 @@ export function useTransactionSubmission() {
 
       console.log("Executing transaction:", {
         recipient: selectedRecipient.stellar_address,
-        amount,
+        xlmAmount: amount, // This is now the XLM amount
+        fiatAmount: fiatAmount,
         description
       });
 
@@ -236,10 +243,10 @@ export function useTransactionSubmission() {
         throw new Error("Invalid recipient Stellar address format");
       }
       
-      // Call the sendPayment function with proper error handling
+      // Use the XLM amount (formState.amount) for the actual payment
       const paymentResult = await sendPayment(
         selectedRecipient.stellar_address,
-        amount,
+        amount, // This is the XLM amount
         'XLM',
         selectedRecipient.recipient_name,
         selectedRecipient.id,

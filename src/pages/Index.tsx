@@ -41,7 +41,7 @@ const Index = () => {
         <div className="absolute top-1/3 right-1/3 w-64 h-64 bg-cyan-500/20 rounded-full blur-2xl animate-modern-pulse"></div>
       </div>
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-4">
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-4 safe-area-inset">
         <div className="text-center max-w-2xl mx-auto w-full">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
@@ -57,19 +57,19 @@ const Index = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-col items-center justify-center space-y-6 w-full max-w-xs mx-auto text-center"
+              className="flex flex-col items-center justify-center space-y-4 w-full max-w-sm mx-auto text-center px-4"
             >
               <Button
                 onClick={() => navigate('/welcome')}
-                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 text-lg w-full text-center flex items-center justify-center"
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-6 py-3 text-base sm:text-lg w-full text-center flex items-center justify-center min-h-[48px] rounded-xl shadow-lg"
               >
                 Get Started
               </Button>
               
-              <div className="text-center w-full flex justify-center">
+              <div className="text-center w-full flex justify-center px-2">
                 <button 
                   onClick={() => navigate('/login')}
-                  className="text-white/60 hover:text-white transition-colors underline text-sm text-center"
+                  className="text-white/70 hover:text-white transition-colors underline text-sm text-center block w-full max-w-xs truncate"
                 >
                   Already have an account? Sign in
                 </button>

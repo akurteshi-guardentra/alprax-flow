@@ -1,3 +1,4 @@
+
 import { Shield, Lock, QrCode } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -63,6 +64,11 @@ export function FormContainer({
   // Convert available XLM funds to fiat for display in AmountField
   const availableFiatFunds = availableFunds * fiatRate;
 
+  const handlePaymentComplete = () => {
+    // This is a no-op for the transaction form since we're not actually processing payments here
+    console.log('Payment completed in transaction form');
+  };
+
   return (
     <motion.form 
       key="form"
@@ -122,6 +128,8 @@ export function FormContainer({
           <PaymentMethodSelector 
             onSelect={(methodId) => setSelectedPaymentMethod(methodId)}
             selected={selectedPaymentMethod}
+            amount={parseFloat(amount) * 100 || 0} // Convert to cents, default to 0
+            onPaymentComplete={handlePaymentComplete}
           />
           
           {isMobile && (

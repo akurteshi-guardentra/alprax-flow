@@ -29,6 +29,18 @@ export interface FundingTransaction {
   created_at: string;
 }
 
+export interface TestCard {
+  name: string;
+  number: string;
+  expiry: string;
+  cvc: string;
+}
+
+export interface PaymentResult {
+  success: boolean;
+  error?: string;
+}
+
 export class PaymentService {
   
   /**
@@ -192,5 +204,58 @@ export class PaymentService {
       console.error('Error fetching payment intent:', error);
       return null;
     }
+  }
+
+  /**
+   * Process payment with Stripe (mock implementation)
+   */
+  static async processPayment(clientSecret: string, paymentMethod: any): Promise<PaymentResult> {
+    try {
+      // Mock payment processing
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // Simulate success/failure
+      const success = Math.random() > 0.1; // 90% success rate
+      
+      if (success) {
+        return { success: true };
+      } else {
+        return { success: false, error: 'Payment failed. Please try again.' };
+      }
+    } catch (error) {
+      return { success: false, error: 'An unexpected error occurred' };
+    }
+  }
+
+  /**
+   * Get test cards for development
+   */
+  static getTestCards(): TestCard[] {
+    return [
+      {
+        name: 'Visa Success',
+        number: '4242 4242 4242 4242',
+        expiry: '12/28',
+        cvc: '123'
+      },
+      {
+        name: 'Visa Declined',
+        number: '4000 0000 0000 0002',
+        expiry: '12/28',
+        cvc: '123'
+      },
+      {
+        name: 'Mastercard Success',
+        number: '5555 5555 5555 4444',
+        expiry: '12/28',
+        cvc: '123'
+      },
+      {
+        name: 'American Express',
+        number: '3782 822463 10005',
+        expiry: '12/28',
+        cvc: '1234'
+      }
+    ];
   }
 }

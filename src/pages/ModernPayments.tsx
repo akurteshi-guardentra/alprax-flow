@@ -36,6 +36,7 @@ import { PaymentFormData } from '@/types/payment';
 import { CountrySelector } from '@/components/CountrySelector';
 import { TestRecipientSeeder } from '@/components/payment/TestRecipientSeeder';
 import { EnhancedFormValidation } from '@/components/payment/EnhancedFormValidation';
+import { RecipientDataCleaner } from '@/components/payment/RecipientDataCleaner';
 
 const ModernPayments = () => {
   const navigate = useNavigate();
@@ -334,11 +335,20 @@ const ModernPayments = () => {
             }} />
           </motion.div>
 
-          {/* Balance Display with Fund Button */}
+          {/* Recipient Data Cleaner */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+          >
+            <RecipientDataCleaner />
+          </motion.div>
+
+          {/* Balance Display with Fund Button */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
           >
             <ModernCard variant="glass">
               <ModernCardContent className="text-center py-4">
@@ -609,7 +619,7 @@ const ModernPayments = () => {
                     {!hasBalance && <div>• XLM balance is zero - click "Add Test Funds" above</div>}
                     {!hasRates && <div>• Exchange rates loading or unavailable</div>}
                     <div className="mt-2 text-blue-300">
-                      💡 Try clicking "Add Test Recipients" above to get contacts with valid Stellar addresses
+                      💡 Try clicking "Add Test Recipients" to get contacts with valid Stellar addresses, then "Clean Invalid" to remove broken ones
                     </div>
                   </div>
                 )}

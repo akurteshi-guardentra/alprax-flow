@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ModernCard, ModernCardContent, ModernCardHeader, ModernCardTitle } from '@/components/ui/modern-card';
@@ -35,6 +34,8 @@ import { validatePaymentForm } from '@/components/payment/PaymentFormValidation'
 import { sendPayment } from '@/lib/stellar/payment';
 import { PaymentFormData } from '@/types/payment';
 import { CountrySelector } from '@/components/CountrySelector';
+import { TestRecipientSeeder } from '@/components/payment/TestRecipientSeeder';
+import { EnhancedFormValidation } from '@/components/payment/EnhancedFormValidation';
 
 const ModernPayments = () => {
   const navigate = useNavigate();
@@ -58,15 +59,16 @@ const ModernPayments = () => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
+  const [showValidationDetails, setShowValidationDetails] = useState(false);
 
   // Calculated values
   const xlmBalance = balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0;
   const currentRate = rates[formData.currency] || 0;
   const fiatBalance = xlmBalance * currentRate;
 
-  // Debug logging with more detail
+  // Enhanced debug logging
   useEffect(() => {
-    console.log('=== ModernPayments Debug Info ===');
+    console.log('=== ModernPayments Enhanced Debug ===');
     console.log('Form Data:', formData);
     console.log('Country Code:', countryCode);
     console.log('XLM Balance:', xlmBalance);
@@ -75,7 +77,11 @@ const ModernPayments = () => {
     console.log('Rates Loading:', ratesLoading);
     console.log('Public Key:', publicKey);
     console.log('Balance Array:', balance);
-    console.log('================================');
+    console.log('Recipient Stellar Address Valid:', 
+      formData.recipient?.stellar_address?.startsWith('G') && 
+      formData.recipient?.stellar_address.length === 56
+    );
+    console.log('=====================================');
   }, [formData, countryCode, xlmBalance, currentRate, fiatBalance, ratesLoading, publicKey, balance]);
 
   // Handle contact selection from navigation state
@@ -92,6 +98,7 @@ const ModernPayments = () => {
   };
 
   const handleContactSelect = (contact: FavoriteRecipient) => {
+    console.log('Selected contact:', contact);
     setFormData(prev => ({ ...prev, recipient: contact }));
     setShowContactPicker(false);
     // Auto-set country from recipient if available
@@ -115,11 +122,17 @@ const ModernPayments = () => {
     }
     
     console.log('Funding account:', publicKey);
-    await fundAccount();
+    try {
+      await fundAccount();
+      toast.success('Account funded with test XLM! Please wait a moment for balance to update.');
+    } catch (error) {
+      console.error('Funding error:', error);
+      toast.error('Failed to fund account. Please try again.');
+    }
   };
 
   const handleSendPayment = () => {
-    console.log('=== Send Payment Validation ===');
+    console.log('=== Send Payment Enhanced Validation ===');
     console.log('Send Payment clicked - validating form...');
     
     setPaymentStatus('validating');
@@ -136,6 +149,13 @@ const ModernPayments = () => {
     console.log('XLM Balance check:', xlmBalance);
     console.log('Country check:', countryCode, formData.recipient?.country);
     console.log('Rates loading check:', ratesLoading);
+    console.log('Recipient address check:', {
+      address: formData.recipient?.stellar_address,
+      startsWithG: formData.recipient?.stellar_address?.startsWith('G'),
+      length: formData.recipient?.stellar_address?.length,
+      isValid: formData.recipient?.stellar_address?.startsWith('G') && 
+               formData.recipient?.stellar_address.length === 56
+    });
     
     if (!validation.isValid) {
       const errorMessage = Object.values(validation.errors)[0] || 'Please check your payment details';
@@ -163,6 +183,17 @@ const ModernPayments = () => {
       toast.error('Your account needs to be funded with XLM to send payments');
       setPaymentStatus('error');
       setStatusMessage('Account needs funding');
+      hapticFeedback('error');
+      return;
+    }
+
+    // Enhanced Stellar address validation
+    if (!formData.recipient?.stellar_address?.startsWith('G') || 
+        formData.recipient?.stellar_address.length !== 56) {
+      console.log('Invalid Stellar address format');
+      toast.error('Recipient has invalid Stellar address. Please select a different recipient.');
+      setPaymentStatus('error');
+      setStatusMessage('Invalid recipient address');
       hapticFeedback('error');
       return;
     }
@@ -243,16 +274,19 @@ const ModernPayments = () => {
   const hasCountry = !!(countryCode || formData.recipient?.country);
   const hasBalance = xlmBalance > 0;
   const hasRates = !ratesLoading && currentRate > 0;
+  const hasValidRecipient = !!(formData.recipient?.stellar_address?.startsWith('G') && 
+                               formData.recipient?.stellar_address.length === 56);
   
-  const isFormValid = validation.isValid && hasCountry && hasBalance && hasRates;
+  const isFormValid = validation.isValid && hasCountry && hasBalance && hasRates && hasValidRecipient;
 
-  console.log('=== Form Validation Summary ===');
+  console.log('=== Enhanced Form Validation Summary ===');
   console.log('Validation passed:', validation.isValid);
   console.log('Has country:', hasCountry);
   console.log('Has balance:', hasBalance);
   console.log('Has rates:', hasRates);
+  console.log('Has valid recipient:', hasValidRecipient);
   console.log('Final form valid:', isFormValid);
-  console.log('==============================');
+  console.log('=======================================');
 
   return (
     <PaymentErrorBoundary>
@@ -287,6 +321,17 @@ const ModernPayments = () => {
             >
               <Settings className="w-5 h-5" />
             </Button>
+          </motion.div>
+
+          {/* Test Recipients Seeder */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.05 }}
+          >
+            <TestRecipientSeeder onRecipientsAdded={() => {
+              toast.success('Test recipients added! You can now select them from contacts.');
+            }} />
           </motion.div>
 
           {/* Balance Display with Fund Button */}
@@ -364,6 +409,12 @@ const ModernPayments = () => {
                       <div>
                         <div className="text-white font-medium">{formData.recipient.recipient_name}</div>
                         <div className="text-white/60 text-sm">{formData.recipient.relationship || 'Contact'}</div>
+                        <div className="text-xs text-white/40 mt-1 font-mono">
+                          {formData.recipient.stellar_address?.startsWith('G') ? 
+                            `${formData.recipient.stellar_address.substring(0, 8)}...${formData.recipient.stellar_address.substring(48)}` :
+                            'Invalid Address Format'
+                          }
+                        </div>
                       </div>
                       <Button
                         variant="ghost"
@@ -389,6 +440,12 @@ const ModernPayments = () => {
                     <div className="flex items-center gap-1 text-red-400 text-sm">
                       <AlertCircle className="w-3 h-3" />
                       {validation.errors.recipient}
+                    </div>
+                  )}
+                  {formData.recipient && !hasValidRecipient && (
+                    <div className="flex items-center gap-1 text-red-400 text-sm">
+                      <AlertCircle className="w-3 h-3" />
+                      This recipient has an invalid Stellar address. Please select a different recipient.
                     </div>
                   )}
                 </div>
@@ -481,6 +538,30 @@ const ModernPayments = () => {
                   />
                 </div>
 
+                {/* Enhanced Validation Display */}
+                <div className="space-y-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowValidationDetails(!showValidationDetails)}
+                    className="text-white/70 hover:text-white hover:bg-white/10 text-xs"
+                  >
+                    {showValidationDetails ? 'Hide' : 'Show'} Form Status Details
+                  </Button>
+                  
+                  {showValidationDetails && (
+                    <EnhancedFormValidation
+                      recipient={formData.recipient}
+                      amount={formData.amount}
+                      countryCode={countryCode}
+                      xlmBalance={xlmBalance}
+                      fiatBalance={fiatBalance}
+                      currentRate={currentRate}
+                      ratesLoading={ratesLoading}
+                    />
+                  )}
+                </div>
+
                 {/* Fee Information */}
                 <div className="bg-white/5 rounded-lg p-4 space-y-2">
                   <div className="flex items-center justify-between text-white/80">
@@ -518,14 +599,18 @@ const ModernPayments = () => {
                   )}
                 </Button>
 
-                {/* Enhanced Debug Info */}
+                {/* Quick Debug Summary */}
                 {!isFormValid && (
                   <div className="text-xs text-red-400 bg-red-900/20 p-3 rounded space-y-1">
                     <div className="font-medium">Send button disabled because:</div>
                     {!validation.isValid && <div>• Form validation failed: {Object.values(validation.errors)[0]}</div>}
+                    {!hasValidRecipient && <div>• Recipient has invalid Stellar address</div>}
                     {!hasCountry && <div>• Country selection required</div>}
                     {!hasBalance && <div>• XLM balance is zero - click "Add Test Funds" above</div>}
                     {!hasRates && <div>• Exchange rates loading or unavailable</div>}
+                    <div className="mt-2 text-blue-300">
+                      💡 Try clicking "Add Test Recipients" above to get contacts with valid Stellar addresses
+                    </div>
                   </div>
                 )}
 

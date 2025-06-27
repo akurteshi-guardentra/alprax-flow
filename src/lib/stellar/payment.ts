@@ -32,6 +32,12 @@ export interface PaymentResult {
   txHash?: string;
 }
 
+export interface FundingResult {
+  success: boolean;
+  error?: string;
+  hash?: string;
+}
+
 export async function sendPayment(
   destinationAddress: string,
   amount: string,
@@ -190,7 +196,7 @@ export async function sendPayment(
   }
 }
 
-export async function fundTestAccount(publicKey: string): Promise<boolean> {
+export async function fundTestAccount(publicKey: string): Promise<FundingResult> {
   try {
     console.log('Funding test account:', publicKey);
     
@@ -203,9 +209,15 @@ export async function fundTestAccount(publicKey: string): Promise<boolean> {
     const result = await response.json();
     console.log('Account funded successfully:', result);
     
-    return true;
+    return {
+      success: true,
+      hash: result.hash
+    };
   } catch (error) {
     console.error('Error funding account:', error);
-    return false;
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error funding account'
+    };
   }
 }

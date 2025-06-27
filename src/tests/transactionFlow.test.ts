@@ -144,7 +144,7 @@ async function testTransactionFlow() {
     );
     
     console.log(`✅ Payment sent: ${paymentResult.success}`);
-    console.log(`🔍 Transaction hash: ${paymentResult.hash}`);
+    console.log(`🔍 Transaction hash: ${paymentResult.txHash}`);
   } catch (error) {
     console.error('❌ Failed to send payment:', error);
     return;

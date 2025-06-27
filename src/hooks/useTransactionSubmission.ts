@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useMemo } from "react";
 import { useTransactions, Transaction } from "@/hooks/useTransactions";
 import { useStellarAccount } from "@/hooks/useStellarAccount";
@@ -263,7 +264,7 @@ export function useTransactionSubmission() {
       }
       
       // Success handling
-      const transactionId = paymentResult.hash || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const transactionId = paymentResult.txHash || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
       toast.dismiss("payment-processing");
       toast.success("Payment sent successfully!");

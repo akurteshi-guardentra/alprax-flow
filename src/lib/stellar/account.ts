@@ -101,18 +101,33 @@ export async function getAccount(): Promise<StellarAccount | null> {
       throw new Error('User not authenticated');
     }
 
-    // Use maybeSingle to handle cases where no data exists
+    console.log('Getting Stellar account for user:', user.id);
+
+    // Get the primary account first, or the most recently created one
     const { data, error } = await supabase
       .from('stellar_accounts')
       .select()
       .eq('user_id', user.id)
       .order('is_primary', { ascending: false })
       .order('created_at', { ascending: false })
-      .maybeSingle();
+      .limit(1)
+      .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error getting Stellar account:', error);
+      if (error.code === 'PGRST116') {
+        console.log('No Stellar account found for user');
+        return null;
+      }
+      throw error;
+    }
 
-    if (!data) return null;
+    if (!data) {
+      console.log('No Stellar account data found');
+      return null;
+    }
+
+    console.log('Found Stellar account:', data.public_key);
 
     return {
       id: data.id,

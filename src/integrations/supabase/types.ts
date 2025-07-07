@@ -1550,7 +1550,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_primary_stellar_account: {
+        Args: { user_uuid: string }
+        Returns: {
+          id: string
+          public_key: string
+          encrypted_secret: string
+          created_at: string
+        }[]
+      }
     }
     Enums: {
       auth_factor_status: "pending" | "verified" | "disabled"

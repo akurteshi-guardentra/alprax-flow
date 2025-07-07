@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useTransactionSubmission } from "@/hooks/useTransactionSubmission";
+import { useEnhancedPayment } from "@/hooks/useEnhancedPayment";
 import { FormContainer } from "./transaction/FormContainer";
 import { QRCodeTab } from "./transaction/QRCodeTab";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -12,6 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { QRCodePayment } from "./payment/QRCodePayment";
 import { TransactionConfirmation } from "./transaction/TransactionConfirmation";
 import TransactionSuccess from "./transaction/TransactionSuccess";
+import { PaymentStatusPanel } from "./PaymentStatusPanel";
 
 export function TransactionForm() {
   const {
@@ -19,7 +21,6 @@ export function TransactionForm() {
     availableFunds,
     isProcessing,
     isFormDisabled,
-    // setAmount, // We now use setFiatAmount primarily
     setDescription,
     setSelectedRecipient,
     setCountryCode,
@@ -32,11 +33,14 @@ export function TransactionForm() {
     isSuccessOpen,
     completedTransactionId,
     handleSuccessClose,
-    fiatAmount, // Use fiatAmount from the hook
-    setFiatAmount, // Use setFiatAmount from the hook
-    defaultFiat, // Use defaultFiat from the hook
-    fiatRate // Potentially for display if needed
+    fiatAmount,
+    setFiatAmount,
+    defaultFiat,
+    fiatRate
   } = useTransactionSubmission();
+  
+  // Enhanced payment hook for better error handling and features
+  const enhancedPayment = useEnhancedPayment();
   
   const isMobile = useIsMobile();
   const qrCodeSheet = useBottomSheet();
@@ -91,11 +95,15 @@ export function TransactionForm() {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl overflow-hidden"
-    >
+    <div className="w-full max-w-2xl mx-auto space-y-6">
+      {/* Payment Status Panel - Shows pending, failed, and error status */}
+      <PaymentStatusPanel />
+      
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="rounded-xl overflow-hidden"
+      >
       {!isMobile && (
         <div className="flex justify-center mb-4">
           <div className="inline-flex bg-slate-800/60 p-1 rounded-lg">
@@ -212,6 +220,7 @@ export function TransactionForm() {
           />
         </BottomSheet>
       )}
-    </motion.div>
+      </motion.div>
+    </div>
   );
 }

@@ -472,6 +472,45 @@ export type Database = {
           },
         ]
       }
+      payment_errors: {
+        Row: {
+          created_at: string | null
+          error_details: Json | null
+          error_message: string
+          error_type: string
+          id: string
+          resolved_at: string | null
+          retry_count: number | null
+          stellar_tx_hash: string | null
+          transaction_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_details?: Json | null
+          error_message: string
+          error_type: string
+          id?: string
+          resolved_at?: string | null
+          retry_count?: number | null
+          stellar_tx_hash?: string | null
+          transaction_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_details?: Json | null
+          error_message?: string
+          error_type?: string
+          id?: string
+          resolved_at?: string | null
+          retry_count?: number | null
+          stellar_tx_hash?: string | null
+          transaction_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       payment_intents: {
         Row: {
           amount: number
@@ -1035,6 +1074,60 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      transaction_queue: {
+        Row: {
+          amount: number
+          attempts: number | null
+          completed_at: string | null
+          created_at: string | null
+          error_message: string | null
+          id: string
+          max_attempts: number | null
+          memo: string | null
+          metadata: Json | null
+          priority: number | null
+          recipient_address: string
+          started_at: string | null
+          status: string
+          stellar_tx_hash: string | null
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          memo?: string | null
+          metadata?: Json | null
+          priority?: number | null
+          recipient_address: string
+          started_at?: string | null
+          status?: string
+          stellar_tx_hash?: string | null
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          attempts?: number | null
+          completed_at?: string | null
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          max_attempts?: number | null
+          memo?: string | null
+          metadata?: Json | null
+          priority?: number | null
+          recipient_address?: string
+          started_at?: string | null
+          status?: string
+          stellar_tx_hash?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       transactions: {
         Row: {

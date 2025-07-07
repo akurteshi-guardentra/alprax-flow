@@ -8,6 +8,7 @@ import { hapticFeedback } from "@/lib/haptics";
 import { useSecurityAnalysis } from "@/hooks/useSecurityAnalysis";
 import { UserProfileService } from "@/services/UserProfileService";
 import { sendPayment } from "@/lib/stellar/payment";
+import { EnhancedPaymentService } from "@/services/EnhancedPaymentService";
 
 export interface TransactionFormState {
   amount: string;
@@ -244,31 +245,28 @@ export function useTransactionSubmission() {
         throw new Error("Invalid recipient Stellar address format");
       }
       
-      // Use the XLM amount (formState.amount) for the actual payment
-      const paymentResult = await sendPayment(
-        selectedRecipient.stellar_address,
-        amount, // This is the XLM amount
-        'XLM',
-        selectedRecipient.recipient_name,
-        selectedRecipient.id,
-        description,
-        {
+      // Use enhanced payment service for better error handling and validation
+      const paymentResult = await EnhancedPaymentService.executePayment({
+        destinationAddress: selectedRecipient.stellar_address,
+        amount: amount, // This is the XLM amount
+        assetCode: 'XLM',
+        recipientName: selectedRecipient.recipient_name,
+        recipientId: selectedRecipient.id,
+        memo: description,
+        metadata: {
           recipient_country: countryCode,
           transfer_purpose: transferPurpose,
           transfer_category: transferCategory
-        }
-      );
+        },
+        useQueue: false // Execute immediately for regular transactions
+      });
       
       if (!paymentResult.success) {
         throw new Error(paymentResult.error || 'Payment failed');
       }
       
-      // Success handling
+      // Success handling - enhanced service already shows toasts
       const transactionId = paymentResult.txHash || `tx_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      toast.dismiss("payment-processing");
-      toast.success("Payment sent successfully!");
-      hapticFeedback("success");
       
       setCompletedTransactionId(transactionId);
       setIsConfirmationOpen(false);

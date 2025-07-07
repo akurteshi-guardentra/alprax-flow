@@ -104,7 +104,7 @@
 
 /* Haptic feedback classes */
 .haptic-light {
-  @apply active:scale-98 transition-transform duration-75;
+  @apply active:scale-95 transition-transform duration-75;
 }
 
 .haptic-medium {

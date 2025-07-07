@@ -8,8 +8,10 @@ import { AuthGuard } from "@/components/auth/AuthGuard";
 import GlobalErrorBoundary from "@/components/error/GlobalErrorBoundary";
 import { LoadingProvider } from "@/components/ui/LoadingManager";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { authService } from "@/services/AuthService";
 import { useEffect } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";
 import Splash from "./pages/Splash";
@@ -41,6 +43,8 @@ const queryClient = new QueryClient({
 });
 
 const AppContent = () => {
+  const isMobile = useIsMobile();
+  
   useEffect(() => {
     // Initialize auth service
     authService.initialize();
@@ -143,6 +147,7 @@ const AppContent = () => {
                   } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                {isMobile && <MobileBottomNav />}
               </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>

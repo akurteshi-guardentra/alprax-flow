@@ -1,8 +1,8 @@
-import { UnifiedPaymentForm } from '@/components/UnifiedPaymentForm';
+import { SimplifiedPaymentForm } from '@/components/SimplifiedPaymentForm';
 
 const ModernPayments = () => {
-  // Use the new unified payment form
-  return <UnifiedPaymentForm />;
+  // Use the new simplified mobile-first payment form
+  return <SimplifiedPaymentForm />;
 };
 
 export default ModernPayments;

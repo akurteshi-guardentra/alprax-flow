@@ -1,39 +1,71 @@
+/* Mobile-optimized form styles */
 
-@layer utilities {
-  /* Modern input styles with proper alignment */
-  .modern-input {
-    @apply bg-white/[0.08] border border-white/[0.15] rounded-xl px-4 py-3 text-white placeholder-white/60 focus:bg-white/[0.12] focus:border-blue-400/50 focus:outline-none transition-all duration-300;
-    backdrop-filter: blur(12px);
-    text-align: left !important; /* Force left alignment for all inputs */
-  }
+/* Form container */
+.form-mobile {
+  @apply flex flex-col gap-6;
+}
 
-  .modern-input:focus {
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
-  }
+/* Form sections */
+.form-section {
+  @apply flex flex-col gap-3;
+  @apply p-4 rounded-lg;
+  @apply bg-white/5 border border-white/10;
+}
 
-  /* Override any centered text in inputs */
-  input[type="email"], 
-  input[type="password"], 
-  input[type="text"], 
-  input[type="number"] {
-    text-align: left !important;
-  }
+.form-section-title {
+  @apply font-medium text-white;
+  @apply flex items-center gap-2 mb-3;
+}
 
-  /* Ensure placeholders are left-aligned */
-  input::placeholder {
-    text-align: left;
-  }
+/* Input groups */
+.input-group {
+  @apply flex flex-col gap-2;
+}
 
-  /* Modern form styles */
-  .modern-form {
-    @apply space-y-6;
-  }
+/* Label styles */
+.label-mobile {
+  @apply text-sm font-medium text-white/90;
+  @apply flex items-center gap-2;
+}
 
-  .modern-form .form-group {
-    @apply space-y-2;
-  }
+.label-required::after {
+  content: "*";
+  @apply text-destructive;
+}
 
-  .modern-form label {
-    @apply text-white/90 font-medium text-sm text-left;
-  }
+/* Input with icon */
+.input-with-icon {
+  @apply relative;
+}
+
+.input-with-icon-left .input-mobile {
+  @apply pl-12;
+}
+
+.input-with-icon-right .input-mobile {
+  @apply pr-12;
+}
+
+.input-icon {
+  @apply absolute top-1/2 transform -translate-y-1/2;
+  @apply text-white/60 w-5 h-5;
+}
+
+.input-icon-left {
+  @apply input-icon left-3;
+}
+
+.input-icon-right {
+  @apply input-icon right-3;
+}
+
+/* Form submit area */
+.form-submit {
+  @apply sticky-bottom;
+  @apply space-y-3;
+}
+
+.form-submit-button {
+  @apply btn-mobile-primary w-full;
+  @apply min-h-[52px] text-lg;
 }

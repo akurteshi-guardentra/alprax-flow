@@ -1,40 +1,103 @@
+/* Mobile-first layout utilities */
 
-@layer utilities {
-  /* Status indicators */
-  .status-indicator {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium;
-  }
+/* Container for mobile layouts */
+.mobile-container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
 
-  .status-verified {
-    @apply bg-green-500/20 text-green-300 border border-green-500/30;
+@media (min-width: 768px) {
+  .mobile-container {
+    max-width: 768px;
+    padding: 0 2rem;
   }
+}
 
-  .status-pending {
-    @apply bg-yellow-500/20 text-yellow-300 border border-yellow-500/30;
-  }
+/* Bottom navigation layout */
+.bottom-nav-layout {
+  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
 
-  .status-rejected {
-    @apply bg-red-500/20 text-red-300 border border-red-500/30;
-  }
+/* Sticky bottom actions */
+.sticky-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  padding: 1rem;
+  padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
+  background: linear-gradient(180deg, transparent 0%, hsl(var(--background)) 20%);
+  backdrop-filter: blur(12px);
+}
 
-  .status-active {
-    @apply bg-blue-500/20 text-blue-300 border border-blue-500/30;
-  }
+/* Card layouts optimized for mobile */
+.mobile-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 1.5rem;
+}
 
-  /* Unified layout styles for consistent alignment */
-  .unified-header {
-    @apply flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8;
+@media (max-width: 768px) {
+  .mobile-card {
+    padding: 1rem;
+    margin: 0.5rem 0;
   }
+}
 
-  .unified-back-button {
-    @apply flex items-center gap-2 text-white/70 hover:text-white transition-colors px-3 py-2 rounded-lg hover:bg-white/10;
-  }
+/* Mobile-optimized grid */
+.mobile-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+}
 
-  .unified-title {
-    @apply text-2xl sm:text-3xl font-bold text-white text-left;
+@media (min-width: 640px) {
+  .mobile-grid-sm-2 {
+    grid-template-columns: repeat(2, 1fr);
   }
+}
 
-  .unified-subtitle {
-    @apply text-white/60 mt-2 text-left;
+@media (min-width: 768px) {
+  .mobile-grid-md-3 {
+    grid-template-columns: repeat(3, 1fr);
   }
+}
+
+/* Form layouts */
+.mobile-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.mobile-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mobile-form-row {
+  display: flex;
+  gap: 1rem;
+  flex-direction: column;
+}
+
+@media (min-width: 640px) {
+  .mobile-form-row {
+    flex-direction: row;
+  }
+  
+  .mobile-form-row > * {
+    flex: 1;
+  }
+}
+
+/* Mobile navigation spacing */
+.mobile-nav-spacing {
+  padding-bottom: calc(70px + env(safe-area-inset-bottom, 0px));
 }

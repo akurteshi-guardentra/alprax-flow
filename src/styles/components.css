@@ -1,105 +1,116 @@
+/* Mobile-optimized component styles */
 
-@layer utilities {
-  /* Premium glassmorphism design system */
-  .glass-card {
-    @apply bg-white/[0.12] backdrop-blur-xl border border-white/[0.15] rounded-2xl;
-    box-shadow: 
-      0 8px 32px rgba(0, 0, 0, 0.4),
-      0 1px 0 rgba(255, 255, 255, 0.15) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.1) inset;
-    background: var(--gradient-glass);
-  }
-  
-  .glass-card-hover {
-    @apply glass-card hover:bg-white/[0.18] transition-all duration-300 hover:scale-[1.02];
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .glass-card-hover:hover {
-    box-shadow: 
-      0 12px 40px rgba(0, 0, 0, 0.5),
-      0 1px 0 rgba(255, 255, 255, 0.2) inset,
-      0 -1px 0 rgba(0, 0, 0, 0.1) inset;
-  }
-  
-  .modern-gradient {
-    background: var(--gradient-primary);
-    background-size: 300% 300%;
-    animation: gradientShift 8s ease infinite;
-  }
-  
-  .text-gradient-modern {
-    @apply bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent;
-    background-size: 200% 200%;
-    animation: gradientShift 3s ease infinite;
-  }
-  
-  .modern-shadow {
-    box-shadow: 
-      0 10px 40px rgba(0, 0, 0, 0.4),
-      0 2px 8px rgba(0, 0, 0, 0.2),
-      0 1px 0 rgba(255, 255, 255, 0.1) inset;
-  }
-  
-  .modern-shadow-lg {
-    box-shadow: 
-      0 25px 60px rgba(0, 0, 0, 0.5),
-      0 5px 15px rgba(0, 0, 0, 0.3),
-      0 1px 0 rgba(255, 255, 255, 0.15) inset;
-  }
+/* Enhanced button styles */
+.btn-mobile {
+  @apply flex items-center justify-center gap-2;
+  @apply min-h-[44px] px-6 py-3;
+  @apply text-white font-medium;
+  @apply rounded-lg;
+  @apply active:scale-95 transition-transform;
+  @apply touch-target;
+}
 
-  .premium-button {
-    @apply glass-card-hover text-white font-semibold px-8 py-4 transition-all duration-300 relative overflow-hidden;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.4) 0%, rgba(147, 51, 234, 0.4) 100%);
-  }
+.btn-mobile-primary {
+  @apply btn-mobile;
+  @apply bg-primary hover:bg-primary/90;
+  @apply shadow-lg shadow-primary/25;
+}
 
-  .premium-button:hover {
-    @apply scale-105;
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.6) 0%, rgba(147, 51, 234, 0.6) 100%);
-  }
+.btn-mobile-secondary {
+  @apply btn-mobile;
+  @apply bg-white/10 hover:bg-white/20;
+  @apply border border-white/20;
+}
 
-  .premium-button::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-    transition: left 0.5s;
-  }
+.btn-mobile-danger {
+  @apply btn-mobile;
+  @apply bg-destructive hover:bg-destructive/90;
+  @apply shadow-lg shadow-destructive/25;
+}
 
-  .premium-button:hover::before {
-    left: 100%;
-  }
+/* Enhanced input styles */
+.input-mobile {
+  @apply w-full px-4 py-3;
+  @apply bg-white/10 border border-white/20;
+  @apply rounded-lg text-white placeholder:text-white/50;
+  @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
+  @apply transition-all duration-200;
+  font-size: 16px; /* Prevent zoom on iOS */
+}
 
-  .security-card {
-    @apply glass-card bg-gradient-to-br from-green-500/15 to-emerald-600/15 border-green-500/25;
-  }
+.input-mobile-error {
+  @apply input-mobile;
+  @apply border-destructive focus:border-destructive;
+  @apply focus:ring-destructive/20;
+}
 
-  .security-card:hover {
-    @apply scale-105;
-    box-shadow: 
-      0 15px 45px rgba(16, 185, 129, 0.3),
-      0 5px 15px rgba(0, 0, 0, 0.2),
-      0 1px 0 rgba(255, 255, 255, 0.15) inset;
-  }
+/* Enhanced card styles */
+.card-mobile {
+  @apply mobile-card;
+  @apply transform hover:scale-[1.01] transition-transform;
+  @apply shadow-lg;
+}
 
-  .metrics-card {
-    @apply glass-card bg-gradient-to-br from-blue-500/15 to-purple-600/15 border-blue-500/25;
-  }
+.card-mobile-interactive {
+  @apply card-mobile;
+  @apply cursor-pointer active:scale-95;
+  @apply hover:bg-white/10 transition-colors;
+}
 
-  .danger-card {
-    @apply glass-card bg-gradient-to-br from-red-500/15 to-rose-600/15 border-red-500/25;
-  }
+/* Status badges */
+.badge-mobile {
+  @apply inline-flex items-center gap-1;
+  @apply px-2 py-1 rounded-full text-xs font-medium;
+}
 
-  .warning-card {
-    @apply glass-card bg-gradient-to-br from-yellow-500/15 to-orange-600/15 border-yellow-500/25;
-  }
+.badge-success {
+  @apply badge-mobile bg-success/20 text-success border border-success/30;
+}
 
-  .shimmer-effect {
-    background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.2) 50%, rgba(255, 255, 255, 0) 100%);
-    background-size: 200% 100%;
-    animation: shimmer 2s infinite;
-  }
+.badge-warning {
+  @apply badge-mobile bg-warning/20 text-warning border border-warning/30;
+}
+
+.badge-error {
+  @apply badge-mobile bg-destructive/20 text-destructive border border-destructive/30;
+}
+
+.badge-info {
+  @apply badge-mobile bg-primary/20 text-primary border border-primary/30;
+}
+
+/* Loading states */
+.loading-mobile {
+  @apply flex items-center justify-center;
+  @apply min-h-[200px] flex-col gap-4;
+  @apply text-white/70;
+}
+
+.loading-spinner {
+  @apply w-8 h-8 border-2 border-white/20;
+  @apply border-t-primary rounded-full animate-spin;
+}
+
+/* Form validation styles */
+.form-error {
+  @apply flex items-center gap-1;
+  @apply text-destructive text-sm mt-1;
+}
+
+.form-success {
+  @apply flex items-center gap-1;
+  @apply text-success text-sm mt-1;
+}
+
+/* Haptic feedback classes */
+.haptic-light {
+  @apply active:scale-98 transition-transform duration-75;
+}
+
+.haptic-medium {
+  @apply active:scale-95 transition-transform duration-100;
+}
+
+.haptic-heavy {
+  @apply active:scale-90 transition-transform duration-150;
 }

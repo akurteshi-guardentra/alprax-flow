@@ -70,9 +70,31 @@ export async function sendPayment(
     const secretKey = atob(account.encryptedSecret);
     const sourceKeypair = Keypair.fromSecret(secretKey);
     
-    // Load the source account from Stellar network
-    const sourceAccount = await server.loadAccount(account.publicKey);
-    console.log('Source account loaded, sequence:', sourceAccount.sequenceNumber());
+    // Load the source account from Stellar network, fund if needed
+    let sourceAccount;
+    try {
+      sourceAccount = await server.loadAccount(account.publicKey);
+      console.log('Source account loaded, sequence:', sourceAccount.sequenceNumber());
+    } catch (error: any) {
+      console.log('Account not found on network, attempting to fund...');
+      
+      // Try to fund the account
+      const fundingResult = await fundTestAccount(account.publicKey);
+      if (!fundingResult.success) {
+        throw new Error('Account not found on network and funding failed. Please try adding test funds.');
+      }
+      
+      console.log('Account funded, loading again...');
+      // Wait a moment for the funding to be processed
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      try {
+        sourceAccount = await server.loadAccount(account.publicKey);
+        console.log('Source account loaded after funding, sequence:', sourceAccount.sequenceNumber());
+      } catch (retryError) {
+        throw new Error('Account funding succeeded but account still not available. Please try again in a moment.');
+      }
+    }
 
     // Verify destination account exists
     try {

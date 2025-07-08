@@ -1,93 +1,92 @@
-
-import { useState, useEffect, useRef, useCallback } from 'react';
-
-interface PerformanceConfig {
-  componentName: string;
-  trackInteractions?: boolean;
-  trackRenders?: boolean;
-  trackMemory?: boolean;
-  sampleRate?: number;
-}
+import { useState, useEffect, useCallback } from 'react';
 
 interface PerformanceMetrics {
-  lastRenderTime: number | null;
-  averageRenderTime: number | null;
-  trackInteractionStart: (() => void) | null;
-  trackInteractionEnd: (() => void) | null;
-  interactionDelay?: number | null;
-  memoryUsage?: number | null;
+  renderTime: number;
+  memoryUsage: number;
+  fps: number;
+  isLowPerformance: boolean;
 }
 
-export function usePerformanceMetrics(
-  enabled: boolean = true,
-  config: PerformanceConfig
-): PerformanceMetrics {
-  const [lastRenderTime, setLastRenderTime] = useState<number | null>(null);
-  const [averageRenderTime, setAverageRenderTime] = useState<number | null>(null);
-  const [interactionDelay, setInteractionDelay] = useState<number | null>(null);
-  const [memoryUsage, setMemoryUsage] = useState<number | null>(null);
-  const renderTimes = useRef<number[]>([]);
-  const interactionStartTime = useRef<number | null>(null);
-  
-  const trackMemory = config.trackMemory ?? false;
-  const trackInteractions = config.trackInteractions ?? false;
-  const trackRenders = config.trackRenders ?? false;
-
-  const trackInteractionStart = useCallback(() => {
-    if (!enabled || !trackInteractions) return;
-    interactionStartTime.current = performance.now();
-  }, [enabled, trackInteractions]);
-
-  const trackInteractionEnd = useCallback(() => {
-    if (!enabled || !trackInteractions || !interactionStartTime.current) return;
-    
-    const duration = performance.now() - interactionStartTime.current;
-    setInteractionDelay(duration);
-    console.log(`${config.componentName} interaction took ${duration.toFixed(2)}ms`);
-    interactionStartTime.current = null;
-  }, [enabled, trackInteractions, config.componentName]);
-
-  useEffect(() => {
-    if (!enabled || !trackRenders) return;
-
-    const startTime = performance.now();
-    
-    return () => {
-      const renderTime = performance.now() - startTime;
-      setLastRenderTime(renderTime);
-      
-      renderTimes.current.push(renderTime);
-      if (renderTimes.current.length > 10) {
-        renderTimes.current.shift();
-      }
-      
-      const average = renderTimes.current.reduce((sum, time) => sum + time, 0) / renderTimes.current.length;
-      setAverageRenderTime(average);
-    };
+export function usePerformanceMetrics() {
+  const [metrics, setMetrics] = useState<PerformanceMetrics>({
+    renderTime: 0,
+    memoryUsage: 0,
+    fps: 60,
+    isLowPerformance: false
   });
 
-  useEffect(() => {
-    if (!enabled || !trackMemory) return;
+  const [frameCount, setFrameCount] = useState(0);
+  const [lastFrameTime, setLastFrameTime] = useState(performance.now());
 
-    const updateMemoryUsage = () => {
-      if ('memory' in performance) {
-        const memInfo = (performance as any).memory;
-        setMemoryUsage(memInfo.usedJSHeapSize / 1024 / 1024); // Convert to MB
+  const measureRenderTime = useCallback((componentName: string) => {
+    const start = performance.now();
+    return () => {
+      const end = performance.now();
+      const renderTime = end - start;
+      
+      setMetrics(prev => ({
+        ...prev,
+        renderTime,
+        isLowPerformance: renderTime > 16.67 // 60fps threshold
+      }));
+      
+      if (renderTime > 50) {
+        console.warn(`Slow render detected in ${componentName}: ${renderTime.toFixed(2)}ms`);
       }
     };
+  }, []);
 
-    updateMemoryUsage();
-    const interval = setInterval(updateMemoryUsage, 5000);
+  const measureFPS = useCallback(() => {
+    const now = performance.now();
+    const deltaTime = now - lastFrameTime;
     
-    return () => clearInterval(interval);
-  }, [enabled, trackMemory]);
+    if (deltaTime >= 1000) {
+      const fps = Math.round((frameCount * 1000) / deltaTime);
+      setMetrics(prev => ({
+        ...prev,
+        fps,
+        isLowPerformance: fps < 45
+      }));
+      
+      setFrameCount(0);
+      setLastFrameTime(now);
+    } else {
+      setFrameCount(prev => prev + 1);
+    }
+  }, [frameCount, lastFrameTime]);
+
+  useEffect(() => {
+    // Memory usage monitoring
+    if ('memory' in performance) {
+      const updateMemory = () => {
+        const memory = (performance as any).memory;
+        setMetrics(prev => ({
+          ...prev,
+          memoryUsage: memory.usedJSHeapSize / memory.jsHeapSizeLimit
+        }));
+      };
+      
+      const interval = setInterval(updateMemory, 2000);
+      return () => clearInterval(interval);
+    }
+  }, []);
+
+  useEffect(() => {
+    // FPS monitoring
+    let animationFrame: number;
+    
+    const animate = () => {
+      measureFPS();
+      animationFrame = requestAnimationFrame(animate);
+    };
+    
+    animationFrame = requestAnimationFrame(animate);
+    
+    return () => cancelAnimationFrame(animationFrame);
+  }, [measureFPS]);
 
   return {
-    lastRenderTime,
-    averageRenderTime,
-    trackInteractionStart: trackInteractions ? trackInteractionStart : null,
-    trackInteractionEnd: trackInteractions ? trackInteractionEnd : null,
-    interactionDelay,
-    memoryUsage
+    metrics,
+    measureRenderTime
   };
 }

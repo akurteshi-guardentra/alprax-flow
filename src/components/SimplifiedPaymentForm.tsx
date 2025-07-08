@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,10 @@ import { ContactPicker } from "@/components/contacts/ContactPicker";
 import { CountrySelector } from "@/components/CountrySelector";
 import { sendPayment } from "@/lib/stellar/payment";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { usePerformanceMetrics } from "@/hooks/use-performance-metrics";
+import { usePullRefresh } from "@/hooks/use-pull-refresh";
+import { useSwipeGesture } from "@/hooks/use-gestures";
+import { PullToRefreshIndicator } from "@/components/ui/pull-to-refresh-indicator";
 
 type PaymentStep = 'form' | 'confirmation' | 'processing' | 'success' | 'error';
 
@@ -36,11 +40,12 @@ interface PaymentData {
   country: string;
 }
 
-export function SimplifiedPaymentForm() {
+export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
   const { balance, isFunding, fundAccount, publicKey } = useStellarAccount();
   const { rates, isLoading: ratesLoading } = useRealTimeExchangeRates();
+  const { measureRenderTime } = usePerformanceMetrics();
   
   // Form state
   const [formData, setFormData] = useState<PaymentData>({
@@ -57,10 +62,13 @@ export function SimplifiedPaymentForm() {
   const [transactionId, setTransactionId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Calculated values
-  const xlmBalance = balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0;
-  const currentRate = rates['EUR'] || 0;
-  const fiatBalance = xlmBalance * currentRate;
+  // Calculated values with memoization for performance
+  const xlmBalance = useMemo(() => 
+    balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0, 
+    [balance]
+  );
+  const currentRate = useMemo(() => rates['EUR'] || 0, [rates]);
+  const fiatBalance = useMemo(() => xlmBalance * currentRate, [xlmBalance, currentRate]);
 
   const updateFormField = <K extends keyof PaymentData>(
     field: K,
@@ -201,6 +209,38 @@ export function SimplifiedPaymentForm() {
     setErrorMessage('');
   };
 
+  // Pull to refresh for balance updates
+  const handleRefresh = async () => {
+    try {
+      // Force refresh balance and rates
+      window.location.reload();
+    } catch (error) {
+      console.error('Refresh error:', error);
+    }
+  };
+
+  const {
+    containerRef,
+    isRefreshing,
+    pullDistance,
+    pullProgress,
+    shouldShowRefreshIndicator,
+    canRefresh
+  } = usePullRefresh({
+    onRefresh: handleRefresh,
+    disabled: currentStep !== 'form'
+  });
+
+  // Swipe gestures for navigation
+  const swipeRef = useSwipeGesture({
+    onSwipeRight: () => {
+      if (currentStep !== 'form') {
+        handleBack();
+      }
+    },
+    threshold: 100
+  });
+
   const getXlmAmount = () => {
     if (!formData.amount || currentRate === 0) return '0';
     return (parseFloat(formData.amount) / currentRate).toFixed(7);
@@ -208,8 +248,29 @@ export function SimplifiedPaymentForm() {
 
   const validation = validateForm();
 
+  // Performance measurement
+  useEffect(() => {
+    const endMeasure = measureRenderTime('SimplifiedPaymentForm');
+    return endMeasure;
+  });
+
   return (
-    <div className={`min-h-screen mobile-viewport ${isMobile ? 'mobile-nav-spacing' : ''}`}>
+    <div 
+      ref={(el) => {
+        if (containerRef) containerRef.current = el;
+        if (swipeRef) swipeRef.current = el;
+      }}
+      className={`min-h-screen mobile-viewport ${isMobile ? 'mobile-nav-spacing' : ''} relative`}
+    >
+      {/* Pull to refresh indicator */}
+      <PullToRefreshIndicator
+        isVisible={shouldShowRefreshIndicator}
+        isRefreshing={isRefreshing}
+        pullProgress={pullProgress}
+        pullDistance={pullDistance}
+        canRefresh={canRefresh}
+      />
+      
       <div className="mobile-container pt-safe">
         {/* Header */}
         <motion.div
@@ -605,4 +666,4 @@ export function SimplifiedPaymentForm() {
       </div>
     </div>
   );
-}
+});

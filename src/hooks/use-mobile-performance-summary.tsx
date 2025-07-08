@@ -27,16 +27,7 @@ export interface PerformanceSummary {
 export function useMobilePerformanceSummary(componentName: string): PerformanceSummary {
   const { connectionQuality, isDataSaverEnabled } = useNetworkConditions();
   const { isLowEndDevice } = useDataSaverMode();
-  const { lastRenderTime, averageRenderTime, interactionDelay, memoryUsage } = usePerformanceMetrics(
-    process.env.NODE_ENV === 'development',
-    {
-      componentName,
-      trackInteractions: true,
-      trackRenders: true,
-      trackMemory: true,
-      sampleRate: 0.5 // Only measure half of renders to reduce overhead
-    }
-  );
+  const { metrics } = usePerformanceMetrics();
   
   const [frameRate, setFrameRate] = useState<number | null>(null);
   const [performanceScore, setPerformanceScore] = useState<number>(0);
@@ -100,25 +91,23 @@ export function useMobilePerformanceSummary(componentName: string): PerformanceS
     }
     
     // Render time (0-20 points)
-    if (averageRenderTime !== null) {
-      if (averageRenderTime > 50) {
+    if (metrics.renderTime !== null) {
+      if (metrics.renderTime > 50) {
         score -= 20;
         adviceItems.push('Slow render times (>50ms). Consider memoization and code splitting.');
-      } else if (averageRenderTime > 16) {
+      } else if (metrics.renderTime > 16) {
         score -= 10;
         adviceItems.push('Moderate render times (>16ms). Review component optimization.');
       }
     }
     
-    // Interaction delay (0-15 points)
-    if (interactionDelay !== null) {
-      if (interactionDelay > 100) {
-        score -= 15;
-        adviceItems.push('Slow interaction response (>100ms). Review event handlers.');
-      } else if (interactionDelay > 50) {
-        score -= 7;
-        adviceItems.push('Moderate interaction delay (>50ms). Consider debouncing events.');
-      }
+    // Memory usage (0-15 points)
+    if (metrics.memoryUsage > 0.8) {
+      score -= 15;
+      adviceItems.push('High memory usage detected. Check for memory leaks.');
+    } else if (metrics.memoryUsage > 0.6) {
+      score -= 7;
+      adviceItems.push('Moderate memory usage. Monitor memory allocation.');
     }
     
     // Frame rate (0-15 points)
@@ -141,8 +130,8 @@ export function useMobilePerformanceSummary(componentName: string): PerformanceS
     connectionQuality,
     isDataSaverEnabled,
     isLowEndDevice,
-    averageRenderTime,
-    interactionDelay,
+    metrics.renderTime,
+    metrics.memoryUsage,
     frameRate
   ]);
   
@@ -150,11 +139,11 @@ export function useMobilePerformanceSummary(componentName: string): PerformanceS
     connectionQuality,
     isDataSaverEnabled,
     isLowEndDevice,
-    memoryUsage,
-    lastRenderTime,
-    averageRenderTime,
+    memoryUsage: metrics.memoryUsage,
+    lastRenderTime: metrics.renderTime,
+    averageRenderTime: metrics.renderTime,
     frameRate,
-    interactionDelay,
+    interactionDelay: 0,
     performanceScore,
     advice
   };

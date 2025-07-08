@@ -78,21 +78,10 @@ export function TransactionHistory() {
   const [refreshing, setRefreshing] = useState(false);
 
   // Use performance metrics to track component performance
-  const { 
-    lastRenderTime, 
-    averageRenderTime, 
-    trackInteractionStart, 
-    trackInteractionEnd 
-  } = usePerformanceMetrics(process.env.NODE_ENV === 'development', {
-    componentName: 'TransactionHistory',
-    trackInteractions: true,
-    trackRenders: true,
-    trackMemory: false
-  });
+  const { measureRenderTime } = usePerformanceMetrics();
   
   // Handler for manual refresh
   const handleRefresh = useCallback(async () => {
-    if (trackInteractionStart) trackInteractionStart();
     setRefreshing(true);
     hapticFeedback('medium');
     
@@ -103,9 +92,8 @@ export function TransactionHistory() {
       hapticFeedback('error');
     } finally {
       setRefreshing(false);
-      if (trackInteractionEnd) trackInteractionEnd();
     }
-  }, [refetch, trackInteractionStart, trackInteractionEnd]);
+  }, [refetch]);
 
   // Filter transactions based on search term
   useEffect(() => {

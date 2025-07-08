@@ -1,90 +1,100 @@
-
 /**
  * Performance profiler utility for tracking application performance
  */
 
-interface PerformanceMetric {
+interface PerformanceEntry {
   name: string;
   startTime: number;
-  endTime?: number;
-  duration?: number;
+  duration: number;
+  type: 'render' | 'navigation' | 'api' | 'custom';
 }
 
 class PerformanceProfiler {
-  private metrics: Map<string, PerformanceMetric> = new Map();
-  private isEnabled: boolean = true;
+  private entries: PerformanceEntry[] = [];
+  private maxEntries = 100;
 
-  constructor() {
-    this.isEnabled = process.env.NODE_ENV === 'development';
-  }
-
-  startMetric(name: string): void {
-    if (!this.isEnabled) return;
+  startMeasure(name: string, type: PerformanceEntry['type'] = 'custom'): () => void {
+    const startTime = performance.now();
     
-    this.metrics.set(name, {
-      name,
-      startTime: performance.now()
-    });
+    return () => {
+      const duration = performance.now() - startTime;
+      this.addEntry({ name, startTime, duration, type });
+    };
   }
 
-  endMetric(name: string): number | null {
-    if (!this.isEnabled) return null;
+  addEntry(entry: PerformanceEntry) {
+    this.entries.push(entry);
     
-    const metric = this.metrics.get(name);
-    if (!metric) return null;
+    // Keep only recent entries
+    if (this.entries.length > this.maxEntries) {
+      this.entries = this.entries.slice(-this.maxEntries);
+    }
 
-    const endTime = performance.now();
-    const duration = endTime - metric.startTime;
+    // Log slow operations
+    if (entry.duration > 100) {
+      console.warn(`Slow ${entry.type}: ${entry.name} took ${entry.duration.toFixed(2)}ms`);
+    }
+  }
+
+  getSlowOperations(threshold = 50): PerformanceEntry[] {
+    return this.entries.filter(entry => entry.duration > threshold);
+  }
+
+  getAverageByType(type: PerformanceEntry['type']): number {
+    const typeEntries = this.entries.filter(entry => entry.type === type);
+    if (typeEntries.length === 0) return 0;
     
-    this.metrics.set(name, {
-      ...metric,
-      endTime,
-      duration
-    });
-
-    console.log(`Performance: ${name} took ${duration.toFixed(2)}ms`);
-    return duration;
+    const total = typeEntries.reduce((sum, entry) => sum + entry.duration, 0);
+    return total / typeEntries.length;
   }
 
-  getMetric(name: string): PerformanceMetric | undefined {
-    return this.metrics.get(name);
+  clear() {
+    this.entries = [];
   }
 
-  getAllMetrics(): PerformanceMetric[] {
-    return Array.from(this.metrics.values());
-  }
-
-  clear(): void {
-    this.metrics.clear();
+  exportData() {
+    return {
+      entries: this.entries,
+      summary: {
+        total: this.entries.length,
+        averageRender: this.getAverageByType('render'),
+        averageNavigation: this.getAverageByType('navigation'),
+        averageApi: this.getAverageByType('api'),
+        slowOperations: this.getSlowOperations()
+      }
+    };
   }
 }
 
 export const performanceProfiler = new PerformanceProfiler();
 
-// Helper functions for common use cases
-export const measureAsync = async <T>(
+// Utility functions
+export function withPerformanceTracking<T extends (...args: any[]) => any>(
+  fn: T,
   name: string,
-  fn: () => Promise<T>
-): Promise<T> => {
-  performanceProfiler.startMetric(name);
-  try {
-    const result = await fn();
-    performanceProfiler.endMetric(name);
-    return result;
-  } catch (error) {
-    performanceProfiler.endMetric(name);
-    throw error;
-  }
-};
+  type: PerformanceEntry['type'] = 'custom'
+): T {
+  return ((...args: any[]) => {
+    const endMeasure = performanceProfiler.startMeasure(name, type);
+    try {
+      const result = fn(...args);
+      if (result instanceof Promise) {
+        return result.finally(endMeasure);
+      }
+      endMeasure();
+      return result;
+    } catch (error) {
+      endMeasure();
+      throw error;
+    }
+  }) as T;
+}
 
-export const measureSync = <T>(name: string, fn: () => T): T => {
-  performanceProfiler.startMetric(name);
-  try {
-    const result = fn();
-    performanceProfiler.endMetric(name);
-    return result;
-  } catch (error) {
-    performanceProfiler.endMetric(name);
-    throw error;
-  }
-};
+export function measureAsync<T>(
+  asyncFn: () => Promise<T>,
+  name: string,
+  type: PerformanceEntry['type'] = 'custom'
+): Promise<T> {
+  const endMeasure = performanceProfiler.startMeasure(name, type);
+  return asyncFn().finally(endMeasure);
+}

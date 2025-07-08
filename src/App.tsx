@@ -9,6 +9,7 @@ import GlobalErrorBoundary from "@/components/error/GlobalErrorBoundary";
 import { LoadingProvider } from "@/components/ui/LoadingManager";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+import { PerformanceInfo } from "@/components/ui/performance-info";
 import { authService } from "@/services/AuthService";
 import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -148,6 +149,7 @@ const AppContent = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 {isMobile && <MobileBottomNav />}
+                <PerformanceInfo />
               </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>

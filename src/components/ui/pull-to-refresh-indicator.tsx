@@ -1,49 +1,80 @@
-import React from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { Loader2, ArrowDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PullToRefreshIndicatorProps {
-  pullProgress: number; // Value between 0 and 1
+  isVisible: boolean;
   isRefreshing: boolean;
-  className?: string;
+  pullProgress: number;
+  pullDistance: number;
+  canRefresh: boolean;
 }
 
 export function PullToRefreshIndicator({
-  pullProgress,
+  isVisible,
   isRefreshing,
-  className = ''
+  pullProgress,
+  pullDistance,
+  canRefresh
 }: PullToRefreshIndicatorProps) {
-  // Calculate styles based on pull progress
-  const opacity = Math.min(1, pullProgress * 2); // Full opacity at 50% pull
-  const scale = 0.8 + (pullProgress * 0.2); // Scale from 80% to 100%
-  const rotation = pullProgress * 360; // Full rotation based on pull
-  
+  if (!isVisible) return null;
+
   return (
-    <motion.div 
-      className={`absolute left-1/2 transform -translate-x-1/2 z-10 ${className}`}
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="absolute top-0 left-0 right-0 z-50 flex items-center justify-center"
       style={{
-        top: isRefreshing ? '1rem' : `-${50 - (pullProgress * 60)}px`,
-        opacity: isRefreshing ? 1 : opacity,
-      }}
-      animate={{ 
-        rotate: isRefreshing ? [0, 360] : rotation,
-        scale: scale
-      }}
-      transition={{
-        rotate: { 
-          repeat: isRefreshing ? Infinity : 0,
-          duration: isRefreshing ? 1 : 0,
-          ease: 'linear'
-        }
+        transform: `translateY(${Math.min(pullDistance, 100)}px)`,
+        height: '80px'
       }}
     >
-      <div className="bg-white/10 backdrop-blur-md rounded-full p-3 flex items-center justify-center shadow-lg border border-white/20">
-        <RefreshCw 
-          className="h-5 w-5 text-primary dark:text-primary-light" 
-          style={{ 
-            transformOrigin: 'center',
+      <div className="flex flex-col items-center gap-2 p-4 rounded-xl bg-black/80 backdrop-blur-sm border border-white/20">
+        <motion.div
+          animate={{
+            rotate: isRefreshing ? 0 : pullProgress * 180,
+            scale: Math.max(0.8, Math.min(1.2, pullProgress + 0.8))
           }}
-        />
+          transition={{ duration: 0.2 }}
+          className={cn(
+            "transition-colors duration-200",
+            canRefresh ? "text-green-400" : "text-white/60"
+          )}
+        >
+          {isRefreshing ? (
+            <Loader2 className="w-6 h-6 animate-spin" />
+          ) : (
+            <ArrowDown className="w-6 h-6" />
+          )}
+        </motion.div>
+        
+        <motion.div
+          animate={{
+            scale: pullProgress,
+            opacity: Math.max(0.3, pullProgress)
+          }}
+          className="text-xs text-white/80 font-medium"
+        >
+          {isRefreshing ? (
+            "Refreshing..."
+          ) : canRefresh ? (
+            "Release to refresh"
+          ) : (
+            "Pull to refresh"
+          )}
+        </motion.div>
+        
+        {/* Progress indicator */}
+        <div className="w-12 h-1 bg-white/20 rounded-full overflow-hidden">
+          <motion.div
+            className="h-full bg-gradient-to-r from-blue-400 to-green-400 rounded-full"
+            animate={{
+              width: `${pullProgress * 100}%`
+            }}
+            transition={{ duration: 0.1 }}
+          />
+        </div>
       </div>
     </motion.div>
   );

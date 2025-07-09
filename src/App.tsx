@@ -10,6 +10,7 @@ import { LoadingProvider } from "@/components/ui/LoadingManager";
 import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { PerformanceInfo } from "@/components/ui/performance-info";
+import { DeviceInfoPanel } from "@/components/mobile/DeviceInfoPanel";
 import { authService } from "@/services/AuthService";
 import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -150,6 +151,7 @@ const AppContent = () => {
                 </Routes>
                 {isMobile && <MobileBottomNav />}
                 <PerformanceInfo />
+                {isMobile && <DeviceInfoPanel />}
               </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>

@@ -30,6 +30,8 @@ import { usePerformanceMetrics } from "@/hooks/use-performance-metrics";
 import { usePullRefresh } from "@/hooks/use-pull-refresh";
 import { useSwipeGesture } from "@/hooks/use-gestures";
 import { PullToRefreshIndicator } from "@/components/ui/pull-to-refresh-indicator";
+import { QRCodeScanner } from "@/components/mobile/QRCodeScanner";
+import { BiometricAuth } from "@/components/mobile/BiometricAuth";
 
 type PaymentStep = 'form' | 'confirmation' | 'processing' | 'success' | 'error';
 
@@ -58,6 +60,8 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
   // UI state
   const [currentStep, setCurrentStep] = useState<PaymentStep>('form');
   const [showContactPicker, setShowContactPicker] = useState(false);
+  const [showQRScanner, setShowQRScanner] = useState(false);
+  const [showBiometricAuth, setShowBiometricAuth] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [transactionId, setTransactionId] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -125,11 +129,42 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
     setShowContactPicker(false);
   };
 
+  const handleQRScan = (data: string) => {
+    // Create a recipient from QR code data
+    const qrRecipient: FavoriteRecipient = {
+      id: 'qr-' + Date.now(),
+      stellar_address: data,
+      recipient_name: 'QR Code Recipient',
+      country: 'Unknown',
+      currency: 'XLM',
+      user_id: '',
+      created_at: new Date().toISOString(),
+      relationship: 'QR Code'
+    };
+    updateFormField('recipient', qrRecipient);
+    setShowQRScanner(false);
+    toast.success('QR code scanned successfully');
+  };
+
+  const handleBiometricSuccess = (method: string) => {
+    setShowBiometricAuth(false);
+    toast.success(`Authenticated with ${method}`);
+    // Continue with payment after biometric auth
+    executeTransaction();
+  };
+
   const handleSubmit = async () => {
     const validation = validateForm();
     if (!validation.valid) {
       toast.error(validation.message);
       hapticFeedback('error');
+      return;
+    }
+
+    // For high-value transactions, require biometric authentication
+    const amountNum = parseFloat(formData.amount);
+    if (amountNum > 1000) {
+      setShowBiometricAuth(true);
       return;
     }
     
@@ -393,13 +428,22 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                         </Button>
                       </div>
                     ) : (
-                      <Button
-                        onClick={() => setShowContactPicker(true)}
-                        className="btn-mobile-secondary w-full"
-                      >
-                        <User className="w-4 h-4 mr-2" />
-                        Select Contact
-                      </Button>
+                      <div className="grid grid-cols-2 gap-2">
+                        <Button
+                          onClick={() => setShowContactPicker(true)}
+                          className="btn-mobile-secondary"
+                        >
+                          <User className="w-4 h-4 mr-2" />
+                          Contact
+                        </Button>
+                        <Button
+                          onClick={() => setShowQRScanner(true)}
+                          variant="outline"
+                          className="border-white/20 bg-transparent hover:bg-white/10 text-white"
+                        >
+                          📱 Scan QR
+                        </Button>
+                      </div>
                     )}
                   </div>
 
@@ -661,6 +705,25 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                 />
               </div>
             </motion.div>
+          </div>
+        )}
+
+        {/* QR Code Scanner */}
+        <QRCodeScanner
+          isOpen={showQRScanner}
+          onClose={() => setShowQRScanner(false)}
+          onScan={handleQRScan}
+        />
+
+        {/* Biometric Authentication */}
+        {showBiometricAuth && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <BiometricAuth
+              onAuthenticated={handleBiometricSuccess}
+              onCancel={() => setShowBiometricAuth(false)}
+              title="Verify High-Value Payment"
+              subtitle="Please authenticate to proceed with this transaction"
+            />
           </div>
         )}
       </div>

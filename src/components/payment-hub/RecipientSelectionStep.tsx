@@ -1,59 +1,99 @@
+import { memo, useState } from "react";
+import { motion } from "framer-motion";
+import { EnhancedRecipientSelector } from "./EnhancedRecipientSelector";
+import { FavoriteRecipient } from "@/types/favoriteRecipient";
+import { Button } from "@/components/ui/button";
 
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { motion } from 'framer-motion';
-
-interface RecipientSelectionStepProps {
-  action: 'send' | 'request';
-  amount: string;
-  recipient: string;
-  onRecipientChange: (recipient: string) => void;
-  onContinue: () => void;
+export interface RecipientSelectionStepProps {
+  data: Record<string, any>;
+  onNext: (data?: any) => void;
+  onBack: () => void;
 }
 
-export function RecipientSelectionStep({ 
-  action, 
-  amount, 
-  recipient, 
-  onRecipientChange, 
-  onContinue 
+// Mock recipients data
+const mockRecipients: FavoriteRecipient[] = [
+  {
+    id: '1',
+    user_id: 'user1',
+    recipient_name: 'John Doe',
+    stellar_address: 'GDLOUHDVACXNO6OKZXKEOOMHVUYYKEWTLBPLSR6BZESJN7Y2A5IX5GJ2',
+    country: 'Germany',
+    currency: 'EUR',
+    relationship: 'Friend',
+    created_at: '2024-01-01T00:00:00Z',
+    last_sent_at: '2024-07-01T00:00:00Z'
+  },
+  {
+    id: '2',
+    user_id: 'user1',
+    recipient_name: 'Jane Smith',
+    stellar_address: 'GCLOUHDVACXNO6OKZXKEOOMHVUYYKEWTLBPLSR6BZESJN7Y2A5IX5GJ3',
+    country: 'France',
+    currency: 'EUR',
+    relationship: 'Family',
+    created_at: '2024-01-01T00:00:00Z',
+    last_sent_at: '2024-06-15T00:00:00Z'
+  }
+];
+
+export const RecipientSelectionStep = memo(function RecipientSelectionStep({
+  data,
+  onNext,
+  onBack
 }: RecipientSelectionStepProps) {
+  const [selectedRecipient, setSelectedRecipient] = useState<FavoriteRecipient | null>(
+    data.recipient || null
+  );
+
+  const handleRecipientSelect = (recipient: FavoriteRecipient) => {
+    setSelectedRecipient(recipient);
+  };
+
+  const handleAddNew = () => {
+    // Open add new recipient dialog
+    console.log('Add new recipient');
+  };
+
+  const handleNext = () => {
+    if (selectedRecipient) {
+      onNext({ recipient: selectedRecipient });
+    }
+  };
+
   return (
     <motion.div
-      key="recipient"
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="p-6 space-y-6"
     >
       <div className="text-center">
-        <p className="text-white/70 text-sm">{action === 'send' ? 'Sending' : 'Requesting'}</p>
-        <div className="text-2xl font-bold text-white">${amount}</div>
+        <h3 className="text-xl font-semibold text-white mb-2">Who are you sending to?</h3>
+        <p className="text-white/70">Select a recipient or add a new one</p>
       </div>
 
-      <div className="space-y-4">
-        <div className="space-y-2">
-          <Label className="text-white/90">
-            {action === 'send' ? 'Send to' : 'Request from'}
-          </Label>
-          <Input
-            type="text"
-            value={recipient}
-            onChange={(e) => onRecipientChange(e.target.value)}
-            placeholder="Email, phone, or username"
-            className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
-          />
-        </div>
+      <EnhancedRecipientSelector
+        recipients={mockRecipients}
+        onSelectRecipient={handleRecipientSelect}
+        onAddNew={handleAddNew}
+        selectedRecipient={selectedRecipient}
+      />
 
+      <div className="flex justify-between pt-4">
         <Button
-          onClick={onContinue}
-          disabled={!recipient}
-          className="w-full bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white h-12"
+          variant="outline"
+          onClick={onBack}
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
-          {action === 'send' ? 'Send' : 'Request'} ${amount}
+          Back
+        </Button>
+        <Button
+          onClick={handleNext}
+          disabled={!selectedRecipient}
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+        >
+          Continue
         </Button>
       </div>
     </motion.div>
   );
-}
+});

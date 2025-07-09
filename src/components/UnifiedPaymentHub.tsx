@@ -24,73 +24,81 @@ type Action = 'send' | 'request' | 'fund';
 
 export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }: UnifiedPaymentHubProps) {
   const [step, setStep] = useState<Step>('action');
-  const [action, setAction] = useState<Action>(defaultAction);
-  const [amount, setAmount] = useState('');
-  const [recipient, setRecipient] = useState('');
-  const [selectedMethod, setSelectedMethod] = useState('');
+  const [wizardData, setWizardData] = useState<Record<string, any>>({
+    action: defaultAction
+  });
+  const [isProcessing, setIsProcessing] = useState(false);
   const { balance } = useStellarAccount();
 
   const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
 
-  const handleActionSelect = (selectedAction: Action) => {
-    setAction(selectedAction);
-    setStep('amount');
+  const handleNext = (stepData?: any) => {
+    if (stepData) {
+      setWizardData(prev => ({ ...prev, ...stepData }));
+    }
+    
+    switch (step) {
+      case 'action':
+        setStep('amount');
+        break;
+      case 'amount':
+        if (wizardData.action === 'fund') {
+          setStep('method');
+        } else {
+          setStep('recipient');
+        }
+        break;
+      case 'recipient':
+        setStep('processing');
+        simulateTransaction();
+        break;
+      case 'method':
+        setStep('success');
+        toast.success('Funds added successfully!');
+        break;
+      default:
+        break;
+    }
   };
 
-  const handleAmountSelect = (value: number) => {
-    setAmount(value.toString());
-  };
-
-  const handleNextStep = () => {
-    if (step === 'action') {
-      setStep('amount');
-    } else if (step === 'amount' && amount) {
-      if (action === 'fund') {
-        setStep('method');
-      } else {
-        setStep('recipient');
-      }
-    } else if (step === 'recipient' && recipient) {
-      setStep('processing');
-      simulateTransaction();
+  const handleBack = () => {
+    switch (step) {
+      case 'amount':
+        setStep('action');
+        break;
+      case 'recipient':
+        setStep('amount');
+        break;
+      case 'method':
+        setStep('amount');
+        break;
+      default:
+        break;
     }
   };
 
   const simulateTransaction = () => {
+    setIsProcessing(true);
     setTimeout(() => {
+      setIsProcessing(false);
       setStep('success');
-      toast.success(`${action === 'fund' ? 'Funds added' : 'Payment sent'} successfully!`);
+      toast.success(`Payment sent successfully!`);
     }, 2000);
-  };
-
-  const handlePaymentComplete = () => {
-    setStep('success');
-    toast.success('Funds added successfully!');
   };
 
   const handleClose = () => {
     setStep('action');
-    setAmount('');
-    setRecipient('');
-    setSelectedMethod('');
+    setWizardData({ action: defaultAction });
+    setIsProcessing(false);
     onOpenChange(false);
   };
 
   const getActionTitle = () => {
-    switch (action) {
+    switch (wizardData.action) {
       case 'send': return 'Send Money';
       case 'request': return 'Request Money';
       case 'fund': return 'Add Funds';
       default: return 'Payment';
-    }
-  };
-
-  const getBackStep = () => {
-    switch (step) {
-      case 'amount': return 'action';
-      case 'recipient': return 'amount';
-      case 'method': return 'amount';
-      default: return 'action';
     }
   };
 
@@ -103,7 +111,7 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => setStep(getBackStep() as Step)}
+                onClick={handleBack}
                 className="h-6 w-6 text-white/70 hover:text-white"
               >
                 <ArrowLeft className="h-4 w-4" />
@@ -116,47 +124,50 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
         <AnimatePresence mode="wait">
           {step === 'action' && (
             <ActionSelectionStep 
-              accountBalance={accountBalance}
-              onActionSelect={handleActionSelect}
+              data={wizardData}
+              onNext={handleNext}
+              onBack={handleBack}
             />
           )}
 
           {step === 'amount' && (
             <AmountSelectionStep
-              amount={amount}
-              onAmountChange={setAmount}
-              onAmountSelect={handleAmountSelect}
-              onContinue={handleNextStep}
+              data={wizardData}
+              onNext={handleNext}
+              onBack={handleBack}
             />
           )}
 
           {step === 'recipient' && (
             <RecipientSelectionStep
-              action={action as 'send' | 'request'}
-              amount={amount}
-              recipient={recipient}
-              onRecipientChange={setRecipient}
-              onContinue={handleNextStep}
+              data={wizardData}
+              onNext={handleNext}
+              onBack={handleBack}
             />
           )}
 
           {step === 'method' && (
             <PaymentMethodStep
-              amount={amount}
-              selectedMethod={selectedMethod}
-              onMethodSelect={setSelectedMethod}
-              onPaymentComplete={handlePaymentComplete}
+              data={wizardData}
+              onNext={handleNext}
+              onBack={handleBack}
             />
           )}
 
-          {step === 'processing' && <ProcessingStep />}
+          {step === 'processing' && (
+            <ProcessingStep 
+              data={wizardData}
+              onNext={handleNext}
+              onBack={handleBack}
+              isProcessing={isProcessing}
+              setIsProcessing={setIsProcessing}
+            />
+          )}
 
           {step === 'success' && (
             <SuccessStep
-              action={action}
-              amount={amount}
-              recipient={recipient}
-              onClose={handleClose}
+              data={wizardData}
+              onComplete={handleClose}
             />
           )}
         </AnimatePresence>

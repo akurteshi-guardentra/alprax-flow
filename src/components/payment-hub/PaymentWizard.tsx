@@ -118,14 +118,49 @@ export const PaymentWizard = memo(function PaymentWizard({
             transition={{ duration: 0.3 }}
             className="h-full"
           >
-            <CurrentStepComponent
-              data={wizardData}
-              onNext={handleNext}
-              onBack={handleBack}
-              isProcessing={isProcessing}
-              setIsProcessing={setIsProcessing}
-              onComplete={onComplete}
-            />
+            {currentStep === 0 && (
+              <ActionSelectionStep
+                data={wizardData}
+                onNext={handleNext}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 1 && (
+              <RecipientSelectionStep
+                data={wizardData}
+                onNext={handleNext}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 2 && (
+              <AmountSelectionStep
+                data={wizardData}
+                onNext={handleNext}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 3 && (
+              <PaymentMethodStep
+                data={wizardData}
+                onNext={handleNext}
+                onBack={handleBack}
+              />
+            )}
+            {currentStep === 4 && (
+              <ProcessingStep
+                data={wizardData}
+                onNext={handleNext}
+                onBack={handleBack}
+                isProcessing={isProcessing}
+                setIsProcessing={setIsProcessing}
+              />
+            )}
+            {currentStep === 5 && (
+              <SuccessStep
+                data={wizardData}
+                onComplete={onComplete}
+              />
+            )}
           </motion.div>
         </AnimatePresence>
       </div>

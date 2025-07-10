@@ -1,12 +1,16 @@
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SimplifiedPaymentForm } from '@/components/SimplifiedPaymentForm';
 import { PaymentWizard } from '@/components/payment-hub/PaymentWizard';
 import { PaymentTemplates } from '@/components/payment-hub/PaymentTemplates';
+import { PaymentErrorBoundary } from '@/components/payment/PaymentErrorBoundary';
+import { ResponsiveContainer } from '@/components/ui/ResponsiveContainer';
 import { CreditCard, Zap, Calendar } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const ModernPayments = () => {
   const [activeTab, setActiveTab] = useState('quick');
+  const isMobile = useIsMobile();
 
   const handleWizardComplete = () => {
     console.log('Payment wizard completed');

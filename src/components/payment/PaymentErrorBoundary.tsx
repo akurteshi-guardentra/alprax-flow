@@ -26,6 +26,20 @@ export class PaymentErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('Payment error caught by boundary:', error, errorInfo);
+    
+    // Track error in production
+    if (typeof window !== 'undefined' && 'gtag' in window) {
+      const gtag = (window as any).gtag;
+      if (typeof gtag === 'function') {
+        gtag('event', 'exception', {
+          description: error.message,
+          fatal: false,
+          custom_map: {
+            component_stack: errorInfo.componentStack
+          }
+        });
+      }
+    }
   }
 
   handleRetry = () => {
@@ -39,24 +53,36 @@ export class PaymentErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <ModernCard variant="glass" className="mx-4 my-8">
+        <div role="alert" aria-live="assertive">
+          <ModernCard variant="glass" className="mx-4 my-8">
           <ModernCardContent className="text-center py-8">
-            <AlertTriangle className="w-12 h-12 text-red-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-white mb-2">
+            <AlertTriangle 
+              className="w-12 h-12 text-red-400 mx-auto mb-4" 
+              aria-hidden="true"
+            />
+            <h3 
+              className="text-lg font-semibold text-white mb-2"
+              id="payment-error-title"
+            >
               Payment Error
             </h3>
-            <p className="text-white/70 mb-4">
+            <p 
+              className="text-white/70 mb-4"
+              aria-describedby="payment-error-title"
+            >
               Something went wrong with the payment process. Please try again.
             </p>
             <Button
               onClick={this.handleRetry}
-              className="bg-blue-600 hover:bg-blue-700 text-white"
+              className="bg-blue-600 hover:bg-blue-700 text-white focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+              aria-label="Retry payment process"
             >
-              <RefreshCw className="w-4 h-4 mr-2" />
+              <RefreshCw className="w-4 h-4 mr-2" aria-hidden="true" />
               Try Again
             </Button>
           </ModernCardContent>
-        </ModernCard>
+          </ModernCard>
+        </div>
       );
     }
 

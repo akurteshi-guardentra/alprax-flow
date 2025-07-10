@@ -1,4 +1,5 @@
 import { safeGetItem, safeSetItem } from './storage-utils';
+import { captureError } from './error-tracking';
 
 interface CacheOptions {
   /** Maximum age of cache in milliseconds before considered stale (default: 1 hour) */

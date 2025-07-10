@@ -1,5 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentErrorService } from './PaymentErrorService';
+import { captureError } from '@/utils/error-tracking';
+import { transactionRateLimiter, withRateLimit } from '@/utils/rate-limiting';
 
 export interface QueuedTransaction {
   id: string;
@@ -28,37 +30,80 @@ export interface QueueTransactionParams {
 }
 
 export class TransactionQueueService {
-  static async queueTransaction(params: QueueTransactionParams): Promise<QueuedTransaction | null> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
+  static async validateTransactionParams(params: QueueTransactionParams): Promise<{
+    valid: boolean;
+    errors: string[];
+  }> {
+    const errors: string[] = [];
 
-      const { data, error } = await supabase
-        .from('transaction_queue')
-        .insert({
-          user_id: user.id,
-          recipient_address: params.recipientAddress,
-          amount: params.amount,
-          memo: params.memo,
-          metadata: params.metadata || {},
-          priority: params.priority || 0,
-          status: 'pending'
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data as QueuedTransaction;
-    } catch (error) {
-      console.error('Failed to queue transaction:', error);
-      await PaymentErrorService.logError({
-        errorType: 'unknown',
-        errorMessage: 'Failed to queue transaction',
-        errorDetails: { error: error instanceof Error ? error.message : 'Unknown error' }
-      });
-      return null;
+    if (!params.recipientAddress) {
+      errors.push('Recipient address is required');
     }
+
+    if (!params.amount || params.amount <= 0) {
+      errors.push('Valid amount is required');
+    }
+
+    if (params.memo && params.memo.length > 28) {
+      errors.push('Memo must be 28 characters or less');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
   }
+
+  static async queueTransaction(params: QueueTransactionParams): Promise<QueuedTransaction | null> {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('User not authenticated');
+
+        // Enhanced validation
+        const validation = await TransactionQueueService.validateTransactionParams(params);
+        if (!validation.valid) {
+          throw new Error(`Invalid transaction: ${validation.errors.join(', ')}`);
+        }
+
+        const { data, error } = await supabase
+          .from('transaction_queue')
+          .insert({
+            user_id: user.id,
+            recipient_address: params.recipientAddress,
+            amount: params.amount,
+            memo: params.memo,
+            metadata: params.metadata || {},
+            priority: params.priority || 0,
+            status: 'pending'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        // Enhanced logging
+        captureError(new Error('Transaction queued successfully'), {
+          component: 'TransactionQueueService',
+          action: 'queueTransaction',
+          metadata: { transactionId: data.id, amount: params.amount }
+        }, 'low');
+
+        return data as QueuedTransaction;
+      } catch (error) {
+        captureError(error as Error, {
+          component: 'TransactionQueueService',
+          action: 'queueTransaction',
+          metadata: { params }
+        }, 'high');
+
+        await PaymentErrorService.logError({
+          errorType: 'unknown',
+          errorMessage: 'Failed to queue transaction',
+          errorDetails: { error: error instanceof Error ? error.message : 'Unknown error', params }
+        });
+        return null;
+      }
+    }
 
   static async updateTransactionStatus(
     id: string, 

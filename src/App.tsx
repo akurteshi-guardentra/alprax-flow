@@ -11,7 +11,11 @@ import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { PerformanceInfo } from "@/components/ui/performance-info";
 import { DeviceInfoPanel } from "@/components/mobile/DeviceInfoPanel";
+import { ProductionDebugPanel } from "@/components/debug/ProductionDebugPanel";
 import { authService } from "@/services/AuthService";
+import { errorTracker } from "@/utils/error-tracking";
+import { performanceMonitor } from "@/utils/performance";
+import { ENV } from "@/config/environment";
 import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
@@ -50,6 +54,21 @@ const AppContent = () => {
   useEffect(() => {
     // Initialize auth service
     authService.initialize();
+    
+    // Initialize error tracking and performance monitoring
+    if (ENV.FEATURES.ENABLE_ERROR_REPORTING) {
+      errorTracker.captureUserAction('app_initialized', {
+        version: ENV.APP_VERSION,
+        environment: ENV.isDevelopment ? 'development' : 'production'
+      });
+    }
+
+    if (ENV.FEATURES.ENABLE_PERFORMANCE_MONITORING) {
+      performanceMonitor.recordMetric('app_startup', performance.now(), {
+        version: ENV.APP_VERSION,
+        userAgent: navigator.userAgent
+      });
+    }
   }, []);
 
   return (
@@ -152,6 +171,7 @@ const AppContent = () => {
                 {isMobile && <MobileBottomNav />}
                 <PerformanceInfo />
                 <DeviceInfoPanel />
+                <ProductionDebugPanel />
               </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>

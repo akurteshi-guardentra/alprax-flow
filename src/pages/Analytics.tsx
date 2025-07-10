@@ -1,7 +1,7 @@
 
 import { DashboardAnalytics } from "@/components/DashboardAnalytics";
 import { useEffect } from "react";
-import { config } from "@/config/environment";
+import { ENV } from "@/config/environment";
 import { deploymentConfig } from "@/config/deployment";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -17,12 +17,12 @@ const Analytics = () => {
     if (import.meta.env.DEV) {
       console.log('Analytics environment:', {
         environment: deploymentConfig.environment,
-        analyticsEnabled: config.analyticsEnabled
+        analyticsEnabled: ENV.FEATURES.ENABLE_ANALYTICS
       });
     }
     
     // Inform users when they're in test mode
-    if (config.enableTestFeatures && deploymentConfig.environment !== 'production') {
+    if (ENV.isDevelopment && deploymentConfig.environment !== 'production') {
       toast.info('You are using Analytics in test mode');
     }
   }, []);

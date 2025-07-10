@@ -1,95 +1,57 @@
+// Environment configuration for production readiness
+export const ENV = {
+  // Environment flags
+  isDevelopment: import.meta.env.DEV,
+  isProduction: import.meta.env.PROD,
+  
+  // Application settings
+  APP_VERSION: import.meta.env.VITE_APP_VERSION || '1.0.0',
+  
+  // Supabase configuration (using direct values since VITE_ vars aren't supported)
+  SUPABASE_URL: 'https://vixpxmvsndusngxdmjuv.supabase.co',
+  SUPABASE_ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpeHB4bXZzbmR1c25neGRtanV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2ODI4NjYsImV4cCI6MjA1NDI1ODg2Nn0.P4isRrXOmEkgcSAoI4iQFxKm0eX6Bk0Lk7hBlTyXsyI',
+  
+  // Feature flags
+  FEATURES: {
+    ENABLE_ANALYTICS: import.meta.env.PROD,
+    ENABLE_ERROR_REPORTING: import.meta.env.PROD,
+    ENABLE_PERFORMANCE_MONITORING: import.meta.env.PROD,
+    ENABLE_DEBUG_PANEL: import.meta.env.DEV,
+  },
+  
+  // API settings
+  API: {
+    TIMEOUT: 30000, // 30 seconds
+    RETRY_ATTEMPTS: 3,
+    RETRY_DELAY: 1000, // 1 second
+  },
+  
+  // Security settings
+  SECURITY: {
+    SESSION_TIMEOUT: 30 * 60 * 1000, // 30 minutes
+    MAX_LOGIN_ATTEMPTS: 5,
+    LOCKOUT_DURATION: 15 * 60 * 1000, // 15 minutes
+  }
+} as const;
 
-/**
- * Environment configuration module
- * 
- * This module centralizes all environment variables and provides
- * appropriate defaults for development. In production, these values
- * should be set through environment variables.
- */
+// Type-safe environment checker
+export const checkEnvironment = () => {
+  const requiredEnvVars = [
+    'SUPABASE_URL',
+    'SUPABASE_ANON_KEY'
+  ];
+  
+  const missing = requiredEnvVars.filter(key => !ENV[key as keyof typeof ENV]);
+  
+  if (missing.length > 0 && ENV.isProduction) {
+    console.error('Missing required environment variables:', missing);
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+  
+  return true;
+};
 
-interface EnvironmentConfig {
-  // API & Services
-  stellarNetwork: 'TESTNET' | 'PUBLIC';
-  horizonUrl: string;
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-  
-  // Feature Flags
-  enableTestFeatures: boolean;
-  enableDetailedLogs: boolean;
-  
-  // Analytics
-  analyticsEnabled: boolean;
-  analyticsKey: string | null;
-  
-  // App Configuration
-  maxTransactionAmount: number;
-  defaultCurrency: string;
-  apiTimeout: number;
+// Initialize environment check
+if (ENV.isProduction) {
+  checkEnvironment();
 }
-
-// Get environment variables with fallbacks
-const getEnvVar = (name: string, defaultValue: string = ''): string => {
-  const envVar = import.meta.env[`VITE_${name}`];
-  return envVar !== undefined ? String(envVar) : defaultValue;
-};
-
-const getBoolEnvVar = (name: string, defaultValue: boolean = false): boolean => {
-  const envVar = getEnvVar(name, String(defaultValue));
-  return envVar.toLowerCase() === 'true';
-};
-
-const getNumEnvVar = (name: string, defaultValue: number): number => {
-  const envVar = getEnvVar(name, String(defaultValue));
-  const parsed = parseFloat(envVar);
-  return isNaN(parsed) ? defaultValue : parsed;
-};
-
-// Create and export environment configuration
-export const config: EnvironmentConfig = {
-  // API & Services
-  stellarNetwork: getEnvVar('STELLAR_NETWORK', 'TESTNET') as 'TESTNET' | 'PUBLIC',
-  horizonUrl: getEnvVar('HORIZON_URL', 'https://horizon-testnet.stellar.org'),
-  supabaseUrl: getEnvVar('SUPABASE_URL', ''),
-  supabaseAnonKey: getEnvVar('SUPABASE_ANON_KEY', ''),
-  
-  // Feature Flags
-  enableTestFeatures: getBoolEnvVar('ENABLE_TEST_FEATURES', true),
-  enableDetailedLogs: getBoolEnvVar('ENABLE_DETAILED_LOGS', true),
-  
-  // Analytics
-  analyticsEnabled: getBoolEnvVar('ANALYTICS_ENABLED', false),
-  analyticsKey: getEnvVar('ANALYTICS_KEY', null),
-  
-  // App Configuration
-  maxTransactionAmount: getNumEnvVar('MAX_TRANSACTION_AMOUNT', 1000),
-  defaultCurrency: getEnvVar('DEFAULT_CURRENCY', 'USD'),
-  apiTimeout: getNumEnvVar('API_TIMEOUT', 30000),
-};
-
-// Helper function to log configuration on app startup
-export const logEnvironmentConfig = (): void => {
-  if (config.enableDetailedLogs) {
-    console.log('Environment Configuration:', {
-      ...config,
-      // Hide sensitive keys
-      supabaseAnonKey: config.supabaseAnonKey ? '[HIDDEN]' : null,
-      analyticsKey: config.analyticsKey ? '[HIDDEN]' : null,
-    });
-  }
-};
-
-// Validate critical configuration
-export const validateEnvironmentConfig = (): string[] => {
-  const errors: string[] = [];
-  
-  if (!config.supabaseUrl && process.env.NODE_ENV === 'production') {
-    errors.push('Missing Supabase URL in production environment');
-  }
-  
-  if (!config.supabaseAnonKey && process.env.NODE_ENV === 'production') {
-    errors.push('Missing Supabase anonymous key in production environment');
-  }
-  
-  return errors;
-};

@@ -10,4 +10,16 @@ if (!container) {
 }
 
 const root = createRoot(container);
-root.render(<App />);
+
+// Use StrictMode only in development for better debugging
+const isDevelopment = import.meta.env.DEV;
+
+root.render(
+  isDevelopment ? (
+    <React.StrictMode>
+      <App />
+    </React.StrictMode>
+  ) : (
+    <App />
+  )
+);

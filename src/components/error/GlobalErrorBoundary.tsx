@@ -3,6 +3,8 @@ import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw, Home, Bug } from "lucide-react";
 import { toast } from "sonner";
+import { errorTracker } from '@/utils/error-tracking';
+import { ENV } from '@/config/environment';
 
 interface Props {
   children: ReactNode;
@@ -35,14 +37,32 @@ class GlobalErrorBoundary extends Component<Props, State> {
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('GlobalErrorBoundary caught an error:', error, errorInfo);
     
+    // Track error with enhanced context
+    const errorId = errorTracker.captureError(
+      error,
+      {
+        component: 'GlobalErrorBoundary',
+        action: 'component_error',
+        metadata: {
+          componentStack: errorInfo.componentStack,
+          errorBoundary: true,
+          url: window.location.href,
+          userAgent: navigator.userAgent
+        }
+      },
+      'critical'
+    );
+    
     // Store error details for debugging
     const errorDetails = {
+      errorId,
       error: error.message,
       stack: error.stack,
       componentStack: errorInfo.componentStack,
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
-      url: window.location.href
+      url: window.location.href,
+      userId: this.getCurrentUserId()
     };
     
     // Store in localStorage for debugging
@@ -58,9 +78,25 @@ class GlobalErrorBoundary extends Component<Props, State> {
     }
     
     // Show user-friendly toast
-    toast.error('Something went wrong. The error has been logged.');
+    const userMessage = ENV.isDevelopment 
+      ? `Error: ${error.message}` 
+      : 'Something went wrong. The error has been logged.';
+    toast.error(userMessage);
     
     this.setState({ errorInfo });
+  }
+
+  private getCurrentUserId(): string | undefined {
+    try {
+      const authData = localStorage.getItem('supabase.auth.token');
+      if (authData) {
+        const parsed = JSON.parse(authData);
+        return parsed?.user?.id;
+      }
+    } catch {
+      // Ignore errors when getting user ID
+    }
+    return undefined;
   }
 
   private handleReload = () => {

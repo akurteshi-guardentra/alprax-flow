@@ -49,15 +49,16 @@ const Index = () => {
             transition={{ duration: 0.8 }}
             className="flex flex-col items-center justify-center w-full text-center"
           >
-            <div className="mb-8 w-full flex justify-center">
-              <AlpraxBrandHeader size="xl" showTagline className="text-center w-full" />
+            <div className="mb-8">
+              <AlpraxBrandHeader size="xl" showTagline />
             </div>
             
             <motion.div
+              key="actions"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="flex flex-col items-center justify-center space-y-4 w-full max-w-sm mx-auto text-center px-4"
+              className="flex flex-col items-center space-y-4 w-full max-w-sm mx-auto px-4"
             >
               <Button
                 onClick={() => navigate('/welcome')}

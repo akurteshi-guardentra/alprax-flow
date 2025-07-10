@@ -151,7 +151,7 @@ const AppContent = () => {
                 </Routes>
                 {isMobile && <MobileBottomNav />}
                 <PerformanceInfo />
-                {isMobile && <DeviceInfoPanel />}
+                <DeviceInfoPanel />
               </BrowserRouter>
             </TooltipProvider>
           </AuthProvider>

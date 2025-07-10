@@ -39,9 +39,8 @@ export function AlpraxLogo({
     }
   };
   const Component = animated ? motion.div : 'div';
-  return <Component className={cn("font-bold tracking-tight select-none text-center flex items-center justify-center w-full", sizeClasses[size], variantClasses[variant], className)} {...animated ? logoAnimation : {}}>
-      <span className="font-display text-justify">Alprax</span>
-      
+  return <Component className={cn("font-bold tracking-tight select-none flex items-center justify-center", sizeClasses[size], variantClasses[variant], className)} {...animated ? logoAnimation : {}}>
+      <span className="font-display">Alprax</span>
     </Component>;
 }
 
@@ -51,18 +50,15 @@ export function AlpraxTagline({
 }: {
   className?: string;
 }) {
-  return <motion.p initial={{
-    opacity: 0,
-    y: 10
-  }} animate={{
-    opacity: 1,
-    y: 0
-  }} transition={{
-    delay: 0.3,
-    duration: 0.5
-  }} className={cn("text-white/70 text-sm font-medium text-center w-full", className)}>
-      Send money anywhere, instantly
-    </motion.p>;
+  return <motion.p 
+    key="tagline"
+    initial={{ opacity: 0, y: 10 }} 
+    animate={{ opacity: 1, y: 0 }} 
+    transition={{ delay: 0.3, duration: 0.5 }} 
+    className={cn("text-white/70 text-sm font-medium", className)}
+  >
+    Send money anywhere, instantly
+  </motion.p>;
 }
 
 // Complete brand header component
@@ -75,8 +71,8 @@ export function AlpraxBrandHeader({
   size?: 'sm' | 'md' | 'lg' | 'xl';
   className?: string;
 }) {
-  return <div className={cn("text-center flex flex-col items-center justify-center w-full", className)}>
-      <AlpraxLogo size={size} variant="gradient" animated className="w-full text-center" />
-      {showTagline && <AlpraxTagline className="mt-2 w-full text-center" />}
+  return <div className={cn("flex flex-col items-center justify-center", className)}>
+      <AlpraxLogo size={size} variant="gradient" animated />
+      {showTagline && <AlpraxTagline className="mt-2" />}
     </div>;
 }

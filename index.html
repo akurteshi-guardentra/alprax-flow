@@ -4,8 +4,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Alprax - Your Crypto Gateway</title>
-    <meta name="description" content="Alprax - Your Gateway to Crypto Powered by Stellar Network" />
+    <title>Alprax Financial - Secure Cross-Border Payments</title>
+    <meta name="description" content="Secure, fast cross-border payments with competitive exchange rates and low fees. Send money worldwide with Alprax Financial." />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#3B82F6">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Alprax">
+    <meta name="msapplication-TileColor" content="#3B82F6">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    
+    <!-- PWA Links -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="/icon-512.png">
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; connect-src 'self' https:; font-src 'self' https:;">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="X-XSS-Protection" content="1; mode=block">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    
     <meta name="author" content="Alprax" />
     <meta property="og:image" content="/og-image.png" />
   </head>
@@ -14,5 +36,20 @@
     <div id="root"></div>
     <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
     <script type="module" src="/src/main.tsx"></script>
+    
+    <!-- Service Worker Registration -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        });
+      }
+    </script>
   </body>
 </html>

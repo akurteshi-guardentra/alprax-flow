@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
 import { StellarAccount } from './types';
 import { server } from './config';
+import { encryptStellarSecret } from '../encryption';
 
 export async function createAccount(): Promise<StellarAccount | null> {
   try {
@@ -12,10 +13,8 @@ export async function createAccount(): Promise<StellarAccount | null> {
     const publicKey = keypair.publicKey();
     const secretKey = keypair.secret();
     
-    // TODO: Implement proper encryption of the secret key
-    // For now, we'll store it encrypted with a simple encoding
-    // This should be replaced with proper encryption in production
-    const encryptedSecret = btoa(secretKey);
+    // Use proper encryption for the secret key
+    const encryptedSecret = await encryptStellarSecret(secretKey);
 
     const { data: { user } } = await supabase.auth.getUser();
     

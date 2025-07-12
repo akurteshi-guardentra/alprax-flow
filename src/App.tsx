@@ -12,6 +12,9 @@ import { MobileBottomNav } from "@/components/MobileBottomNav";
 import { PerformanceInfo } from "@/components/ui/performance-info";
 import { DeviceInfoPanel } from "@/components/mobile/DeviceInfoPanel";
 import { ProductionDebugPanel } from "@/components/debug/ProductionDebugPanel";
+import { InstallPrompt } from "@/components/ui/InstallPrompt";
+import { UpdatePrompt } from "@/components/ui/UpdatePrompt";
+import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { authService } from "@/services/AuthService";
 import { errorTracker } from "@/utils/error-tracking";
 import { performanceMonitor } from "@/utils/performance";
@@ -35,6 +38,8 @@ import Help from "./pages/Help";
 import Setup2FA from "./pages/Setup2FA";
 import BiometricAuthSetup from "./pages/BiometricAuthSetup";
 import KYC from "./pages/KYC";
+import Analytics from "./pages/Analytics";
+import SystemHealth from "./pages/SystemHealth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -166,8 +171,21 @@ const AppContent = () => {
                       <KYC />
                     </AuthGuard>
                   } />
+                  <Route path="/analytics" element={
+                    <AuthGuard requireAuth={true}>
+                      <Analytics />
+                    </AuthGuard>
+                  } />
+                  <Route path="/system-health" element={
+                    <AuthGuard requireAuth={true}>
+                      <SystemHealth />
+                    </AuthGuard>
+                  } />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
+                <InstallPrompt />
+                <UpdatePrompt />
+                <OfflineIndicator />
                 {isMobile && <MobileBottomNav />}
                 <PerformanceInfo />
                 <DeviceInfoPanel />

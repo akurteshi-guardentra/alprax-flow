@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { StellarAccount } from '@/lib/stellar/types';
 import { server } from '@/lib/stellar/config';
+import { encryptStellarSecret } from '../encryption';
 
 /**
  * Create a Stellar account for a specific user without requiring their direct interaction
@@ -16,10 +17,8 @@ export async function createStellarAccountForUser(userId: string): Promise<Stell
     const publicKey = keypair.publicKey();
     const secretKey = keypair.secret();
     
-    // TODO: Implement proper encryption of the secret key
-    // For now, we'll store it encrypted with a simple encoding
-    // This should be replaced with proper encryption in production
-    const encryptedSecret = btoa(secretKey);
+    // Use proper encryption for the secret key
+    const encryptedSecret = await encryptStellarSecret(secretKey);
 
     // Store the account in the database
     const { data, error } = await supabase

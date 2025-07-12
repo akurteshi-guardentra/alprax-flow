@@ -33,21 +33,7 @@ export const LoginForm = ({
   const [showPassword, setShowPassword] = useState(false);
   
   return (
-    <>
-      <div className="unified-header">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          <h2 className="unified-title">Welcome back</h2>
-          <p className="unified-subtitle">
-            Log in to manage your money
-          </p>
-        </motion.div>
-      </div>
-      
-      <form onSubmit={onSubmit} className="space-y-6 mt-8">
+    <form onSubmit={onSubmit} className="space-y-6">
         <div className="space-y-4">
           <div className="relative group">
             <Mail className="absolute left-3 top-3 h-5 w-5 text-white/40 group-focus-within:text-primary-light transition-colors" />
@@ -158,7 +144,6 @@ export const LoginForm = ({
             </p>
           </div>
         </div>
-      </form>
-    </>
+    </form>
   );
 };

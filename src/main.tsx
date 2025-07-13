@@ -3,6 +3,35 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { logger } from '@/utils/logger'
+import { monitor } from '@/utils/monitoring'
+
+// Initialize monitoring
+monitor.initialize()
+
+// Performance monitoring
+const startTime = performance.now()
+
+// Error boundary for uncaught errors
+window.addEventListener('error', (event) => {
+  logger.error('Uncaught error', {
+    metadata: {
+      message: event.message,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+      error: event.error
+    }
+  })
+})
+
+window.addEventListener('unhandledrejection', (event) => {
+  logger.error('Unhandled promise rejection', {
+    metadata: {
+      reason: event.reason
+    }
+  })
+})
 
 const container = document.getElementById("root");
 if (!container) {
@@ -23,3 +52,9 @@ root.render(
     <App />
   )
 );
+
+// Log app startup time
+window.addEventListener('load', () => {
+  const loadTime = performance.now() - startTime
+  logger.info('App loaded', { metadata: { loadTime } })
+})

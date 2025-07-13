@@ -1,7 +1,7 @@
 import { supabase } from '@/integrations/supabase/client';
 import { PaymentErrorService } from './PaymentErrorService';
 import { captureError } from '@/utils/error-tracking';
-import { transactionRateLimiter, withRateLimit } from '@/utils/rate-limiting';
+import { rateLimiter, RATE_LIMITS } from '@/utils/rate-limiting';
 
 export interface QueuedTransaction {
   id: string;

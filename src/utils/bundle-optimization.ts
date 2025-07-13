@@ -1,97 +1,64 @@
-// Bundle size optimization utilities
+import React from 'react'
+import { logger } from './logger'
 
-// Lazy load expensive libraries only when needed
-export const lazyImports = {
-  // QR Code libraries
-  qrCode: () => import('qrcode'),
-  
-  // Chart libraries (for analytics)
-  recharts: () => import('recharts'),
-  
-  // Animation libraries
-  framerMotion: () => import('framer-motion'),
-  
-  // Form validation
-  zod: () => import('zod'),
-  
-  // Date utilities
-  dateFns: () => import('date-fns'),
-};
-
-// Tree-shakable utility for loading libraries
-export async function loadLibrary<T>(
-  libraryLoader: () => Promise<T>,
-  fallback?: () => T
-): Promise<T> {
-  try {
-    return await libraryLoader();
-  } catch (error) {
-    console.warn('Failed to load library:', error);
-    if (fallback) {
-      return fallback();
-    }
-    throw error;
-  }
-}
-
-// Code splitting helper for route-based chunks
-export function createRouteChunk<T>(
+// Lazy loading utilities
+export const lazyLoad = <T extends React.ComponentType<any>>(
   importFn: () => Promise<{ default: T }>,
-  chunkName?: string
-) {
-  return () => {
-    if (chunkName && process.env.NODE_ENV === 'development') {
-      console.log(`Loading chunk: ${chunkName}`);
-    }
-    return importFn();
-  };
-}
-
-// Bundle analyzer helper (development only)
-export function analyzeBundleSize() {
-  if (process.env.NODE_ENV === 'development') {
-    const estimate = {
-      components: document.querySelectorAll('[data-component]').length,
-      scripts: document.scripts.length,
-      stylesheets: document.styleSheets.length,
-      images: document.images.length
-    };
-    
-    console.log('Bundle composition estimate:', estimate);
-    return estimate;
+  fallback?: React.ComponentType
+) => {
+  const LazyComponent = React.lazy(importFn)
+  
+  return (props: React.ComponentProps<T>) => {
+    return React.createElement(
+      React.Suspense,
+      { fallback: fallback ? React.createElement(fallback) : React.createElement('div', {}, 'Loading...') },
+      React.createElement(LazyComponent, props)
+    )
   }
 }
 
-// Preload critical resources
-export function preloadCriticalResources() {
-  const criticalResources = [
-    '/assets/logo.svg',
-    '/fonts/inter-var.woff2'
-  ];
+// Preload utilities
+export const preloadComponent = (importFn: () => Promise<any>) => {
+  importFn().catch(error => {
+    logger.warn('Component preload failed', { metadata: { error: error.message } })
+  })
+}
+
+export const preloadRoute = (route: string) => {
+  const link = document.createElement('link')
+  link.rel = 'prefetch'
+  link.href = route
+  document.head.appendChild(link)
+  logger.info('Route preloaded', { metadata: { route } })
+}
+
+export const preloadCriticalResources = () => {
+  const criticalResources = ['/fonts/inter.woff2', '/images/logo.svg']
   
   criticalResources.forEach(resource => {
-    const link = document.createElement('link');
-    link.rel = 'preload';
-    link.href = resource;
-    link.as = resource.endsWith('.woff2') ? 'font' : 'image';
-    if (link.as === 'font') {
-      link.crossOrigin = 'anonymous';
+    const link = document.createElement('link')
+    link.rel = 'preload'
+    link.href = resource
+    
+    if (resource.includes('.woff')) {
+      link.as = 'font'
+      link.crossOrigin = 'anonymous'
+    } else if (resource.includes('.svg') || resource.includes('.png')) {
+      link.as = 'image'
     }
-    document.head.appendChild(link);
-  });
+    
+    document.head.appendChild(link)
+  })
+  
+  logger.info('Critical resources preloaded', { metadata: { count: criticalResources.length } })
 }
 
-// Performance budget monitoring
-export function checkPerformanceBudget() {
-  if ('connection' in navigator) {
-    const connection = (navigator as any).connection;
-    const isSlowConnection = connection.effectiveType === '2g' || connection.effectiveType === 'slow-2g';
-    
-    if (isSlowConnection) {
-      console.warn('Slow connection detected, consider loading minimal resources');
-      return { slow: true, effectiveType: connection.effectiveType };
-    }
+export const isFeatureEnabled = (feature: string): boolean => {
+  const features = {
+    'advanced-analytics': true,
+    'experimental-ui': false,
+    'beta-features': false
   }
   
-  return { slow: false };
+  return features[feature as keyof typeof features] || false
 }

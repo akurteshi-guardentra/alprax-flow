@@ -1,418 +1,190 @@
-/**
- * Deployment health and readiness utilities
- * Ensures the application is production-ready
- */
-
-import { ENV } from '@/config/environment';
-import { supabase } from '@/integrations/supabase/client';
-
-export interface HealthCheckResult {
-  name: string;
-  status: 'pass' | 'fail' | 'warn';
-  message: string;
-  data?: any;
+interface HealthCheck {
+  name: string
+  status: 'healthy' | 'warning' | 'error'
+  message: string
+  timestamp: number
+  details?: any
 }
 
-export interface DeploymentReadinessReport {
-  overall: 'ready' | 'not-ready' | 'degraded';
-  checks: HealthCheckResult[];
-  timestamp: string;
-  version: string;
+interface DeploymentHealth {
+  overall: 'healthy' | 'warning' | 'error'
+  checks: HealthCheck[]
+  timestamp: number
+  environment: string
+  version: string
 }
 
-/**
- * Comprehensive deployment readiness checker
- */
-export class DeploymentHealthChecker {
-  /**
-   * Run all health checks
-   */
-  async runAllChecks(): Promise<DeploymentReadinessReport> {
-    const checks: HealthCheckResult[] = [];
-
-    // Environment configuration check
-    checks.push(await this.checkEnvironmentConfig());
+class DeploymentHealthChecker {
+  private checks: HealthCheck[] = []
+  
+  async runHealthChecks(): Promise<DeploymentHealth> {
+    this.checks = []
     
-    // Database connectivity check
-    checks.push(await this.checkDatabaseConnectivity());
+    // Check critical services
+    await this.checkSupabaseConnection()
+    await this.checkLocalStorage()
+    await this.checkPerformance()
+    await this.checkSecurityHeaders()
+    await this.checkServiceWorker()
     
-    // Authentication system check
-    checks.push(await this.checkAuthSystem());
+    const overall = this.getOverallHealth()
     
-    // Storage system check
-    checks.push(await this.checkStorageSystem());
-    
-    // Security configuration check
-    checks.push(await this.checkSecurityConfig());
-    
-    // Performance check
-    checks.push(await this.checkPerformance());
-    
-    // Dependencies check
-    checks.push(await this.checkDependencies());
-
-    // Determine overall status
-    const failedChecks = checks.filter(c => c.status === 'fail');
-    const warnChecks = checks.filter(c => c.status === 'warn');
-    
-    let overall: DeploymentReadinessReport['overall'] = 'ready';
-    if (failedChecks.length > 0) {
-      overall = 'not-ready';
-    } else if (warnChecks.length > 0) {
-      overall = 'degraded';
-    }
-
     return {
       overall,
-      checks,
-      timestamp: new Date().toISOString(),
-      version: ENV.APP_VERSION
-    };
+      checks: this.checks,
+      timestamp: Date.now(),
+      environment: this.getEnvironment(),
+      version: this.getVersion()
+    }
   }
 
-  /**
-   * Check environment configuration
-   */
-  private async checkEnvironmentConfig(): Promise<HealthCheckResult> {
+  private async checkSupabaseConnection(): Promise<void> {
     try {
-      const issues: string[] = [];
-
-      // Check required environment variables
-      if (!ENV.SUPABASE_URL) issues.push('SUPABASE_URL not configured');
-      if (!ENV.SUPABASE_ANON_KEY) issues.push('SUPABASE_ANON_KEY not configured');
-      
-      // Check production-specific settings
-      if (!ENV.isDevelopment) {
-        if (!ENV.FEATURES.ENABLE_ERROR_REPORTING) {
-          issues.push('Error reporting should be enabled in production');
+      const response = await fetch('https://vixpxmvsndusngxdmjuv.supabase.co/rest/v1/', {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZpeHB4bXZzbmR1c25neGRtanV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mzg2ODI4NjYsImV4cCI6MjA1NDI1ODg2Nn0.P4isRrXOmEkgcSAoI4iQFxKm0eX6Bk0Lk7hBlTyXsyI'
         }
-        if (!ENV.FEATURES.ENABLE_PERFORMANCE_MONITORING) {
-          issues.push('Performance monitoring should be enabled in production');
+      })
+      
+      if (response.ok) {
+        this.addCheck('supabase', 'healthy', 'Supabase connection successful')
+      } else {
+        this.addCheck('supabase', 'error', `Supabase connection failed: ${response.status}`)
+      }
+    } catch (error) {
+      this.addCheck('supabase', 'error', `Supabase connection error: ${error}`)
+    }
+  }
+
+  private async checkLocalStorage(): Promise<void> {
+    try {
+      const testKey = 'health_check_test'
+      const testValue = Date.now().toString()
+      
+      localStorage.setItem(testKey, testValue)
+      const retrieved = localStorage.getItem(testKey)
+      localStorage.removeItem(testKey)
+      
+      if (retrieved === testValue) {
+        this.addCheck('localstorage', 'healthy', 'LocalStorage functioning correctly')
+      } else {
+        this.addCheck('localstorage', 'error', 'LocalStorage read/write test failed')
+      }
+    } catch (error) {
+      this.addCheck('localstorage', 'error', `LocalStorage error: ${error}`)
+    }
+  }
+
+  private async checkPerformance(): Promise<void> {
+    try {
+      const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming
+      
+      if (navigation) {
+        const loadTime = navigation.loadEventEnd - navigation.fetchStart
+        
+        if (loadTime < 3000) {
+          this.addCheck('performance', 'healthy', `Page load time: ${loadTime.toFixed(0)}ms`)
+        } else if (loadTime < 5000) {
+          this.addCheck('performance', 'warning', `Page load time slow: ${loadTime.toFixed(0)}ms`)
+        } else {
+          this.addCheck('performance', 'error', `Page load time too slow: ${loadTime.toFixed(0)}ms`)
         }
+      } else {
+        this.addCheck('performance', 'warning', 'Navigation timing not available')
       }
-
-      if (issues.length > 0) {
-        return {
-          name: 'Environment Configuration',
-          status: 'fail',
-          message: `Configuration issues: ${issues.join(', ')}`,
-          data: { issues }
-        };
-      }
-
-      return {
-        name: 'Environment Configuration',
-        status: 'pass',
-        message: 'All environment variables properly configured'
-      };
     } catch (error) {
-      return {
-        name: 'Environment Configuration',
-        status: 'fail',
-        message: `Failed to check environment: ${error}`
-      };
+      this.addCheck('performance', 'error', `Performance check error: ${error}`)
     }
   }
 
-  /**
-   * Check database connectivity
-   */
-  private async checkDatabaseConnectivity(): Promise<HealthCheckResult> {
+  private async checkSecurityHeaders(): Promise<void> {
     try {
-      const start = Date.now();
+      const isHTTPS = location.protocol === 'https:'
+      const hasSecureContext = window.isSecureContext
       
-      // Simple query to test connectivity
-      const { error } = await supabase
-        .from('profiles')
-        .select('id')
-        .limit(1);
-
-      const latency = Date.now() - start;
-
-      if (error) {
-        return {
-          name: 'Database Connectivity',
-          status: 'fail',
-          message: `Database error: ${error.message}`,
-          data: { latency, error: error.message }
-        };
+      if (isHTTPS && hasSecureContext) {
+        this.addCheck('security', 'healthy', 'Running in secure context with HTTPS')
+      } else if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+        this.addCheck('security', 'warning', 'Development environment - security checks skipped')
+      } else {
+        this.addCheck('security', 'error', 'Not running in secure context - HTTPS required')
       }
-
-      const status = latency > 2000 ? 'warn' : 'pass';
-      const message = latency > 2000 
-        ? `Database responsive but slow (${latency}ms)`
-        : `Database responsive (${latency}ms)`;
-
-      return {
-        name: 'Database Connectivity',
-        status,
-        message,
-        data: { latency }
-      };
     } catch (error) {
-      return {
-        name: 'Database Connectivity',
-        status: 'fail',
-        message: `Database connectivity failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
+      this.addCheck('security', 'error', `Security check error: ${error}`)
     }
   }
 
-  /**
-   * Check authentication system
-   */
-  private async checkAuthSystem(): Promise<HealthCheckResult> {
+  private async checkServiceWorker(): Promise<void> {
     try {
-      const start = Date.now();
-      
-      // Test auth system by getting current session
-      const { data, error } = await supabase.auth.getSession();
-      const latency = Date.now() - start;
-
-      if (error) {
-        return {
-          name: 'Authentication System',
-          status: 'fail',
-          message: `Auth system error: ${error.message}`,
-          data: { latency, error: error.message }
-        };
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.getRegistration()
+        
+        if (registration) {
+          this.addCheck('serviceworker', 'healthy', 'Service Worker registered')
+        } else {
+          this.addCheck('serviceworker', 'warning', 'Service Worker not registered')
+        }
+      } else {
+        this.addCheck('serviceworker', 'warning', 'Service Worker not supported')
       }
-
-      return {
-        name: 'Authentication System',
-        status: 'pass',
-        message: `Authentication system operational (${latency}ms)`,
-        data: { latency, hasSession: !!data.session }
-      };
     } catch (error) {
-      return {
-        name: 'Authentication System',
-        status: 'fail',
-        message: `Auth system check failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
+      this.addCheck('serviceworker', 'error', `Service Worker check error: ${error}`)
     }
   }
 
-  /**
-   * Check storage system
-   */
-  private async checkStorageSystem(): Promise<HealthCheckResult> {
-    try {
-      const start = Date.now();
-      
-      // Test storage by listing buckets
-      const { data, error } = await supabase.storage.listBuckets();
-      const latency = Date.now() - start;
-
-      if (error) {
-        return {
-          name: 'Storage System',
-          status: 'fail',
-          message: `Storage error: ${error.message}`,
-          data: { latency, error: error.message }
-        };
-      }
-
-      return {
-        name: 'Storage System',
-        status: 'pass',
-        message: `Storage system operational (${latency}ms)`,
-        data: { latency, bucketCount: data?.length || 0 }
-      };
-    } catch (error) {
-      return {
-        name: 'Storage System',
-        status: 'fail',
-        message: `Storage system check failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
-    }
+  private addCheck(name: string, status: HealthCheck['status'], message: string, details?: any): void {
+    this.checks.push({
+      name,
+      status,
+      message,
+      timestamp: Date.now(),
+      details
+    })
   }
 
-  /**
-   * Check security configuration
-   */
-  private async checkSecurityConfig(): Promise<HealthCheckResult> {
-    try {
-      const issues: string[] = [];
+  private getOverallHealth(): 'healthy' | 'warning' | 'error' {
+    const hasError = this.checks.some(check => check.status === 'error')
+    const hasWarning = this.checks.some(check => check.status === 'warning')
+    
+    if (hasError) return 'error'
+    if (hasWarning) return 'warning'
+    return 'healthy'
+  }
 
-      // Check HTTPS in production
-      if (!ENV.isDevelopment && window.location.protocol !== 'https:') {
-        issues.push('Application should use HTTPS in production');
-      }
+  private getEnvironment(): string {
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      return 'development'
+    }
+    if (location.hostname.includes('staging') || location.hostname.includes('test')) {
+      return 'staging'
+    }
+    return 'production'
+  }
 
-      // Check security headers (simplified check)
+  private getVersion(): string {
+    return document.querySelector('meta[name="version"]')?.getAttribute('content') || '1.0.0'
+  }
+
+  startContinuousMonitoring(intervalMs: number = 5 * 60 * 1000): () => void {
+    const interval = setInterval(async () => {
       try {
-        const response = await fetch(window.location.href, { method: 'HEAD' });
-        const headers = response.headers;
-
-        if (!headers.get('X-Content-Type-Options')) {
-          issues.push('Missing X-Content-Type-Options header');
+        const health = await this.runHealthChecks()
+        
+        if (health.overall === 'error') {
+          console.error('Health check failed:', health)
+        } else if (health.overall === 'warning') {
+          console.warn('Health check warnings:', health)
         }
-        if (!headers.get('X-Frame-Options')) {
-          issues.push('Missing X-Frame-Options header');
-        }
+        
+        sessionStorage.setItem('app_health_status', JSON.stringify(health))
       } catch (error) {
-        issues.push('Could not check security headers');
+        console.error('Health monitoring error:', error)
       }
+    }, intervalMs)
 
-      // Check Content Security Policy
-      const metaCSP = document.querySelector('meta[http-equiv="Content-Security-Policy"]');
-      if (!metaCSP && !ENV.isDevelopment) {
-        issues.push('Content Security Policy not configured');
-      }
-
-      if (issues.length > 0) {
-        return {
-          name: 'Security Configuration',
-          status: 'warn',
-          message: `Security recommendations: ${issues.join(', ')}`,
-          data: { issues }
-        };
-      }
-
-      return {
-        name: 'Security Configuration',
-        status: 'pass',
-        message: 'Security configuration looks good'
-      };
-    } catch (error) {
-      return {
-        name: 'Security Configuration',
-        status: 'fail',
-        message: `Security check failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
-    }
-  }
-
-  /**
-   * Check application performance
-   */
-  private async checkPerformance(): Promise<HealthCheckResult> {
-    try {
-      const issues: string[] = [];
-      const perfData: any = {};
-
-      // Check page load performance
-      if ('performance' in window) {
-        const navigation = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming;
-        if (navigation) {
-          const loadTime = navigation.loadEventEnd - navigation.loadEventStart;
-          const domContentLoaded = navigation.domContentLoadedEventEnd - navigation.domContentLoadedEventStart;
-          
-          perfData.loadTime = loadTime;
-          perfData.domContentLoaded = domContentLoaded;
-
-          if (loadTime > 3000) {
-            issues.push(`Slow page load time: ${loadTime}ms`);
-          }
-        }
-
-        // Check memory usage
-        if ('memory' in performance) {
-          const memInfo = (performance as any).memory;
-          const memUsage = (memInfo.usedJSHeapSize / memInfo.totalJSHeapSize) * 100;
-          
-          perfData.memoryUsage = memUsage;
-
-          if (memUsage > 80) {
-            issues.push(`High memory usage: ${memUsage.toFixed(1)}%`);
-          }
-        }
-      }
-
-      // Check bundle size (simplified)
-      const scriptTags = document.querySelectorAll('script[src]');
-      if (scriptTags.length > 10) {
-        issues.push(`Many script tags (${scriptTags.length}), consider bundling`);
-      }
-
-      const status = issues.length > 0 ? 'warn' : 'pass';
-      const message = issues.length > 0 
-        ? `Performance issues: ${issues.join(', ')}`
-        : 'Performance metrics look good';
-
-      return {
-        name: 'Performance',
-        status,
-        message,
-        data: perfData
-      };
-    } catch (error) {
-      return {
-        name: 'Performance',
-        status: 'fail',
-        message: `Performance check failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
-    }
-  }
-
-  /**
-   * Check critical dependencies
-   */
-  private async checkDependencies(): Promise<HealthCheckResult> {
-    try {
-      const issues: string[] = [];
-
-      // Check critical APIs availability
-      const criticalAPIs = [
-        { name: 'Stellar Network', url: 'https://horizon.stellar.org' },
-        { name: 'Supabase', url: ENV.SUPABASE_URL }
-      ];
-
-      for (const api of criticalAPIs) {
-        try {
-          const response = await fetch(api.url, { 
-            method: 'HEAD',
-            mode: 'no-cors' // Avoid CORS issues for basic connectivity check
-          });
-          // If no error thrown, API is reachable
-        } catch (error) {
-          issues.push(`${api.name} not reachable`);
-        }
-      }
-
-      // Check browser compatibility
-      const requiredFeatures = [
-        'fetch',
-        'Promise',
-        'localStorage',
-        'crypto'
-      ];
-
-      for (const feature of requiredFeatures) {
-        if (!(feature in window)) {
-          issues.push(`Browser missing ${feature} support`);
-        }
-      }
-
-      if (issues.length > 0) {
-        return {
-          name: 'Dependencies',
-          status: 'warn',
-          message: `Dependency issues: ${issues.join(', ')}`,
-          data: { issues }
-        };
-      }
-
-      return {
-        name: 'Dependencies',
-        status: 'pass',
-        message: 'All dependencies available'
-      };
-    } catch (error) {
-      return {
-        name: 'Dependencies',
-        status: 'fail',
-        message: `Dependency check failed: ${error}`,
-        data: { error: error instanceof Error ? error.message : 'Unknown error' }
-      };
-    }
+    return () => clearInterval(interval)
   }
 }
 
-export const deploymentHealthChecker = new DeploymentHealthChecker();
+export const deploymentHealthChecker = new DeploymentHealthChecker()
+export type { DeploymentHealth, HealthCheck }

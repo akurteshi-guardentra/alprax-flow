@@ -12,6 +12,8 @@ import { performanceProfiler } from '@/utils/performance-profiler'
 import { prefetchManager } from '@/utils/prefetch-utils'
 import { preloader } from '@/utils/preloader'
 import { browserDetection } from '@/utils/browser-detection'
+import { deploymentHealthChecker } from '@/utils/deployment-health'
+import { bundleOptimizer } from '@/utils/bundle-optimization'
 
 // Initialize all production utilities
 monitor.initialize()
@@ -20,9 +22,6 @@ NetworkResilience.initialize()
 // ErrorTracker initializes itself when imported
 
 // Initialize performance profiling
-console.log('performanceProfiler:', performanceProfiler)
-console.log('performanceProfiler.timing:', performanceProfiler.timing)
-console.log('typeof performanceProfiler.timing:', typeof performanceProfiler.timing)
 performanceProfiler.timing('app_init_start', performance.now())
 
 // Check browser compatibility
@@ -37,11 +36,19 @@ if (compatibilityIssues.length > 0) {
 // Enable smart prefetching
 prefetchManager.enableSmartPrefetching()
 
+// Initialize bundle optimization
+bundleOptimizer.initialize()
+
 // Preload critical resources
 preloader.preloadCriticalPath({
   css: [],
   js: [],
   images: []
+})
+
+// Run initial health check
+deploymentHealthChecker.runHealthChecks().then(health => {
+  logger.info('Initial health check completed', { metadata: { health } })
 })
 
 // Performance monitoring
@@ -78,13 +85,20 @@ const root = createRoot(container);
 // Use StrictMode only in development for better debugging
 const isDevelopment = import.meta.env.DEV;
 
+// Import mobile optimizations
+import { MobileOptimizations } from '@/components/mobile/MobileOptimizations'
+
 root.render(
   isDevelopment ? (
     <React.StrictMode>
-      <App />
+      <MobileOptimizations>
+        <App />
+      </MobileOptimizations>
     </React.StrictMode>
   ) : (
-    <App />
+    <MobileOptimizations>
+      <App />
+    </MobileOptimizations>
   )
 );
 

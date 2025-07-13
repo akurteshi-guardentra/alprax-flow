@@ -199,7 +199,23 @@ class PrefetchManager {
       pendingCount: this.prefetchPromises.size
     }
   }
+
+  // Check network connection quality
+  checkConnectionQuality(): boolean {
+    const connection = (navigator as any).connection
+    if (!connection) return true // Assume good connection if not available
+    
+    const goodConnection = connection.effectiveType === '4g' || 
+                          connection.effectiveType === '3g'
+    return goodConnection && !connection.saveData
+  }
 }
 
 export const prefetchManager = new PrefetchManager()
+
+// Export convenience functions
+export const prefetchResources = (resources: string[]) => {
+  resources.forEach(resource => prefetchManager.prefetchResource(resource))
+}
+export const hasGoodConnection = () => prefetchManager.checkConnectionQuality()
 export type { PrefetchOptions, ResourceHint }

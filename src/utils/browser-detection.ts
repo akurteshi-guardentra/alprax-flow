@@ -2,6 +2,11 @@ interface BrowserInfo {
   name: string
   version: string
   isSupported: boolean
+  os: string
+  isMobile: boolean
+  isTablet: boolean
+  isDesktop: boolean
+  prefersReducedMotion: boolean
   features: {
     webgl: boolean
     localStorage: boolean
@@ -29,6 +34,7 @@ class BrowserDetection {
     const userAgent = navigator.userAgent
     let name = 'Unknown'
     let version = 'Unknown'
+    let os = 'Unknown'
 
     // Detect browser
     if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
@@ -45,6 +51,21 @@ class BrowserDetection {
       version = userAgent.match(/Edg\/([0-9.]+)/)?.[1] || 'Unknown'
     }
 
+    // Detect OS
+    if (userAgent.includes('Windows')) os = 'Windows'
+    else if (userAgent.includes('Mac')) os = 'macOS'
+    else if (userAgent.includes('Linux')) os = 'Linux'
+    else if (userAgent.includes('Android')) os = 'Android'
+    else if (userAgent.includes('iOS')) os = 'iOS'
+
+    // Detect device type
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)
+    const isTablet = /iPad|Android(?=.*Mobile)|Tablet/i.test(userAgent)
+    const isDesktop = !isMobile && !isTablet
+
+    // Check for reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+
     // Check feature support
     const features = {
       webgl: this.supportsWebGL(),
@@ -58,7 +79,7 @@ class BrowserDetection {
     // Determine if browser is supported
     const isSupported = this.isBrowserSupported(name, version, features)
 
-    this.browserInfo = { name, version, isSupported, features }
+    this.browserInfo = { name, version, isSupported, os, isMobile, isTablet, isDesktop, prefersReducedMotion, features }
     return this.browserInfo
   }
 
@@ -181,4 +202,9 @@ class BrowserDetection {
 }
 
 export const browserDetection = new BrowserDetection()
+
+// Export convenience functions
+export const getBrowserInfo = () => browserDetection.getBrowserInfo()
+export const isBrowserSupported = () => browserDetection.getBrowserInfo().isSupported
+
 export type { BrowserInfo, SecurityContext }

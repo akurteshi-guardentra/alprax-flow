@@ -164,6 +164,19 @@ class PerformanceProfiler {
     }
   }
 
+  // Export performance data
+  exportData() {
+    return {
+      metrics: this.metrics,
+      summary: this.getPerformanceSummary()
+    }
+  }
+
+  // Clear all collected data
+  clear() {
+    this.metrics = []
+  }
+
   // Clean up observers
   disconnect() {
     this.observers.forEach(observer => observer.disconnect())

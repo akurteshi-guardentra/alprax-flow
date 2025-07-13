@@ -20,6 +20,9 @@ NetworkResilience.initialize()
 // ErrorTracker initializes itself when imported
 
 // Initialize performance profiling
+console.log('performanceProfiler:', performanceProfiler)
+console.log('performanceProfiler.timing:', performanceProfiler.timing)
+console.log('typeof performanceProfiler.timing:', typeof performanceProfiler.timing)
 performanceProfiler.timing('app_init_start', performance.now())
 
 // Check browser compatibility

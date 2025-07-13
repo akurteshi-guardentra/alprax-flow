@@ -1,130 +1,205 @@
-/**
- * Network-aware resource prefetching utility
- * This helps optimize mobile performance by fetching resources when the network is good
- * and delaying or skipping prefetching when on poor connections
- */
-
 interface PrefetchOptions {
-  onSuccess?: () => void;
-  onError?: (error: Error) => void;
-  lowPriority?: boolean;
-  timeout?: number;
-  skipIfSaveData?: boolean;
+  priority?: 'high' | 'low' | 'auto'
+  as?: string
+  crossOrigin?: 'anonymous' | 'use-credentials'
+  integrity?: string
 }
 
-/**
- * Check if the current connection is considered 'good' enough to prefetch resources
- */
-export function hasGoodConnection(): boolean {
-  // Default to true if we can't determine
-  if (typeof navigator === 'undefined' || !('connection' in navigator)) {
-    return true;
-  }
-
-  // @ts-ignore - Navigator connection API is not in TypeScript defs yet
-  const connection = navigator.connection;
-  if (!connection) return true;
-
-  // Check for save-data mode first (user explicitly wants to save data)
-  // @ts-ignore
-  if (connection.saveData) {
-    return false;
-  }
-
-  // Check effective connection type
-  // @ts-ignore
-  const effectiveType = connection.effectiveType;
-  
-  // Consider 4g and better as good connections
-  if (effectiveType === '4g') {
-    return true;
-  }
-
-  // For other connection types, check additional metrics if available
-  // @ts-ignore
-  if (connection.downlink >= 1.5) {
-    return true;
-  }
-
-  return false;
+interface ResourceHint {
+  href: string
+  rel: 'preload' | 'prefetch' | 'preconnect' | 'dns-prefetch'
+  options?: PrefetchOptions
 }
 
-/**
- * Prefetch important resources (images, data) when the network is good
- */
-export function prefetchResources(
-  urls: string[], 
-  options: PrefetchOptions = {}
-): () => void {
-  const {
-    onSuccess,
-    onError,
-    lowPriority = true,
-    timeout = 10000,
-    skipIfSaveData = true,
-  } = options;
+class PrefetchManager {
+  private prefetchedResources = new Set<string>()
+  private prefetchPromises = new Map<string, Promise<void>>()
+  private intersectionObserver?: IntersectionObserver
 
-  // First check if we're in save-data mode
-  // @ts-ignore
-  if (skipIfSaveData && navigator?.connection?.saveData) {
-    console.log('Skipping prefetch, save-data is enabled');
-    return () => {}; // Return empty abort function
+  constructor() {
+    this.setupIntersectionObserver()
   }
 
-  // Check if we have a good enough connection for prefetching
-  if (!hasGoodConnection() && !lowPriority) {
-    console.log('Skipping prefetch, connection is not good enough');
-    return () => {}; // Return empty abort function
-  }
-
-  const abortController = new AbortController();
-  const { signal } = abortController;
-
-  // Create a timeout to abort prefetching if it takes too long
-  const timeoutId = setTimeout(() => {
-    abortController.abort();
-    console.warn('Prefetch timeout exceeded');
-  }, timeout);
-
-  // Process each URL
-  Promise.all(
-    urls.map(url => {
-      // For images, use Image constructor
-      if (url.match(/\.(jpe?g|png|gif|webp|avif)(\?.*)?$/i)) {
-        return new Promise<void>((resolve, reject) => {
-          const img = new Image();
-          img.onload = () => resolve();
-          img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-          img.src = url;
-        });
-      }
-      
-      // For other resources, use fetch with appropriate options
-      return fetch(url, { 
-        signal,
-        // Use low priority hint for non-critical resources
-        priority: lowPriority ? 'low' : 'auto',
-        // Don't follow redirects to minimize data usage
-        redirect: 'error',
-        // Only make HEAD request to check availability without downloading full resource
-        method: 'HEAD',
-      }).then(() => {});
+  // Preload critical resources
+  preloadCritical(resources: string[]) {
+    resources.forEach(resource => {
+      this.preloadResource(resource, { priority: 'high' })
     })
-  )
-    .then(() => {
-      clearTimeout(timeoutId);
-      if (onSuccess) onSuccess();
-    })
-    .catch(error => {
-      if (error.name !== 'AbortError') {
-        console.error('Error prefetching resources:', error);
-        if (onError) onError(error);
-      }
-    });
+  }
 
-  // Return abort function
-  return () => {
-    clearTimeout(timeoutId);
-    abortController.abort();
-  };
+  // Prefetch resources that might be needed soon
+  prefetchResource(href: string, options: PrefetchOptions = {}): Promise<void> {
+    if (this.prefetchedResources.has(href)) {
+      return this.prefetchPromises.get(href) || Promise.resolve()
+    }
+
+    this.prefetchedResources.add(href)
+
+    const promise = this.createResourceHint({
+      href,
+      rel: 'prefetch',
+      options
+    })
+
+    this.prefetchPromises.set(href, promise)
+    return promise
+  }
+
+  // Preload critical resources
+  preloadResource(href: string, options: PrefetchOptions = {}): Promise<void> {
+    return this.createResourceHint({
+      href,
+      rel: 'preload',
+      options
+    })
+  }
+
+  // Preconnect to domains
+  preconnectDomain(domain: string) {
+    this.createResourceHint({
+      href: domain,
+      rel: 'preconnect'
+    })
+  }
+
+  // DNS prefetch for domains
+  dnsPrefetch(domain: string) {
+    this.createResourceHint({
+      href: domain,
+      rel: 'dns-prefetch'
+    })
+  }
+
+  // Prefetch route data when hovering over links
+  prefetchOnHover(selector: string) {
+    const links = document.querySelectorAll<HTMLAnchorElement>(selector)
+    
+    links.forEach(link => {
+      let timeoutId: number
+
+      link.addEventListener('mouseenter', () => {
+        timeoutId = window.setTimeout(() => {
+          const href = link.href
+          if (href && !this.prefetchedResources.has(href)) {
+            this.prefetchResource(href)
+          }
+        }, 100) // Small delay to avoid excessive prefetching
+      })
+
+      link.addEventListener('mouseleave', () => {
+        clearTimeout(timeoutId)
+      })
+    })
+  }
+
+  // Prefetch resources when they come into viewport
+  prefetchOnVisible(elements: HTMLElement[], resources: string[]) {
+    if (!this.intersectionObserver) return
+
+    elements.forEach((element, index) => {
+      this.intersectionObserver?.observe(element)
+      element.dataset.prefetchResource = resources[index] || ''
+    })
+  }
+
+  // Smart prefetching based on user behavior
+  enableSmartPrefetching() {
+    // Prefetch common routes after page load
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        this.prefetchCommonRoutes()
+      }, 2000)
+    })
+
+    // Prefetch on user interaction
+    document.addEventListener('click', () => {
+      this.prefetchInteractionBasedResources()
+    }, { once: true })
+  }
+
+  private setupIntersectionObserver() {
+    if ('IntersectionObserver' in window) {
+      this.intersectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              const resource = entry.target.getAttribute('data-prefetch-resource')
+              if (resource) {
+                this.prefetchResource(resource)
+                this.intersectionObserver?.unobserve(entry.target)
+              }
+            }
+          })
+        },
+        { threshold: 0.1 }
+      )
+    }
+  }
+
+  private createResourceHint(hint: ResourceHint): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const link = document.createElement('link')
+      link.rel = hint.rel
+      link.href = hint.href
+
+      if (hint.options?.as) {
+        link.as = hint.options.as
+      }
+
+      if (hint.options?.crossOrigin) {
+        link.crossOrigin = hint.options.crossOrigin
+      }
+
+      if (hint.options?.integrity) {
+        link.integrity = hint.options.integrity
+      }
+
+      link.onload = () => resolve()
+      link.onerror = () => reject(new Error(`Failed to load resource: ${hint.href}`))
+
+      document.head.appendChild(link)
+    })
+  }
+
+  private prefetchCommonRoutes() {
+    const commonRoutes = [
+      '/dashboard',
+      '/payments',
+      '/profile',
+      '/settings'
+    ]
+
+    commonRoutes.forEach(route => {
+      this.prefetchResource(route)
+    })
+  }
+
+  private prefetchInteractionBasedResources() {
+    // Prefetch resources likely to be needed after user interaction
+    const interactionResources = [
+      '/api/exchange-rates',
+      '/api/user/profile'
+    ]
+
+    interactionResources.forEach(resource => {
+      this.prefetchResource(resource)
+    })
+  }
+
+  // Clear prefetch cache
+  clearCache() {
+    this.prefetchedResources.clear()
+    this.prefetchPromises.clear()
+  }
+
+  // Get prefetch statistics
+  getStats() {
+    return {
+      prefetchedCount: this.prefetchedResources.size,
+      pendingCount: this.prefetchPromises.size
+    }
+  }
 }
+
+export const prefetchManager = new PrefetchManager()
+export type { PrefetchOptions, ResourceHint }

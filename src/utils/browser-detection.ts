@@ -1,266 +1,184 @@
-/**
- * Browser detection utility for cross-browser optimizations
- * This allows us to apply specific fixes or optimizations for different browsers
- */
-
-export interface BrowserInfo {
-  name: string;
-  version: string;
-  os: string;
-  isMobile: boolean;
-  isTablet: boolean;
-  isDesktop: boolean;
-  supportsWebP: boolean;
-  supportsWasm: boolean;
-  supportsPaymentRequest: boolean;
-  supportsTouchEvents: boolean;
-  prefersReducedMotion: boolean;
-}
-
-/**
- * Detect browser type and version
- */
-function detectBrowser(): { name: string; version: string } {
-  const userAgent = navigator.userAgent;
-  let name = 'unknown';
-  let version = 'unknown';
-
-  // Detect browser name
-  if (userAgent.indexOf('Firefox') > -1) {
-    name = 'Firefox';
-  } else if (userAgent.indexOf('SamsungBrowser') > -1) {
-    name = 'Samsung Browser';
-  } else if (userAgent.indexOf('Opera') > -1 || userAgent.indexOf('OPR') > -1) {
-    name = 'Opera';
-  } else if (userAgent.indexOf('Edge') > -1 || userAgent.indexOf('Edg/') > -1) {
-    name = 'Edge';
-  } else if (userAgent.indexOf('Chrome') > -1) {
-    name = 'Chrome';
-  } else if (userAgent.indexOf('Safari') > -1) {
-    name = 'Safari';
-  } else if (userAgent.indexOf('MSIE') > -1 || userAgent.indexOf('Trident/') > -1) {
-    name = 'Internet Explorer';
-  }
-
-  // Try to get version
-  let match;
-  switch (name) {
-    case 'Firefox':
-      match = userAgent.match(/Firefox\/([0-9.]+)/);
-      break;
-    case 'Samsung Browser':
-      match = userAgent.match(/SamsungBrowser\/([0-9.]+)/);
-      break;
-    case 'Opera':
-      match = userAgent.match(/(?:Opera|OPR)\/([0-9.]+)/);
-      break;
-    case 'Edge':
-      match = userAgent.match(/(?:Edge|Edg)\/([0-9.]+)/);
-      break;
-    case 'Chrome':
-      match = userAgent.match(/Chrome\/([0-9.]+)/);
-      break;
-    case 'Safari':
-      match = userAgent.match(/Version\/([0-9.]+).*Safari/);
-      break;
-    case 'Internet Explorer':
-      match = userAgent.match(/(?:MSIE |rv:)([0-9.]+)/);
-      break;
-  }
-
-  if (match && match[1]) {
-    version = match[1];
-  }
-
-  return { name, version };
-}
-
-/**
- * Detect operating system
- */
-function detectOS(): string {
-  const userAgent = navigator.userAgent;
-
-  if (/Windows/.test(userAgent)) {
-    return 'Windows';
-  } else if (/Macintosh|MacIntel|MacPPC|Mac68K/.test(userAgent)) {
-    return 'MacOS';
-  } else if (/iPhone|iPad|iPod/.test(userAgent)) {
-    return 'iOS';
-  } else if (/Android/.test(userAgent)) {
-    return 'Android';
-  } else if (/Linux/.test(userAgent)) {
-    return 'Linux';
-  }
-
-  return 'Unknown';
-}
-
-/**
- * Detect if the device is mobile
- */
-function detectMobile(): boolean {
-  const userAgent = navigator.userAgent.toLowerCase();
-  return /android|webos|iphone|ipod|blackberry|iemobile|opera mini/.test(userAgent);
-}
-
-/**
- * Detect if the device is a tablet
- */
-function detectTablet(): boolean {
-  const userAgent = navigator.userAgent.toLowerCase();
-  return /ipad|android(?!.*mobile)/.test(userAgent) || 
-    (navigator.maxTouchPoints > 0 && /macintosh/.test(userAgent));
-}
-
-/**
- * Check if browser supports WebP image format
- */
-async function supportsWebP(): Promise<boolean> {
-  if (!self.createImageBitmap) return false;
-
-  const webpData = 'data:image/webp;base64,UklGRh4AAABXRUJQVlA4TBEAAAAvAAAAAAfQ//73v/+BiOh/AAA=';
-  const blob = await fetch(webpData).then(r => r.blob());
-  
-  try {
-    return createImageBitmap(blob).then(() => true, () => false);
-  } catch (e) {
-    return false;
+interface BrowserInfo {
+  name: string
+  version: string
+  isSupported: boolean
+  features: {
+    webgl: boolean
+    localStorage: boolean
+    indexedDB: boolean
+    serviceWorker: boolean
+    pushNotifications: boolean
+    webRTC: boolean
   }
 }
 
-/**
- * Check if browser supports WebAssembly
- */
-function supportsWasm(): boolean {
-  try {
-    return typeof WebAssembly === 'object' && 
-      typeof WebAssembly.compile === 'function';
-  } catch (e) {
-    return false;
+interface SecurityContext {
+  isSecureContext: boolean
+  hasHttps: boolean
+  hasTrustedTypes: boolean
+  hasCSP: boolean
+}
+
+class BrowserDetection {
+  private browserInfo: BrowserInfo | null = null
+  private securityContext: SecurityContext | null = null
+
+  getBrowserInfo(): BrowserInfo {
+    if (this.browserInfo) return this.browserInfo
+
+    const userAgent = navigator.userAgent
+    let name = 'Unknown'
+    let version = 'Unknown'
+
+    // Detect browser
+    if (userAgent.includes('Chrome') && !userAgent.includes('Edg')) {
+      name = 'Chrome'
+      version = userAgent.match(/Chrome\/([0-9.]+)/)?.[1] || 'Unknown'
+    } else if (userAgent.includes('Firefox')) {
+      name = 'Firefox'
+      version = userAgent.match(/Firefox\/([0-9.]+)/)?.[1] || 'Unknown'
+    } else if (userAgent.includes('Safari') && !userAgent.includes('Chrome')) {
+      name = 'Safari'
+      version = userAgent.match(/Version\/([0-9.]+)/)?.[1] || 'Unknown'
+    } else if (userAgent.includes('Edg')) {
+      name = 'Edge'
+      version = userAgent.match(/Edg\/([0-9.]+)/)?.[1] || 'Unknown'
+    }
+
+    // Check feature support
+    const features = {
+      webgl: this.supportsWebGL(),
+      localStorage: this.supportsLocalStorage(),
+      indexedDB: this.supportsIndexedDB(),
+      serviceWorker: 'serviceWorker' in navigator,
+      pushNotifications: 'PushManager' in window,
+      webRTC: 'RTCPeerConnection' in window
+    }
+
+    // Determine if browser is supported
+    const isSupported = this.isBrowserSupported(name, version, features)
+
+    this.browserInfo = { name, version, isSupported, features }
+    return this.browserInfo
   }
-}
 
-/**
- * Check if browser supports Payment Request API
- */
-function supportsPaymentRequest(): boolean {
-  return 'PaymentRequest' in window;
-}
+  getSecurityContext(): SecurityContext {
+    if (this.securityContext) return this.securityContext
 
-/**
- * Check if user prefers reduced motion
- */
-function prefersReducedMotion(): boolean {
-  if (typeof window === 'undefined') return false;
-  const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-  return mediaQuery.matches;
-}
+    this.securityContext = {
+      isSecureContext: window.isSecureContext || false,
+      hasHttps: location.protocol === 'https:',
+      hasTrustedTypes: 'trustedTypes' in window,
+      hasCSP: this.hasContentSecurityPolicy()
+    }
 
-/**
- * Get complete browser information
- */
-export async function getBrowserInfo(): Promise<BrowserInfo> {
-  const { name, version } = detectBrowser();
-  const os = detectOS();
-  const isMobile = detectMobile();
-  const isTablet = detectTablet();
-  const isDesktop = !isMobile && !isTablet;
-  const webpSupport = await supportsWebP();
-  
-  return {
-    name,
-    version,
-    os,
-    isMobile,
-    isTablet,
-    isDesktop,
-    supportsWebP: webpSupport,
-    supportsWasm: supportsWasm(),
-    supportsPaymentRequest: supportsPaymentRequest(),
-    supportsTouchEvents: 'ontouchstart' in window,
-    prefersReducedMotion: prefersReducedMotion()
-  };
-}
+    return this.securityContext
+  }
 
-/**
- * Flag to check if running within an iOS WebView (for specific fixes)
- */
-export function isIOSWebView(): boolean {
-  const userAgent = navigator.userAgent;
-  const isIOS = /iPad|iPhone|iPod/.test(userAgent);
-  const isWebkit = /WebKit/.test(userAgent);
-  const isNotChrome = !/Chrome/.test(userAgent); 
-  const isNotSafari = !/Safari/.test(userAgent);
-  
-  return isIOS && isWebkit && isNotChrome && isNotSafari;
-}
+  private supportsWebGL(): boolean {
+    try {
+      const canvas = document.createElement('canvas')
+      return !!(canvas.getContext('webgl') || canvas.getContext('experimental-webgl'))
+    } catch {
+      return false
+    }
+  }
 
-/**
- * Get a list of known browser issues and workarounds for the current browser
- */
-export async function getBrowserIssues(): Promise<{ issue: string, workaround: string }[]> {
-  const { name, version, os } = await getBrowserInfo();
-  const issues: { issue: string, workaround: string }[] = [];
-  
-  // Check for specific known issues
-  if (name === 'Safari' && os === 'iOS') {
-    issues.push({
-      issue: 'iOS Safari may have issues with position:fixed inputs when the keyboard is visible',
-      workaround: 'Use position:absolute instead and handle scroll manually'
-    });
+  private supportsLocalStorage(): boolean {
+    try {
+      const test = 'test'
+      localStorage.setItem(test, test)
+      localStorage.removeItem(test)
+      return true
+    } catch {
+      return false
+    }
+  }
+
+  private supportsIndexedDB(): boolean {
+    return 'indexedDB' in window
+  }
+
+  private hasContentSecurityPolicy(): boolean {
+    const metaTags = document.getElementsByTagName('meta')
+    for (let i = 0; i < metaTags.length; i++) {
+      if (metaTags[i].getAttribute('http-equiv') === 'Content-Security-Policy') {
+        return true
+      }
+    }
+    return false
+  }
+
+  private isBrowserSupported(name: string, version: string, features: BrowserInfo['features']): boolean {
+    const majorVersion = parseInt(version.split('.')[0])
     
-    issues.push({
-      issue: 'iOS Safari has inconsistent behavior with vh units',
-      workaround: 'Use a JS-based solution for full-height elements instead of 100vh'
-    });
+    // Minimum supported versions
+    const minVersions: Record<string, number> = {
+      Chrome: 80,
+      Firefox: 75,
+      Safari: 13,
+      Edge: 80
+    }
+
+    const minVersion = minVersions[name]
+    if (!minVersion) return false
+
+    // Check version requirement
+    const versionSupported = majorVersion >= minVersion
+
+    // Check critical features
+    const criticalFeatures = features.localStorage && features.serviceWorker
+
+    return versionSupported && criticalFeatures
   }
-  
-  if (name === 'Firefox') {
-    issues.push({
-      issue: 'Firefox has less consistent backdrop-filter support',
-      workaround: 'Provide fallback styles when backdrop-filter is used'
-    });
+
+  getCompatibilityIssues(): string[] {
+    const info = this.getBrowserInfo()
+    const security = this.getSecurityContext()
+    const issues: string[] = []
+
+    if (!info.isSupported) {
+      issues.push(`Browser ${info.name} ${info.version} is not fully supported`)
+    }
+
+    if (!info.features.localStorage) {
+      issues.push('Local storage is not available')
+    }
+
+    if (!info.features.serviceWorker) {
+      issues.push('Service workers are not supported')
+    }
+
+    if (!security.isSecureContext) {
+      issues.push('Application must be served over HTTPS')
+    }
+
+    if (!info.features.indexedDB) {
+      issues.push('IndexedDB is not available - offline features limited')
+    }
+
+    return issues
   }
-  
-  if (name === 'Internet Explorer') {
-    issues.push({
-      issue: 'Internet Explorer is not supported',
-      workaround: 'Redirect to browser upgrade page'
-    });
+
+  getRecommendations(): string[] {
+    const info = this.getBrowserInfo()
+    const recommendations: string[] = []
+
+    if (info.name === 'Safari' && parseInt(info.version.split('.')[0]) < 14) {
+      recommendations.push('Consider updating Safari for better performance')
+    }
+
+    if (info.name === 'Firefox' && parseInt(info.version.split('.')[0]) < 85) {
+      recommendations.push('Update Firefox for improved security features')
+    }
+
+    if (!info.features.pushNotifications) {
+      recommendations.push('Push notifications are not available in this browser')
+    }
+
+    return recommendations
   }
-  
-  // TODO: Add more browser-specific issues as they are discovered
-  
-  return issues;
 }
 
-/**
- * Check if the current browser is supported by our application
- */
-export async function isBrowserSupported(): Promise<boolean> {
-  const { name, version } = await getBrowserInfo();
-  
-  // Minimum supported versions
-  const minVersions: Record<string, string> = {
-    'Chrome': '70',
-    'Firefox': '68',
-    'Safari': '12',
-    'Edge': '79',
-    'Opera': '60',
-    'Samsung Browser': '10',
-  };
-  
-  // Not supported browsers
-  if (name === 'Internet Explorer') {
-    return false;
-  }
-  
-  // If we don't have a minimum version defined or can't determine the browser, assume it's supported
-  if (!minVersions[name] || version === 'unknown') {
-    return true;
-  }
-  
-  // Compare versions
-  return parseFloat(version) >= parseFloat(minVersions[name]);
-}
+export const browserDetection = new BrowserDetection()
+export type { BrowserInfo, SecurityContext }

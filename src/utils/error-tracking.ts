@@ -238,8 +238,9 @@ class ErrorTracker {
   }
 }
 
-// Export singleton instance
+// Export singleton instance and class
 export const errorTracker = ErrorTracker.getInstance();
+export { ErrorTracker };
 
 // Convenience functions
 export const captureError = (error: Error, context?: Partial<ErrorContext>, severity?: ErrorReport['severity']) => 

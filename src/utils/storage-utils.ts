@@ -1,78 +1,91 @@
 /**
- * Utility functions for safely interacting with localStorage
- * Provides fallbacks and error handling for mobile environments
+ * Enhanced storage utilities for production
  */
 
+export class SecureStorage {
+  private static readonly PREFIX = 'alprax_';
+
+  static setItem(key: string, value: any): void {
+    try {
+      const prefixedKey = this.PREFIX + key;
+      const serializedValue = JSON.stringify({
+        data: value,
+        timestamp: Date.now()
+      });
+      localStorage.setItem(prefixedKey, serializedValue);
+    } catch (error) {
+      console.error('Storage error:', error);
+    }
+  }
+
+  static getItem<T>(key: string): T | null {
+    try {
+      const prefixedKey = this.PREFIX + key;
+      const item = localStorage.getItem(prefixedKey);
+      if (!item) return null;
+
+      const { data } = JSON.parse(item);
+      return data;
+    } catch (error) {
+      console.error('Storage retrieval error:', error);
+      return null;
+    }
+  }
+
+  static removeItem(key: string): void {
+    const prefixedKey = this.PREFIX + key;
+    localStorage.removeItem(prefixedKey);
+  }
+
+  static clear(): void {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith(this.PREFIX)) {
+        localStorage.removeItem(key);
+      }
+    });
+  }
+
+  static getStorageInfo(): { used: number; available: number } {
+    let used = 0;
+    try {
+      for (const key in localStorage) {
+        if (localStorage.hasOwnProperty(key)) {
+          used += localStorage[key].length + key.length;
+        }
+      }
+    } catch (error) {
+      console.error('Storage calculation error:', error);
+    }
+
+    return {
+      used,
+      available: 5 * 1024 * 1024 - used // Assume 5MB limit
+    };
+  }
+}
+
 /**
- * Safely get an item from localStorage with proper error handling
- * 
- * @param key The storage key to retrieve
- * @param defaultValue Default value to return if not found or error
- * @returns The parsed value from storage or default value
+ * Safe storage utilities (existing)
  */
-export function safeGetItem<T>(key: string, defaultValue: T): T {
+export const safeSetItem = (key: string, value: any): boolean => {
+  try {
+    const serialized = JSON.stringify(value);
+    localStorage.setItem(key, serialized);
+    return true;
+  } catch (error) {
+    console.error(`Failed to set localStorage item ${key}:`, error);
+    return false;
+  }
+};
+
+export const safeGetItem = <T>(key: string, defaultValue: T): T => {
   try {
     const item = localStorage.getItem(key);
     if (item === null) return defaultValue;
-    
-    try {
-      return JSON.parse(item) as T;
-    } catch (parseError) {
-      console.error(`Error parsing "${key}" from localStorage:`, parseError);
-      return defaultValue;
-    }
-  } catch (storageError) {
-    // Handle case where localStorage is not available (e.g. private browsing)
-    console.error(`Cannot access localStorage for "${key}":`, storageError);
+    return JSON.parse(item);
+  } catch (error) {
+    console.error(`Failed to get localStorage item ${key}:`, error);
     return defaultValue;
   }
-}
-
-/**
- * Safely set an item in localStorage with proper error handling
- * 
- * @param key The storage key to set
- * @param value The value to store (will be JSON stringified)
- * @returns True if successful, false if failed
- */
-export function safeSetItem<T>(key: string, value: T): boolean {
-  try {
-    localStorage.setItem(key, JSON.stringify(value));
-    return true;
-  } catch (error) {
-    console.error(`Error storing "${key}" in localStorage:`, error);
-    return false;
-  }
-}
-
-/**
- * Safely remove an item from localStorage with proper error handling
- * 
- * @param key The storage key to remove
- * @returns True if successful, false if failed
- */
-export function safeRemoveItem(key: string): boolean {
-  try {
-    localStorage.removeItem(key);
-    return true;
-  } catch (error) {
-    console.error(`Error removing "${key}" from localStorage:`, error);
-    return false;
-  }
-}
-
-/**
- * Check if localStorage is available
- * 
- * @returns True if localStorage is available, false otherwise
- */
-export function isStorageAvailable(): boolean {
-  try {
-    const testKey = '___test___';
-    localStorage.setItem(testKey, testKey);
-    localStorage.removeItem(testKey);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
+};

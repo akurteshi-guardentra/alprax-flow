@@ -5,9 +5,15 @@ import App from './App.tsx';
 import './index.css';
 import { logger } from '@/utils/logger'
 import { monitor } from '@/utils/monitoring'
+import { MemoryManager } from '@/utils/memory-management'
+import { NetworkResilience } from '@/utils/network-resilience'
+import { errorTracker } from '@/utils/error-tracking'
 
-// Initialize monitoring
+// Initialize all production utilities
 monitor.initialize()
+MemoryManager.initialize()
+NetworkResilience.initialize()
+// ErrorTracker initializes itself when imported
 
 // Performance monitoring
 const startTime = performance.now()

@@ -31,14 +31,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           toast.success('Welcome back!');
         } else if (event === 'SIGNED_OUT') {
           toast.info('You have been signed out');
+        } else if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
         }
       }
     );
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+    // Get initial session with error handling
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session error:', error);
+        // Clear any invalid stored session
+        localStorage.removeItem('supabase.auth.token');
+        setSession(null);
+        setUser(null);
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+      setLoading(false);
+    }).catch((error) => {
+      console.error('Failed to get session:', error);
+      // Clear any corrupted auth state
+      localStorage.removeItem('supabase.auth.token');
+      setSession(null);
+      setUser(null);
       setLoading(false);
     });
 

@@ -38,7 +38,7 @@ export async function sendPayment({
         from_asset: 'XLM',
         to_asset: 'XLM',
         amount: parseFloat(amount),
-        fee: parseFloat(config.defaultFee) / 10000000, // Convert from stroops to XLM
+        fee: parseFloat(await config.getBaseFee()) / 10000000, // Convert from stroops to XLM
         status: 'pending',
         memo: memo || null,
         created_at: new Date().toISOString(),
@@ -49,9 +49,12 @@ export async function sendPayment({
     
     if (txError) throw txError;
     
+    // Get dynamic fee for Protocol 23 compatibility
+    const fee = await config.getBaseFee();
+    
     // Build the transaction with proper sequence number
     const transaction = new TransactionBuilder(sourceAccount, {
-      fee: config.defaultFee,
+      fee,
       networkPassphrase: network
     })
       .addOperation(Operation.payment({

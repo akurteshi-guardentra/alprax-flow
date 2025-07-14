@@ -11,10 +11,22 @@ const HORIZON_URL = STELLAR_NETWORK === 'TESTNET'
 export const server = new Horizon.Server(HORIZON_URL);
 export const network = STELLAR_NETWORK === 'TESTNET' ? Networks.TESTNET : Networks.PUBLIC;
 
+// Dynamic fee fetching for Protocol 23 compatibility
+export async function getBaseFee(): Promise<string> {
+  try {
+    const feeStats = await server.feeStats();
+    return feeStats.last_ledger_base_fee || '100';
+  } catch (error) {
+    console.warn('Failed to fetch dynamic fees, using default:', error);
+    return '100'; // Fallback to 100 stroops
+  }
+}
+
 // Export configuration properties
 export const config = {
   isTestnet: STELLAR_NETWORK === 'TESTNET',
   horizonUrl: HORIZON_URL,
   networkPassphrase: network,
-  defaultFee: '100', // 100 stroops = 0.00001 XLM
+  defaultFee: '100', // Fallback fee in stroops
+  getBaseFee,
 };

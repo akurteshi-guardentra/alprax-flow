@@ -283,11 +283,17 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
 
   const validation = validateForm();
 
-  // Performance measurement
+  // Performance measurement - simplified to avoid infinite re-renders
   useEffect(() => {
-    const endMeasure = measureRenderTime('SimplifiedPaymentForm');
-    return endMeasure;
-  });
+    const startTime = performance.now();
+    return () => {
+      const endTime = performance.now();
+      const renderTime = endTime - startTime;
+      if (renderTime > 16.67) {
+        console.warn(`Slow render in SimplifiedPaymentForm: ${renderTime.toFixed(2)}ms`);
+      }
+    };
+  }, []);
 
   return (
     <div 

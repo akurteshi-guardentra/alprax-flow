@@ -3,6 +3,8 @@ import { useTransactionHistory } from '@/hooks/useTransactionHistory';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { LoadingSpinner, LoadingCard } from '@/components/ui/loading-spinner';
+import { SkeletonCard } from '@/components/ui/skeleton';
 import { ArrowUpRight, ArrowDownLeft, RefreshCw, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
@@ -41,9 +43,11 @@ export function EnhancedTransactionList() {
   if (isLoading) {
     return (
       <Card className="glass-card">
-        <CardContent className="p-6 text-center">
-          <RefreshCw className="h-8 w-8 text-white/40 animate-spin mx-auto mb-4" />
-          <p className="text-white/70">Loading transactions...</p>
+        <CardHeader>
+          <CardTitle className="text-white">Recent Transactions</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6">
+          <LoadingSpinner size="lg" text="Loading transactions..." />
         </CardContent>
       </Card>
     );
@@ -53,9 +57,9 @@ export function EnhancedTransactionList() {
     return (
       <Card className="glass-card">
         <CardContent className="p-6 text-center">
-          <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4" />
+          <AlertCircle className="h-8 w-8 text-red-400 mx-auto mb-4 animate-modern-bounce" />
           <p className="text-white/70 mb-4">Failed to load transactions</p>
-          <Button onClick={() => refetch()} variant="outline" size="sm">
+          <Button onClick={() => refetch()} variant="glass" size="sm" className="hover-lift">
             Try Again
           </Button>
         </CardContent>
@@ -89,8 +93,8 @@ export function EnhancedTransactionList() {
                 key={transaction.id || index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1 }}
-                className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-colors"
+                transition={{ delay: index * 0.05, duration: 0.3 }}
+                className="flex items-center justify-between p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-smooth hover-lift cursor-pointer"
               >
                 <div className="flex items-center space-x-3">
                   {getTransactionIcon(transaction.transaction_type)}

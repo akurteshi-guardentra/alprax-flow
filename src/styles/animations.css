@@ -1,126 +1,199 @@
-/* Mobile-optimized animations */
+/* Enhanced animation system */
 
-/* Reduce motion for accessibility */
+@keyframes modern-float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  33% { transform: translateY(-20px) rotate(2deg); }
+  66% { transform: translateY(10px) rotate(-1deg); }
+}
+
+@keyframes modern-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.8; transform: scale(1.05); }
+}
+
+@keyframes modern-fade-in {
+  0% { opacity: 0; transform: translateY(20px) scale(0.95); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes modern-slide-up {
+  0% { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes modern-slide-right {
+  0% { opacity: 0; transform: translateX(-40px); }
+  100% { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes modern-scale-in {
+  0% { opacity: 0; transform: scale(0.8); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes modern-shimmer {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+@keyframes modern-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(59, 130, 246, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(59, 130, 246, 0.6); }
+}
+
+@keyframes modern-bounce {
+  0%, 20%, 53%, 80%, 100% { transform: translateY(0); }
+  40%, 43% { transform: translateY(-10px); }
+  70% { transform: translateY(-5px); }
+  90% { transform: translateY(-2px); }
+}
+
+/* Animation utility classes */
+.animate-modern-float {
+  animation: modern-float 6s ease-in-out infinite;
+}
+
+.animate-modern-pulse {
+  animation: modern-pulse 3s ease-in-out infinite;
+}
+
+.animate-modern-fade-in {
+  animation: modern-fade-in 0.6s ease-out forwards;
+}
+
+.animate-modern-slide-up {
+  animation: modern-slide-up 0.5s ease-out forwards;
+}
+
+.animate-modern-slide-right {
+  animation: modern-slide-right 0.5s ease-out forwards;
+}
+
+.animate-modern-scale-in {
+  animation: modern-scale-in 0.4s ease-out forwards;
+}
+
+.animate-modern-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100%;
+  animation: modern-shimmer 2s infinite;
+}
+
+.animate-modern-glow {
+  animation: modern-glow 2s ease-in-out infinite;
+}
+
+.animate-modern-bounce {
+  animation: modern-bounce 1s ease-in-out;
+}
+
+/* Interactive animation classes */
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+}
+
+.hover-scale {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.click-bounce {
+  transition: transform 0.1s ease;
+}
+
+.click-bounce:active {
+  transform: scale(0.95);
+}
+
+/* Advanced glassmorphism effects */
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card-hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+}
+
+/* Smooth transitions */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-fast {
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.transition-slow {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Loading states */
+.loading-pulse {
+  animation: modern-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.loading-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.05) 0%,
+    rgba(255, 255, 255, 0.15) 50%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  background-size: 200% 100%;
+  animation: modern-shimmer 2s infinite;
+}
+
+/* Stagger animations */
+.stagger-children > * {
+  animation-delay: calc(var(--stagger-delay, 0.1s) * var(--child-index, 0));
+}
+
+/* Mobile optimized animations */
+@media (max-width: 768px) {
+  .animate-modern-float {
+    animation-duration: 4s;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-2px);
+  }
+  
+  .hover-scale:hover {
+    transform: scale(1.02);
+  }
+}
+
+/* Reduced motion support */
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  * {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
-}
-
-/* Entrance animations */
-@keyframes mobile-slide-up {
-  from {
-    transform: translateY(100%);
-    opacity: 0;
+  
+  .animate-modern-float,
+  .animate-modern-pulse,
+  .animate-modern-shimmer {
+    animation: none;
   }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
-}
-
-@keyframes mobile-fade-in {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes mobile-slide-in-right {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
-}
-
-/* Loading animations */
-@keyframes mobile-pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-@keyframes mobile-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-/* Touch feedback animations */
-@keyframes mobile-tap {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.95);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-/* Animation utility classes */
-.animate-mobile-slide-up {
-  animation: mobile-slide-up 0.3s ease-out;
-}
-
-.animate-mobile-fade-in {
-  animation: mobile-fade-in 0.4s ease-out;
-}
-
-.animate-mobile-slide-in-right {
-  animation: mobile-slide-in-right 0.3s ease-out;
-}
-
-.animate-mobile-pulse {
-  animation: mobile-pulse 2s ease-in-out infinite;
-}
-
-.animate-mobile-spin {
-  animation: mobile-spin 1s linear infinite;
-}
-
-.animate-mobile-tap {
-  animation: mobile-tap 0.15s ease-out;
-}
-
-/* Transition utilities for mobile */
-.transition-mobile {
-  transition: all 0.2s ease;
-}
-
-.transition-mobile-fast {
-  transition: all 0.1s ease;
-}
-
-/* Transform utilities */
-.scale-mobile-tap {
-  transform: scale(0.95);
-}
-
-/* Optimized transforms for mobile performance */
-.translate-z-0 {
-  transform: translateZ(0);
-}
-
-.backface-hidden {
-  backface-visibility: hidden;
 }

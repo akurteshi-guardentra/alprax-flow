@@ -23,13 +23,13 @@ export function ModernCard({
   onClick,
   ...props 
 }: ModernCardProps) {
-  const baseClasses = "rounded-xl border backdrop-blur-sm transition-all duration-250";
+  const baseClasses = "rounded-xl border backdrop-blur-md transition-all duration-300 relative overflow-hidden";
   
   const variantClasses = {
-    default: "bg-white/5 border-white/10 hover:bg-white/10",
-    glass: "bg-white/5 border-white/10 backdrop-blur-lg hover:bg-white/8",
-    gradient: "bg-gradient-to-br from-blue-500/10 to-purple-500/10 border-white/20 hover:from-blue-500/15 hover:to-purple-500/15",
-    solid: "bg-slate-800 border-slate-700 hover:bg-slate-700"
+    default: "bg-white/5 border-white/10 hover:bg-white/10 shadow-lg hover:shadow-xl",
+    glass: "bg-white/8 border-white/15 backdrop-blur-lg hover:bg-white/12 shadow-xl hover:shadow-2xl hover:shadow-blue-500/10",
+    gradient: "bg-gradient-to-br from-blue-500/10 via-purple-500/5 to-cyan-500/10 border-white/20 hover:from-blue-500/15 hover:via-purple-500/10 hover:to-cyan-500/15 shadow-xl hover:shadow-2xl",
+    solid: "bg-slate-800/90 border-slate-700/50 hover:bg-slate-700/90 shadow-lg hover:shadow-xl"
   };
   
   const sizeClasses = {
@@ -39,7 +39,7 @@ export function ModernCard({
   };
   
   const interactiveClasses = (interactive || onClick) 
-    ? "cursor-pointer hover:scale-[1.02] hover:shadow-lg hover:shadow-blue-500/10 active:scale-[0.98]" 
+    ? "cursor-pointer hover:scale-[1.02] hover:shadow-2xl hover:shadow-blue-500/20 active:scale-[0.98] transition-transform" 
     : "";
 
   const Component = animate ? motion.div : 'div';

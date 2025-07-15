@@ -1,4 +1,5 @@
 
+import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,7 +20,6 @@ import { authService } from "@/services/AuthService";
 import { errorTracker } from "@/utils/error-tracking";
 import { performanceMonitor } from "@/utils/performance";
 import { ENV } from "@/config/environment";
-import { useEffect } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import Index from "./pages/Index";
 import Welcome from "./pages/Welcome";

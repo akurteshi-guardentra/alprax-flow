@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 
 interface PerformanceMetrics {
   renderTime: number;
@@ -15,8 +15,8 @@ export function usePerformanceMetrics() {
     isLowPerformance: false
   });
 
-  const [frameCount, setFrameCount] = useState(0);
-  const [lastFrameTime, setLastFrameTime] = useState(performance.now());
+  const frameCountRef = useRef(0);
+  const lastFrameTimeRef = useRef(performance.now());
 
   const measureRenderTime = useCallback((componentName: string) => {
     const start = performance.now();
@@ -36,25 +36,6 @@ export function usePerformanceMetrics() {
     };
   }, []);
 
-  const measureFPS = useCallback(() => {
-    const now = performance.now();
-    const deltaTime = now - lastFrameTime;
-    
-    if (deltaTime >= 1000) {
-      const fps = Math.round((frameCount * 1000) / deltaTime);
-      setMetrics(prev => ({
-        ...prev,
-        fps,
-        isLowPerformance: fps < 45
-      }));
-      
-      setFrameCount(0);
-      setLastFrameTime(now);
-    } else {
-      setFrameCount(prev => prev + 1);
-    }
-  }, [frameCount, lastFrameTime]);
-
   useEffect(() => {
     // Memory usage monitoring
     if ('memory' in performance) {
@@ -72,18 +53,34 @@ export function usePerformanceMetrics() {
   }, []);
 
   useEffect(() => {
-    // FPS monitoring
+    // FPS monitoring with refs to avoid dependency issues
     let animationFrame: number;
     
     const animate = () => {
-      measureFPS();
+      const now = performance.now();
+      const deltaTime = now - lastFrameTimeRef.current;
+      
+      if (deltaTime >= 1000) {
+        const fps = Math.round((frameCountRef.current * 1000) / deltaTime);
+        setMetrics(prev => ({
+          ...prev,
+          fps,
+          isLowPerformance: fps < 45
+        }));
+        
+        frameCountRef.current = 0;
+        lastFrameTimeRef.current = now;
+      } else {
+        frameCountRef.current += 1;
+      }
+      
       animationFrame = requestAnimationFrame(animate);
     };
     
     animationFrame = requestAnimationFrame(animate);
     
     return () => cancelAnimationFrame(animationFrame);
-  }, [measureFPS]);
+  }, []); // Empty dependency array to prevent re-renders
 
   return {
     metrics,

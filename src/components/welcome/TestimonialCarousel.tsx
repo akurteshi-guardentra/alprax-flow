@@ -95,8 +95,8 @@ export function TestimonialCarousel({
       onMouseEnter={() => setIsPaused(true)}
       onMouseLeave={() => setIsPaused(false)}
     >
-      <div className="max-w-4xl mx-auto px-4">
-        {/* Testimonial Card */}
+      <div className="max-w-5xl mx-auto px-4">
+        {/* Testimonial Card - improved centering */}
         <AnimatePresence initial={false} custom={slideDirection} mode="wait">
           <motion.div
             key={currentIndex}
@@ -105,13 +105,13 @@ export function TestimonialCarousel({
             initial="enter"
             animate="center"
             exit="exit"
-            className="bg-gradient-to-b from-white/5 to-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/10 shadow-2xl"
+            className="bg-gradient-to-b from-white/5 to-white/10 backdrop-blur-lg rounded-xl p-8 border border-white/10 shadow-2xl mx-auto"
           >
-            <div className="flex flex-col md:flex-row gap-6 items-center">
+            <div className="flex flex-col md:flex-row gap-6 items-center text-center md:text-left">
               {/* Avatar */}
               <div className="flex-shrink-0">
-                <div className="relative">
-                  <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-indigo-500/50">
+                <div className="relative mx-auto md:mx-0">
+                  <div className="w-28 h-28 rounded-full overflow-hidden border-2 border-indigo-500/50 shadow-xl">
                     <div className="w-full h-full bg-gradient-to-br from-indigo-600 to-violet-500 flex items-center justify-center text-2xl text-white font-bold">
                       {currentTestimonial.image ? (
                         <img 
@@ -134,19 +134,19 @@ export function TestimonialCarousel({
               
               {/* Content */}
               <div className="flex-1 space-y-4">
-                <div className="flex mb-2">
+                <div className="flex justify-center md:justify-start mb-2">
                   {[...Array(currentTestimonial.rating)].map((_, i) => (
                     <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   ))}
                 </div>
                 
-                <p className="text-white/90 text-lg italic">
+                <p className="text-white/90 text-lg md:text-xl italic leading-relaxed">
                   "{currentTestimonial.content}"
                 </p>
                 
                 <div className="pt-2">
-                  <p className="font-semibold text-white text-lg">{currentTestimonial.name}</p>
-                  <p className="text-sm text-white/70">{currentTestimonial.role}</p>
+                  <p className="font-semibold text-white text-xl">{currentTestimonial.name}</p>
+                  <p className="text-sm text-white/70 mt-1">{currentTestimonial.role}</p>
                 </div>
               </div>
             </div>

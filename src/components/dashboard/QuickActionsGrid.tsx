@@ -76,8 +76,8 @@ export function QuickActionsGrid() {
         )}
       </div>
       
-      {/* Properly structured 2x2 grid */}
-      <div className="grid grid-cols-2 gap-3">
+      {/* Centered 2x2 grid with improved spacing */}
+      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.title}
@@ -87,32 +87,32 @@ export function QuickActionsGrid() {
           >
             <ModernCard 
               variant="glass" 
-              className={`relative bg-white/5 border border-white/10 group hover:bg-white/10 transition-all duration-300 cursor-pointer ${
+              className={`relative bg-white/5 border border-white/10 group hover:bg-white/10 transition-all duration-300 cursor-pointer h-full flex flex-col ${
                 action.popular ? 'ring-1 ring-blue-500/20' : ''
               }`}
               interactive={true}
               onClick={() => handleActionClick(action)}
             >
-              <ModernCardContent className="p-3">
+              <ModernCardContent className="p-4 h-full flex flex-col">
                 {action.popular && (
                   <div className="absolute -top-1 -right-1 bg-blue-500 text-white text-xs px-1.5 py-0.5 rounded-full text-[10px] z-10">
                     Popular
                   </div>
                 )}
                 
-                <div className="text-center space-y-2">
-                  <div className={`w-10 h-10 rounded-lg bg-gradient-to-r ${action.color} flex items-center justify-center mx-auto group-hover:scale-105 transition-transform duration-300`}>
-                    <action.icon className="w-5 h-5 text-white" />
+                <div className="text-center space-y-3 flex-1 flex flex-col justify-center">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-r ${action.color} flex items-center justify-center mx-auto group-hover:scale-105 transition-transform duration-300 shadow-lg`}>
+                    <action.icon className="w-6 h-6 text-white" />
                   </div>
                   
-                  <div>
-                    <h3 className="font-medium text-white text-sm mb-1">{action.title}</h3>
-                    <p className="text-white/60 text-xs leading-tight">{action.description}</p>
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-white text-sm">{action.title}</h3>
+                    <p className="text-white/70 text-xs leading-tight">{action.description}</p>
                   </div>
                   
                   {/* Simplified benefits display */}
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                    <div className="flex justify-center gap-1 mt-1">
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 mt-auto">
+                    <div className="flex justify-center gap-2">
                       <Clock className="w-3 h-3 text-green-400" />
                       <Shield className="w-3 h-3 text-blue-400" />
                     </div>

@@ -101,7 +101,7 @@ export const ModernTestimonials = () => {
             </button>
           </div>
           
-          {/* Testimonial slider */}
+          {/* Testimonial slider - improved centering */}
           <div className="overflow-hidden px-12">
             <div 
               className="flex transition-transform duration-500 ease-in-out"
@@ -113,10 +113,10 @@ export const ModernTestimonials = () => {
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   exit={{ opacity: 0 }}
-                  className="w-full flex-shrink-0 px-4"
+                  className="w-full flex-shrink-0 px-4 flex justify-center"
                 >
-                  <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 sm:p-10 shadow-sm">
-                    <div className="flex flex-col sm:flex-row gap-6">
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-2xl p-8 sm:p-10 shadow-sm w-full max-w-4xl mx-auto">
+                    <div className="flex flex-col sm:flex-row gap-6 items-center text-center sm:text-left">
                       <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden mx-auto sm:mx-0 flex-shrink-0">
                         <img 
                           src={testimonial.image} 
@@ -126,7 +126,7 @@ export const ModernTestimonials = () => {
                       </div>
                       
                       <div className="flex-1 flex flex-col justify-center">
-                        <div className="flex mb-3">
+                        <div className="flex justify-center sm:justify-start mb-3">
                           {[...Array(5)].map((_, i) => (
                             <Star 
                               key={i}
@@ -139,15 +139,15 @@ export const ModernTestimonials = () => {
                           ))}
                         </div>
                         
-                        <blockquote className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 italic mb-4">
+                        <blockquote className="text-lg sm:text-xl text-gray-700 dark:text-gray-300 italic mb-4 leading-relaxed">
                           "{testimonial.quote}"
                         </blockquote>
                         
                         <div className="mt-auto">
-                          <cite className="font-semibold text-gray-900 dark:text-white not-italic">
+                          <cite className="font-semibold text-gray-900 dark:text-white not-italic text-lg">
                             {testimonial.name}
                           </cite>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                             {testimonial.role}
                           </p>
                         </div>

@@ -26,21 +26,21 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen modern-gradient">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6 lg:py-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="space-y-8"
+          className="space-y-6 lg:space-y-8"
         >
           <DashboardHeader />
           
-          <div className="grid gap-8 lg:grid-cols-3">
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2 space-y-6 lg:space-y-8">
               <BalanceCard />
               <EnhancedTransactionList />
             </div>
             
-            <div className="space-y-8">
+            <div className="space-y-6 lg:space-y-8">
               <QuickActionsGrid />
             </div>
           </div>

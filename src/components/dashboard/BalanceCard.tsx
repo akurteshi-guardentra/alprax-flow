@@ -106,28 +106,28 @@ export function BalanceCard() {
               </div>
             </div>
             
-            {/* Progress bar for balance status */}
-            <div className="w-full bg-white/10 rounded-full h-2 mb-3">
+            {/* Progress bar for balance status - improved mobile layout */}
+            <div className="w-full bg-white/10 rounded-full h-2 mb-3 max-w-full overflow-hidden">
               <div 
                 className={`h-2 rounded-full transition-all duration-500 ${
                   balanceStatus.status === "empty" ? "w-0 bg-gray-400" :
-                  balanceStatus.status === "low" ? "w-1/4 bg-orange-400" :
-                  balanceStatus.status === "moderate" ? "w-2/3 bg-yellow-400" :
-                  "w-full bg-green-400"
+                  balanceStatus.status === "low" ? "w-1/4 bg-gradient-to-r from-orange-400 to-orange-500" :
+                  balanceStatus.status === "moderate" ? "w-2/3 bg-gradient-to-r from-yellow-400 to-yellow-500" :
+                  "w-full bg-gradient-to-r from-green-400 to-green-500"
                 }`}
               ></div>
             </div>
             
-            {/* Quick action hints */}
-            <div className="flex items-center justify-between text-xs text-white/60">
-              <span>
+            {/* Quick action hints - mobile responsive */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-white/60">
+              <span className="text-center sm:text-left">
                 {balanceValue === 0 ? "Fund your account to start sending money" :
                  balanceValue < 10 ? "Low balance - add funds for better experience" :
                  "Ready for all transactions"}
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center justify-center sm:justify-end gap-1">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                Secure & Protected
+                <span className="whitespace-nowrap">Secure & Protected</span>
               </span>
             </div>
           </div>

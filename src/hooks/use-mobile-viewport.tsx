@@ -47,7 +47,7 @@ export function useMobileViewport(): ViewportInfo {
       const heightDiff = initialHeight - height
       
       // Detect if keyboard is open (significant height reduction on mobile)
-      const isKeyboardOpen = viewport.isMobile && heightDiff > 150
+      const isKeyboardOpen = width < 768 && heightDiff > 150
 
       // Get safe area insets
       const computedStyle = getComputedStyle(document.documentElement)
@@ -111,7 +111,7 @@ export function useMobileViewport(): ViewportInfo {
       window.removeEventListener('orientationchange', handleOrientationChange)
       window.removeEventListener('focus', handleFocus)
     }
-  }, [viewport.isMobile])
+  }, [])
 
   return viewport
 }

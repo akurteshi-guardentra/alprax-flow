@@ -1,1 +1,106 @@
 project_id = "vixpxmvsndusngxdmjuv"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+port = 54322
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["https://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+enable_email_confirmations = false
+enable_sms_confirmations = false
+enable_phone_signup = false
+enable_phone_autoconfirm = false
+enable_anonymous_signups = false
+minimum_password_length = 6
+password_requirements = "letters_digits"
+external_email_enabled = true
+external_phone_enabled = false
+external_sms_enabled = false
+external_anonymous_enabled = false
+external_apple_enabled = false
+external_azure_enabled = false
+external_bitbucket_enabled = false
+external_discord_enabled = false
+external_facebook_enabled = false
+external_figma_enabled = false
+external_github_enabled = false
+external_gitlab_enabled = false
+external_google_enabled = false
+external_keycloak_enabled = false
+external_linkedin_enabled = false
+external_notion_enabled = false
+external_slack_enabled = false
+external_spotify_enabled = false
+external_twitch_enabled = false
+external_twitter_enabled = false
+external_workos_enabled = false
+external_zoom_enabled = false
+external_fly_enabled = false
+external_kakao_enabled = false
+enable_manual_linking = false
+hook_send_sms_secrets = []
+hook_send_email_secrets = []
+hook_mfa_verification_attempt_secrets = []
+hook_password_verification_attempt_secrets = []
+hook_custom_access_token_secrets = []
+enable_pkce_flow = true
+enable_implicit_flow = false
+enable_password_signup = true
+double_confirm_changes = true
+enable_confirmations = false
+secure_password_change = false
+update_password_require_reauthentication = false
+sessions_timebox = 24
+inactivity_timeout = 0
+refresh_token_rotation_enabled = true
+refresh_token_reuse_interval = 10
+
+[db]
+port = 54323
+shadow_port = 54324
+major_version = 15
+
+[functions]
+verify_jwt = true
+
+[functions.create-payment-intent]
+verify_jwt = true
+
+[functions.confirm-payment]
+verify_jwt = true
+
+[storage]
+enabled = true
+port = 54325
+image_transformation = {
+  enabled = true
+}
+duplicate_functions = false
+buckets = []
+
+[realtime]
+enabled = true
+port = 54326
+max_slots = 100
+max_replication_slots = 10
+max_temporary_slots = 10
+slot_drop_on_disconnect = true
+max_changes = 100
+max_record_bytes = 1048576
+max_events_per_second = 100
+poll_interval = 100
+poll_max_record_bytes = 1048576
+poll_max_changes = 100
+ip_version = 4
+
+[studio]
+enabled = true
+port = 54327

@@ -33,9 +33,9 @@ export function ModernCard({
   };
   
   const sizeClasses = {
-    sm: "p-4",
-    md: "p-6",
-    lg: "p-8"
+    sm: "p-3 sm:p-4",
+    md: "p-4 sm:p-6",
+    lg: "p-6 sm:p-8"
   };
   
   const interactiveClasses = (interactive || onClick) 
@@ -78,7 +78,7 @@ export function ModernCardHeader({ children, className, ...props }: { children: 
 
 export function ModernCardTitle({ children, className, ...props }: { children: React.ReactNode; className?: string }) {
   return (
-    <h3 className={cn("text-xl font-semibold text-white mb-2", className)} {...props}>
+    <h3 className={cn("text-lg sm:text-xl font-semibold text-white mb-2", className)} {...props}>
       {children}
     </h3>
   );

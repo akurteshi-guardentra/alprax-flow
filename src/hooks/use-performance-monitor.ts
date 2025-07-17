@@ -35,14 +35,15 @@ export function usePerformanceMonitor(componentName?: string) {
   const thresholds = useRef<PerformanceThresholds>(DEFAULT_THRESHOLDS)
 
   useEffect(() => {
-    setIsSupported('performance' in window && 'PerformanceObserver' in window)
+    const supported = 'performance' in window && 'PerformanceObserver' in window
+    setIsSupported(supported)
     
-    if (!isSupported) {
+    if (!supported) {
       logger.warn('Performance monitoring not supported in this browser')
       return
     }
 
-    measureCoreWebVitals()
+    const observers = measureCoreWebVitals()
     measurePageMetrics()
     measureMemoryUsage()
     measureDOMComplexity()
@@ -55,83 +56,94 @@ export function usePerformanceMonitor(componentName?: string) {
       logger.performance(`${componentName} render time`, renderTime)
     }
 
-  }, [isSupported, componentName])
+    // Cleanup observers on unmount
+    return () => {
+      observers.forEach(observer => observer.disconnect())
+    }
+  }, [componentName])
 
   const measureCoreWebVitals = () => {
-    // Largest Contentful Paint (LCP)
-    const lcpObserver = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      const lastEntry = entries[entries.length - 1] as any
-      
-      const lcp = lastEntry.startTime
-      setMetrics(prev => ({ ...prev, largestContentfulPaint: lcp }))
-      
-      if (lcp > thresholds.current.largestContentfulPaint) {
-        logger.warn('Poor LCP performance detected', {
-          component: componentName,
-          metric: 'largestContentfulPaint',
-          value: lcp,
-          threshold: thresholds.current.largestContentfulPaint
-        })
-      }
-    })
+    const observers: PerformanceObserver[] = []
     
+    // Largest Contentful Paint (LCP)
     try {
+      const lcpObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        const lastEntry = entries[entries.length - 1] as any
+        
+        const lcp = lastEntry.startTime
+        setMetrics(prev => ({ ...prev, largestContentfulPaint: lcp }))
+        
+        if (lcp > thresholds.current.largestContentfulPaint) {
+          logger.warn('Poor LCP performance detected', {
+            component: componentName,
+            metric: 'largestContentfulPaint',
+            value: lcp,
+            threshold: thresholds.current.largestContentfulPaint
+          })
+        }
+      })
+      
       lcpObserver.observe({ entryTypes: ['largest-contentful-paint'] })
+      observers.push(lcpObserver)
     } catch (error) {
       console.warn('LCP observation not supported')
     }
 
     // First Input Delay (FID)
-    const fidObserver = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      entries.forEach((entry: any) => {
-        const fid = entry.processingStart - entry.startTime
-        setMetrics(prev => ({ ...prev, firstInputDelay: fid }))
-        
-        if (fid > thresholds.current.firstInputDelay) {
-          logger.warn('Poor FID performance detected', {
-            component: componentName,
-            metric: 'firstInputDelay',
-            value: fid,
-            threshold: thresholds.current.firstInputDelay
-          })
-        }
-      })
-    })
-    
     try {
+      const fidObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        entries.forEach((entry: any) => {
+          const fid = entry.processingStart - entry.startTime
+          setMetrics(prev => ({ ...prev, firstInputDelay: fid }))
+          
+          if (fid > thresholds.current.firstInputDelay) {
+            logger.warn('Poor FID performance detected', {
+              component: componentName,
+              metric: 'firstInputDelay',
+              value: fid,
+              threshold: thresholds.current.firstInputDelay
+            })
+          }
+        })
+      })
+      
       fidObserver.observe({ entryTypes: ['first-input'] })
+      observers.push(fidObserver)
     } catch (error) {
       console.warn('FID observation not supported')
     }
 
     // Cumulative Layout Shift (CLS)
-    let clsValue = 0
-    const clsObserver = new PerformanceObserver((list) => {
-      const entries = list.getEntries()
-      entries.forEach((entry: any) => {
-        if (!entry.hadRecentInput) {
-          clsValue += entry.value
-          setMetrics(prev => ({ ...prev, cumulativeLayoutShift: clsValue }))
+    try {
+      let clsValue = 0
+      const clsObserver = new PerformanceObserver((list) => {
+        const entries = list.getEntries()
+        entries.forEach((entry: any) => {
+          if (!entry.hadRecentInput) {
+            clsValue += entry.value
+            setMetrics(prev => ({ ...prev, cumulativeLayoutShift: clsValue }))
+          }
+        })
+        
+        if (clsValue > thresholds.current.cumulativeLayoutShift) {
+          logger.warn('Poor CLS performance detected', {
+            component: componentName,
+            metric: 'cumulativeLayoutShift',
+            value: clsValue,
+            threshold: thresholds.current.cumulativeLayoutShift
+          })
         }
       })
       
-      if (clsValue > thresholds.current.cumulativeLayoutShift) {
-        logger.warn('Poor CLS performance detected', {
-          component: componentName,
-          metric: 'cumulativeLayoutShift',
-          value: clsValue,
-          threshold: thresholds.current.cumulativeLayoutShift
-        })
-      }
-    })
-    
-    try {
       clsObserver.observe({ entryTypes: ['layout-shift'] })
+      observers.push(clsObserver)
     } catch (error) {
       console.warn('CLS observation not supported')
     }
+    
+    return observers
   }
 
   const measurePageMetrics = () => {

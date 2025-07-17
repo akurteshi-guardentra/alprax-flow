@@ -53,12 +53,18 @@ export function GradientCanvas({ className }: GradientCanvasProps) {
     // Optimized render function with better timing and performance
     const render = (timestamp: number) => {
       // Skip frames for better performance when needed
-      if (isMobile && timestamp - lastFrameTime < 32) { // ~30fps on mobile
+      const targetFPS = isMobile ? 30 : 60
+      const frameInterval = 1000 / targetFPS
+      
+      if (timestamp - lastFrameTime < frameInterval) {
         animationFrameId = requestAnimationFrame(render);
         return;
       }
       
       lastFrameTime = timestamp;
+      
+      // Use efficient canvas operations
+      ctx.save()
       
       // Clear canvas with base color (dark slate)
       ctx.fillStyle = '#0a0a12';
@@ -71,13 +77,15 @@ export function GradientCanvas({ className }: GradientCanvasProps) {
       renderBlobs(ctx, blobs, time, currentPalette);
       
       // Add film grain effect less frequently for better performance
-      if (timestamp - lastGrainTime > grainInterval) {
+      if (!isMobile && timestamp - lastGrainTime > grainInterval) {
         addFilmGrainEffect(ctx, canvas.width, canvas.height, 0.006, isMobile);
         lastGrainTime = timestamp;
       }
       
+      ctx.restore()
+      
       // Progressive time for smoother animations
-      time += 0.002; 
+      time += isMobile ? 0.001 : 0.002;
       
       // Request next frame if still rendering
       if (shouldRender) {

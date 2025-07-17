@@ -44,9 +44,17 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
   onBack
 }: PaymentMethodStepProps) {
   const [selectedMethod, setSelectedMethod] = useState(data.paymentMethod || 'stellar');
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  const handleNext = () => {
-    onNext({ paymentMethod: selectedMethod });
+  const handleNext = async () => {
+    setIsProcessing(true);
+    try {
+      // Simulate payment processing delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      onNext({ paymentMethod: selectedMethod });
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
@@ -128,15 +136,24 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
         <Button
           variant="outline"
           onClick={onBack}
+          disabled={isProcessing}
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
           Back
         </Button>
         <Button
           onClick={handleNext}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
+          disabled={isProcessing}
+          className="bg-green-600 hover:bg-green-700 text-white font-semibold min-w-[140px]"
         >
-          Continue
+          {isProcessing ? (
+            <>
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
+              Processing...
+            </>
+          ) : (
+            'Complete Payment'
+          )}
         </Button>
       </div>
     </motion.div>

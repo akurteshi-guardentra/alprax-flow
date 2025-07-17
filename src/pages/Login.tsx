@@ -89,6 +89,7 @@ const Login = () => {
       onBack={() => navigate('/welcome')}
       title="Sign In"
       subtitle="Welcome back to Alprax Flow"
+      className="login-centered"
     >
       <div className="max-w-md mx-auto">
         <motion.div

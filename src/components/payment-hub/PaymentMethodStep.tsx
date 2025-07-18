@@ -3,6 +3,9 @@ import { motion } from "framer-motion";
 import { CreditCard, Wallet, Smartphone, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { StripeCardPaymentWrapper } from "@/components/payment/StripeCardPayment";
+import { StripePaymentService } from "@/services/StripePaymentService";
+import { toast } from "sonner";
 
 export interface PaymentMethodStepProps {
   data: Record<string, any>;
@@ -45,17 +48,85 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
 }: PaymentMethodStepProps) {
   const [selectedMethod, setSelectedMethod] = useState(data.paymentMethod || 'stellar');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showStripePayment, setShowStripePayment] = useState(false);
+  const [stripeClientSecret, setStripeClientSecret] = useState<string>('');
+  const [paymentAmount] = useState(data.amount || 50); // Default to $50
 
   const handleNext = async () => {
+    if (selectedMethod === 'card') {
+      await handleCardPayment();
+    } else {
+      // For other payment methods (stellar, mobile), proceed directly
+      setIsProcessing(true);
+      try {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        onNext({ paymentMethod: selectedMethod });
+      } finally {
+        setIsProcessing(false);
+      }
+    }
+  };
+
+  const handleCardPayment = async () => {
     setIsProcessing(true);
     try {
-      // Simulate payment processing delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      onNext({ paymentMethod: selectedMethod });
+      // Create payment intent
+      const paymentIntent = await StripePaymentService.createPaymentIntent(
+        paymentAmount,
+        'usd',
+        'Alprax Flow Payment',
+        { 
+          recipient: data.recipient?.recipient_name || 'Unknown',
+          amount: paymentAmount.toString()
+        }
+      );
+
+      if (paymentIntent) {
+        setStripeClientSecret(paymentIntent.clientSecret);
+        setShowStripePayment(true);
+      } else {
+        toast.error('Failed to initialize payment');
+      }
+    } catch (error) {
+      console.error('Payment initialization failed:', error);
+      toast.error('Failed to initialize payment');
     } finally {
       setIsProcessing(false);
     }
   };
+
+  const handlePaymentSuccess = () => {
+    setShowStripePayment(false);
+    toast.success('Payment completed successfully!');
+    onNext({ 
+      paymentMethod: selectedMethod,
+      paymentCompleted: true,
+      amount: paymentAmount
+    });
+  };
+
+  const handlePaymentError = (error: string) => {
+    setShowStripePayment(false);
+    toast.error(`Payment failed: ${error}`);
+  };
+
+  if (showStripePayment && stripeClientSecret) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-6 flex items-center justify-center min-h-[400px]"
+      >
+        <StripeCardPaymentWrapper
+          clientSecret={stripeClientSecret}
+          amount={paymentAmount}
+          currency="usd"
+          onSuccess={handlePaymentSuccess}
+          onError={handlePaymentError}
+        />
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -66,6 +137,11 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
       <div className="text-center">
         <h3 className="text-xl font-semibold text-white mb-2">Choose payment method</h3>
         <p className="text-white/70">Select how you'd like to send the payment</p>
+        {data.amount && (
+          <div className="mt-2 text-lg font-semibold text-white">
+            Amount: ${data.amount}
+          </div>
+        )}
       </div>
 
       <div className="space-y-3">

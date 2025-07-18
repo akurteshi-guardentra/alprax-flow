@@ -44,36 +44,48 @@ export interface PaymentResult {
 export class PaymentService {
   
   /**
-   * Create a payment intent for funding account
+   * Create a payment intent for funding account - now uses real Stripe integration
    */
   static async createPaymentIntent(amountCents: number): Promise<PaymentIntent | null> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // For now, create a mock payment intent in our database
-      // This will be replaced with real Stripe API call later
-      const mockStripeId = `pi_mock_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      
-      const { data, error } = await supabase
-        .from('payment_intents')
-        .insert({
-          user_id: user.id,
-          stripe_payment_intent_id: mockStripeId,
-          amount: amountCents,
+      const { data, error } = await supabase.functions.invoke('create-payment-intent', {
+        body: {
+          amount: amountCents / 100, // Convert cents to dollars for edge function
           currency: 'usd',
-          status: 'requires_payment_method',
-          client_secret: `${mockStripeId}_secret_mock`,
+          description: 'Account funding via Alprax Flow',
           metadata: {
             purpose: 'account_funding',
             created_by: 'payment_service'
           }
-        })
-        .select()
-        .single();
+        }
+      });
 
-      if (error) throw error;
-      return data as PaymentIntent;
+      if (error) {
+        console.error('Error creating payment intent:', error);
+        throw new Error(error.message || 'Failed to create payment intent');
+      }
+
+      // Map the response to our PaymentIntent interface
+      const paymentIntent: PaymentIntent = {
+        id: data.orderId,
+        user_id: user.id,
+        stripe_payment_intent_id: data.paymentIntentId,
+        amount: amountCents,
+        currency: 'usd',
+        status: 'requires_payment_method',
+        client_secret: data.clientSecret,
+        metadata: {
+          purpose: 'account_funding',
+          created_by: 'payment_service'
+        },
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      return paymentIntent;
     } catch (error) {
       console.error('Error creating payment intent:', error);
       toast.error('Failed to create payment intent');
@@ -82,81 +94,36 @@ export class PaymentService {
   }
 
   /**
-   * Confirm payment and process funding
+   * Confirm payment and process funding - now uses real Stripe integration
    */
-  static async confirmPayment(paymentIntentId: string): Promise<boolean> {
+  static async confirmPayment(paymentIntentId: string, orderId?: string): Promise<boolean> {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // Get payment intent
-      const { data: paymentIntent, error: intentError } = await supabase
-        .from('payment_intents')
-        .select('*')
-        .eq('id', paymentIntentId)
-        .eq('user_id', user.id)
-        .single();
+      // Use the new edge function to confirm payment
+      const { data, error } = await supabase.functions.invoke('confirm-payment', {
+        body: {
+          paymentIntentId,
+          orderId: orderId || paymentIntentId
+        }
+      });
 
-      if (intentError || !paymentIntent) {
-        throw new Error('Payment intent not found');
+      if (error) {
+        console.error('Error confirming payment:', error);
+        throw new Error(error.message || 'Payment confirmation failed');
       }
 
-      // Mock successful payment confirmation
-      // In real implementation, this would call Stripe API
-      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
-
-      // Update payment intent status
-      await supabase
-        .from('payment_intents')
-        .update({ 
-          status: 'succeeded',
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', paymentIntentId);
-
-      // Create funding transaction
-      const exchangeRate = 0.087; // Mock XLM/USD rate - in real app, fetch from API
-      const amountUsd = paymentIntent.amount / 100; // Convert cents to dollars
-      const amountXlm = amountUsd / exchangeRate;
-
-      const { data: fundingTx, error: fundingError } = await supabase
-        .from('funding_transactions')
-        .insert({
-          user_id: user.id,
-          payment_intent_id: paymentIntentId,
-          amount_usd: amountUsd,
-          amount_xlm: amountXlm,
-          exchange_rate: exchangeRate,
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-
-      if (fundingError) throw fundingError;
-
-      // Record the funding in stellar_transactions table for consistency
-      await supabase
-        .from('stellar_transactions')
-        .insert({
-          user_id: user.id,
-          stellar_tx_hash: `funding_${fundingTx.id}`,
-          transaction_type: 'funding',
-          from_asset: 'USD',
-          to_asset: 'XLM',
-          amount: amountXlm,
-          fee: 0,
-          status: 'completed',
-          memo: `Account funding: $${amountUsd}`,
-          recipient_name: 'My Account',
-          completed_at: new Date().toISOString()
-        });
-
-      toast.success(`Successfully added $${amountUsd} to your account!`);
-      return true;
+      if (data.success) {
+        toast.success(`Successfully added $${data.amount} to your account!`);
+        return true;
+      } else {
+        throw new Error(data.error || 'Payment was not successful');
+      }
     } catch (error) {
       console.error('Error confirming payment:', error);
-      toast.error('Payment confirmation failed');
+      const message = error instanceof Error ? error.message : 'Payment confirmation failed';
+      toast.error(message);
       return false;
     }
   }
@@ -207,23 +174,17 @@ export class PaymentService {
   }
 
   /**
-   * Process payment with Stripe (mock implementation)
+   * Process payment with Stripe - deprecated, use StripePaymentService instead
    */
   static async processPayment(clientSecret: string, paymentMethod: any): Promise<PaymentResult> {
+    console.warn('PaymentService.processPayment is deprecated. Use StripePaymentService.confirmPayment instead.');
+    
     try {
-      // Mock payment processing
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      // Simulate success/failure
-      const success = Math.random() > 0.1; // 90% success rate
-      
-      if (success) {
-        return { success: true };
-      } else {
-        return { success: false, error: 'Payment failed. Please try again.' };
-      }
+      // For backward compatibility, return success
+      // Real implementation should use Stripe Elements and confirmPayment
+      return { success: true };
     } catch (error) {
-      return { success: false, error: 'An unexpected error occurred' };
+      return { success: false, error: 'Payment processing failed' };
     }
   }
 

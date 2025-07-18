@@ -43,22 +43,44 @@ export function usePerformanceMonitor(componentName?: string) {
       return
     }
 
-    const observers = measureCoreWebVitals()
-    measurePageMetrics()
-    measureMemoryUsage()
-    measureDOMComplexity()
-    
-    // Measure component render time
-    const renderTime = Date.now() - renderStartTime.current
-    setMetrics(prev => ({ ...prev, renderTime }))
-    
-    if (componentName) {
-      logger.performance(`${componentName} render time`, renderTime)
+    let observers: PerformanceObserver[] = []
+    let mounted = true
+
+    const initializeMonitoring = () => {
+      if (!mounted) return
+
+      try {
+        observers = measureCoreWebVitals()
+        measurePageMetrics()
+        measureMemoryUsage()
+        measureDOMComplexity()
+        
+        // Measure component render time
+        const renderTime = Date.now() - renderStartTime.current
+        if (mounted) {
+          setMetrics(prev => ({ ...prev, renderTime }))
+        }
+        
+        if (componentName) {
+          logger.performance(`${componentName} render time`, renderTime)
+        }
+      } catch (error) {
+        console.warn('Performance monitoring initialization failed:', error)
+      }
     }
+
+    initializeMonitoring()
 
     // Cleanup observers on unmount
     return () => {
-      observers.forEach(observer => observer.disconnect())
+      mounted = false
+      observers.forEach(observer => {
+        try {
+          observer.disconnect()
+        } catch (error) {
+          console.warn('Error disconnecting performance observer:', error)
+        }
+      })
     }
   }, [componentName])
 

@@ -1589,6 +1589,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_completed_orders: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_primary_stellar_account: {
         Args: { user_uuid: string }
         Returns: {

@@ -13,12 +13,6 @@ export const LazyTransactionHistory = lazy(() =>
   }))
 );
 
-export const LazyAnalyticsDashboard = lazy(() => 
-  import('@/components/analytics/AnalyticsDashboard').then(module => ({ 
-    default: module.AnalyticsDashboard 
-  }))
-);
-
 export const LazyComprehensiveTest = lazy(() => 
   import('@/components/testing/ComprehensiveTest').then(module => ({ 
     default: module.ComprehensiveTest 

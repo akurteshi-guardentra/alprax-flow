@@ -32,9 +32,10 @@ export function useRealTimePaymentStatus(orderId?: string) {
       }
 
       if (data) {
+        const status = data.status as 'pending' | 'processing' | 'completed' | 'failed';
         setPaymentStatus({
           orderId: data.id,
-          status: data.status,
+          status: status,
           amount: data.amount / 100, // Convert from cents
           currency: data.currency,
           updatedAt: data.updated_at
@@ -68,20 +69,21 @@ export function useRealTimePaymentStatus(orderId?: string) {
           console.log('Payment status updated:', payload);
           const newData = payload.new as any;
           
+          const status = newData.status as 'pending' | 'processing' | 'completed' | 'failed';
           setPaymentStatus({
             orderId: newData.id,
-            status: newData.status,
+            status: status,
             amount: newData.amount / 100,
             currency: newData.currency,
             updatedAt: newData.updated_at
           });
 
           // Show toast notification for status changes
-          if (newData.status === 'completed') {
+          if (status === 'completed') {
             toast.success('Payment completed successfully!');
-          } else if (newData.status === 'failed') {
+          } else if (status === 'failed') {
             toast.error('Payment failed. Please try again.');
-          } else if (newData.status === 'processing') {
+          } else if (status === 'processing') {
             toast.info('Payment is being processed...');
           }
         }

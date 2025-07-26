@@ -30,6 +30,8 @@
   padding-bottom: calc(1rem + env(safe-area-inset-bottom, 0px));
   background: linear-gradient(180deg, transparent 0%, hsl(var(--background)) 20%);
   backdrop-filter: blur(12px);
+  max-width: 100vw;
+  box-sizing: border-box;
 }
 
 /* Card layouts optimized for mobile */

@@ -499,7 +499,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
               </Card>
 
               {/* Submit Button */}
-              <div className={isMobile ? "form-submit" : "space-y-3"}>
+              <div className={isMobile ? "fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent backdrop-blur-sm z-50" : "space-y-3"}>
                 <Button
                   onClick={handleSubmit}
                   disabled={!validation.valid || isProcessing}
@@ -513,7 +513,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                   ) : (
                     <>
                       <Send className="w-5 h-5 mr-2" />
-                      Continue
+                      Send Payment
                     </>
                   )}
                 </Button>

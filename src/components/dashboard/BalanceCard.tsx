@@ -32,7 +32,7 @@ export function BalanceCard() {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.3 }}
-      className="mb-8"
+      className="mb-8 w-full"
     >
       <ModernCard variant="glass" className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 border border-white/10 relative overflow-hidden">
         <ModernCardContent className="p-6">

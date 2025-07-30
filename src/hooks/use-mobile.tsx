@@ -1,4 +1,5 @@
-import * as React from "react"
+
+import { useState, useEffect } from "react"
 
 const MOBILE_BREAKPOINT = 768
 const TABLET_BREAKPOINT = 1024
@@ -9,9 +10,9 @@ const TABLET_BREAKPOINT = 1024
  * @returns boolean indicating if the media query matches
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = React.useState(false);
+  const [matches, setMatches] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if we're in browser environment
     if (typeof window !== 'undefined') {
       const mediaQuery = window.matchMedia(query);
@@ -48,9 +49,9 @@ export function useMediaQuery(query: string): boolean {
 }
 
 export function useIsMobile() {
-  const [isMobile, setIsMobile] = React.useState<boolean | undefined>(undefined)
+  const [isMobile, setIsMobile] = useState<boolean | undefined>(undefined)
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Check if device is mobile or tablet based on user agent
     const checkMobileDevice = () => {
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
@@ -95,9 +96,9 @@ export const useMobile = () => {
 
 // For specific tablet detection if needed
 export function useIsTablet() {
-  const [isTablet, setIsTablet] = React.useState<boolean | undefined>(undefined)
+  const [isTablet, setIsTablet] = useState<boolean | undefined>(undefined)
 
-  React.useEffect(() => {
+  useEffect(() => {
     const checkTablet = () => {
       const userAgent = navigator.userAgent || navigator.vendor || (window as any).opera
       const isTabletUserAgent = /ipad|android(?!.*mobile)/i.test(userAgent.toLowerCase())

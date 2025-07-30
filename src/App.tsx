@@ -40,6 +40,7 @@ import BiometricAuthSetup from "./pages/BiometricAuthSetup";
 import KYC from "./pages/KYC";
 import Analytics from "./pages/Analytics";
 import SystemHealth from "./pages/SystemHealth";
+import TestDashboard from "./pages/TestDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -179,6 +180,11 @@ const AppContent = () => {
                   <Route path="/system-health" element={
                     <AuthGuard requireAuth={true}>
                       <SystemHealth />
+                    </AuthGuard>
+                  } />
+                  <Route path="/test-dashboard" element={
+                    <AuthGuard requireAuth={true}>
+                      <TestDashboard />
                     </AuthGuard>
                   } />
                   <Route path="*" element={<NotFound />} />

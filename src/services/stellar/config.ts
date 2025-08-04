@@ -1,7 +1,7 @@
 
 import { Horizon, Networks } from 'stellar-sdk';
 
-// Environment configuration
+// Protocol 23 ready environment configuration
 const STELLAR_NETWORK = import.meta.env.VITE_STELLAR_NETWORK || 'TESTNET';
 const HORIZON_URL = STELLAR_NETWORK === 'TESTNET' 
   ? 'https://horizon-testnet.stellar.org' 

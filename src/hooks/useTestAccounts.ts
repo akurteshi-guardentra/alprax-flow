@@ -6,6 +6,7 @@ import { stellar } from '@/lib/stellar';
 import { hapticFeedback } from '@/lib/haptics';
 import { TestAccount } from '@/lib/stellar/types';
 import { supabase } from '@/integrations/supabase/client';
+import { Protocol23Handler } from '@/lib/stellar/protocol23';
 
 const LOCAL_STORAGE_KEY = 'stellar_test_accounts';
 

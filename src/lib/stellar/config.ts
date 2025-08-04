@@ -1,7 +1,8 @@
 
 import { Horizon, Networks } from 'stellar-sdk';
 
-// Initialize Stellar server (testnet for development) - Protocol 23 ready
+// Protocol 23 ready configuration
+// Testnet URL remains the same, but SDK v14+ handles Protocol 23 compatibility
 export const server = new Horizon.Server('https://horizon-testnet.stellar.org');
 export const networkPassphrase = Networks.TESTNET;
 

@@ -14,6 +14,7 @@ import { PerformanceInfo } from "@/components/ui/performance-info";
 import { DeviceInfoPanel } from "@/components/mobile/DeviceInfoPanel";
 import { ProductionDebugPanel } from "@/components/debug/ProductionDebugPanel";
 import { InstallPrompt } from "@/components/ui/InstallPrompt";
+import { Protocol23Banner } from "@/components/Protocol23Banner";
 import { UpdatePrompt } from "@/components/ui/UpdatePrompt";
 import { OfflineIndicator } from "@/components/ui/offline-indicator";
 import { authService } from "@/services/AuthService";
@@ -85,6 +86,7 @@ const AppContent = () => {
             <TooltipProvider>
               <Toaster />
               <ConnectionStatus />
+              <Protocol23Banner />
               <BrowserRouter>
                 <Routes>
                   <Route path="/" element={

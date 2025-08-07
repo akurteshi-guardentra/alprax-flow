@@ -283,6 +283,17 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
 
   const validation = validateForm();
 
+  // Debug logging for validation
+  useEffect(() => {
+    console.log('Form validation state:', {
+      recipient: !!formData.recipient,
+      amount: formData.amount,
+      memo: formData.memo,
+      country: formData.country,
+      validation: validation
+    });
+  }, [formData, validation]);
+
   // Performance measurement - simplified to avoid infinite re-renders
   useEffect(() => {
     const startTime = performance.now();
@@ -500,6 +511,13 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
 
               {/* Submit Button */}
               <div className={isMobile ? "fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent backdrop-blur-sm z-50" : "space-y-3"}>
+                {/* Debug info - remove in production */}
+                {process.env.NODE_ENV === 'development' && (
+                  <div className="mb-2 p-2 bg-yellow-500/20 rounded text-xs text-yellow-200">
+                    Debug: Valid={validation.valid.toString()}, Country="{formData.country}", Recipient={!!formData.recipient ? 'Yes' : 'No'}
+                  </div>
+                )}
+                
                 <Button
                   onClick={handleSubmit}
                   disabled={!validation.valid || isProcessing}
@@ -513,7 +531,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                   ) : (
                     <>
                       <Send className="w-5 h-5 mr-2" />
-                      Send Payment
+                      Complete Payment
                     </>
                   )}
                 </Button>

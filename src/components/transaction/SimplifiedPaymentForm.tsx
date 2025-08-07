@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { CountrySelector } from "@/components/ui/country-selector";
 import { cn } from "@/lib/utils";
 import { FavoriteRecipient } from "@/types/favoriteRecipient";
 import { toast } from "sonner";
@@ -46,6 +47,7 @@ export function SimplifiedPaymentForm({
   
   const [selectedRecipient, setSelectedRecipient] = useState<FavoriteRecipient | null>(null);
   const [description, setDescription] = useState("");
+  const [country, setCountry] = useState("");
   const [showRecipientSelector, setShowRecipientSelector] = useState(false);
   const [paymentStatus, setPaymentStatus] = useState<PaymentStatus>('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
@@ -112,6 +114,7 @@ export function SimplifiedPaymentForm({
         // Reset form
         setFiatAmount("");
         setDescription("");
+        setCountry("");
         setSelectedRecipient(null);
       } else {
         throw new Error(result.error || "Failed to send payment");
@@ -132,6 +135,9 @@ export function SimplifiedPaymentForm({
     availableFunds * effectiveFiatRate,
     effectiveFiatRate
   );
+
+  // Enhanced validation to include country
+  const isFormValid = validation.isValid && country.trim() !== "";
 
   return (
     <motion.form
@@ -217,6 +223,25 @@ export function SimplifiedPaymentForm({
           )}
         </div>
 
+        {/* Country Selection */}
+        <div className="space-y-2">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="country" className="text-white">Country</Label>
+            <span className="text-xs text-white/50">Required</span>
+          </div>
+          <CountrySelector
+            value={country}
+            onSelect={setCountry}
+            className="bg-white/10 border-white/20 text-white"
+          />
+          {!country && (
+            <div className="flex items-center gap-1 text-red-400 text-sm">
+              <AlertCircle className="w-3 h-3" />
+              Please select a country
+            </div>
+          )}
+        </div>
+
         {/* Amount Input */}
         <div className="space-y-2">
           <div className="flex justify-between items-center">
@@ -297,7 +322,7 @@ export function SimplifiedPaymentForm({
         <Button 
           type="submit"
           className="w-full bg-blue-600 hover:bg-blue-700 text-white h-12 text-base"
-          disabled={!validation.isValid || isProcessing || paymentStatus === 'processing' || !selectedRecipient}
+          disabled={!isFormValid || isProcessing || paymentStatus === 'processing' || !selectedRecipient}
         >
           {paymentStatus === 'processing' ? (
             <>

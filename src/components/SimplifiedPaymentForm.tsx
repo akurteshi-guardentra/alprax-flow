@@ -510,7 +510,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
               </Card>
 
               {/* Submit Button */}
-              <div className={isMobile ? "fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-background to-transparent backdrop-blur-sm z-50" : "space-y-3"}>
+              <div className={isMobile ? "fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-slate-900 via-slate-900/95 to-transparent backdrop-blur-sm z-50 border-t border-white/10" : "space-y-3"}>
                 {/* Debug info - remove in production */}
                 {process.env.NODE_ENV === 'development' && (
                   <div className="mb-2 p-2 bg-yellow-500/20 rounded text-xs text-yellow-200">
@@ -521,7 +521,11 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                 <Button
                   onClick={handleSubmit}
                   disabled={!validation.valid || isProcessing}
-                  className="btn-mobile-primary w-full min-h-[52px] text-lg"
+                  className={`w-full min-h-[52px] text-lg font-semibold transition-all duration-200 ${
+                    !validation.valid || isProcessing 
+                      ? 'bg-gray-600 hover:bg-gray-600 text-gray-300 cursor-not-allowed opacity-70' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:scale-[1.02]'
+                  }`}
                 >
                   {isProcessing ? (
                     <>
@@ -537,9 +541,9 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                 </Button>
 
                 {!validation.valid && validation.message && (
-                  <div className="form-error">
-                    <AlertCircle className="w-4 h-4" />
-                    {validation.message}
+                  <div className="flex items-center gap-2 text-red-400 text-sm bg-red-500/10 p-3 rounded-lg border border-red-500/20">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{validation.message}</span>
                   </div>
                 )}
               </div>

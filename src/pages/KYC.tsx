@@ -8,10 +8,12 @@ import KYCStatus from "@/components/kyc/KYCStatus";
 import AdminKYCVerification from "@/components/kyc/AdminKYCVerification";
 import { useEffect, useState } from "react";
 import { useKYC } from "@/hooks/useKYC";
+import OnfidoKYC from "@/components/kyc/OnfidoKYC";
 
 const KYC = () => {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [useProFlow, setUseProFlow] = useState(false);
   const { 
     status, 
     documents, 
@@ -133,7 +135,33 @@ const KYC = () => {
             <div className="mb-6">
               <KYCStatus showActionButton={false} />
             </div>
-            <KYCVerificationForm onSubmit={uploadDocument} />
+
+            <div className="mb-4 flex items-center gap-2">
+              <Button
+                variant={useProFlow ? "outline" : "default"}
+                onClick={() => setUseProFlow(false)}
+                className="flex-1"
+              >
+                Basic Upload
+              </Button>
+              <Button
+                variant={useProFlow ? "default" : "outline"}
+                onClick={() => setUseProFlow(true)}
+                className="flex-1"
+              >
+                Pro Verification
+              </Button>
+            </div>
+
+            {useProFlow ? (
+              <OnfidoKYC onCompleted={refreshKYCStatus} />
+            ) : (
+              <KYCVerificationForm onSubmit={uploadDocument} />
+            )}
+
+            <p className="mt-3 text-xs text-white/70">
+              Pro Verification uses Onfido for instant checks with liveness & fraud signals.
+            </p>
           </div>
         );
     }

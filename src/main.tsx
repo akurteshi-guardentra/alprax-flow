@@ -3,6 +3,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
+import { MobileOptimizations } from '@/components/mobile/MobileOptimizations'
 import { logger } from '@/utils/logger'
 import { monitor } from '@/utils/monitoring'
 import { MemoryManager } from '@/utils/memory-management'
@@ -84,9 +85,6 @@ const root = createRoot(container);
 
 // Use StrictMode only in development for better debugging
 const isDevelopment = import.meta.env.DEV;
-
-// Import mobile optimizations
-import { MobileOptimizations } from '@/components/mobile/MobileOptimizations'
 
 root.render(
   isDevelopment ? (

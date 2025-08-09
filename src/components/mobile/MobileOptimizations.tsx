@@ -10,6 +10,9 @@ export function MobileOptimizations({ children }: MobileOptimizationsProps) {
   const viewport = useMobileViewport()
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return
+    }
     // Set viewport meta tag for better mobile experience
     const setViewportMeta = () => {
       let viewportMeta = document.querySelector('meta[name="viewport"]') as HTMLMetaElement
@@ -131,6 +134,9 @@ export function MobileOptimizations({ children }: MobileOptimizationsProps) {
 
   // Add CSS for safe area and mobile optimizations
   useEffect(() => {
+    if (typeof document === 'undefined') {
+      return
+    }
     const style = document.createElement('style')
     style.textContent = `
       :root {

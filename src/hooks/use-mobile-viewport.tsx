@@ -17,9 +17,10 @@ interface ViewportInfo {
 }
 
 export function useMobileViewport(): ViewportInfo {
+  const isBrowser = typeof window !== 'undefined' && typeof document !== 'undefined'
   const [viewport, setViewport] = useState<ViewportInfo>(() => {
-    const width = window.innerWidth
-    const height = window.innerHeight
+    const width = isBrowser ? window.innerWidth : 1024
+    const height = isBrowser ? window.innerHeight : 768
     
     return {
       width,
@@ -39,6 +40,9 @@ export function useMobileViewport(): ViewportInfo {
   })
 
   useEffect(() => {
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return
+    }
     let initialHeight = window.innerHeight
 
     const updateViewport = () => {
@@ -94,8 +98,8 @@ export function useMobileViewport(): ViewportInfo {
     // Set CSS custom properties for safe areas
     const setCSSProperties = () => {
       const root = document.documentElement
-      if ('CSS' in window && 'supports' in window.CSS) {
-        if (window.CSS.supports('padding-top: env(safe-area-inset-top)')) {
+      if (typeof window !== 'undefined' && 'CSS' in window && 'supports' in (window as any).CSS) {
+        if ((window.CSS as any).supports('padding-top: env(safe-area-inset-top)')) {
           root.style.setProperty('--safe-area-inset-top', 'env(safe-area-inset-top)')
           root.style.setProperty('--safe-area-inset-bottom', 'env(safe-area-inset-bottom)')
           root.style.setProperty('--safe-area-inset-left', 'env(safe-area-inset-left)')

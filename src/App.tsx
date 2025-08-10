@@ -3,7 +3,7 @@ import React, { useEffect } from "react";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthGuard } from "@/components/auth/AuthGuard";
 import GlobalErrorBoundary from "@/components/error/GlobalErrorBoundary";
@@ -54,6 +54,14 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+const RouteAwareMobileNav: React.FC<{ isMobile: boolean }> = ({ isMobile }) => {
+  const location = useLocation();
+  if (!isMobile) return null;
+  const hideOn = ['/payments', '/request', '/add-funds'];
+  const shouldHide = hideOn.some((p) => location.pathname.startsWith(p));
+  return shouldHide ? null : <MobileBottomNav />;
+};
 
 const AppContent = () => {
   const isMobile = useIsMobile();
@@ -194,7 +202,7 @@ const AppContent = () => {
                 <InstallPrompt />
                 <UpdatePrompt />
                 <OfflineIndicator />
-                {isMobile && <MobileBottomNav />}
+                <RouteAwareMobileNav isMobile={isMobile} />
                 <PerformanceInfo />
                 <DeviceInfoPanel />
                 <ProductionDebugPanel />

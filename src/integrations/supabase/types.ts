@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -1447,6 +1447,24 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_wallets: {
         Row: {
           balance: number | null
@@ -1596,14 +1614,22 @@ export type Database = {
       get_user_primary_stellar_account: {
         Args: { user_uuid: string }
         Returns: {
+          created_at: string
+          encrypted_secret: string
           id: string
           public_key: string
-          encrypted_secret: string
-          created_at: string
         }[]
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
       }
     }
     Enums: {
+      app_role: "admin" | "moderator" | "user"
       auth_factor_status: "pending" | "verified" | "disabled"
       auth_method: "password" | "fingerprint" | "number"
       batch_status: "pending" | "processing" | "completed" | "failed"
@@ -1735,6 +1761,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["admin", "moderator", "user"],
       auth_factor_status: ["pending", "verified", "disabled"],
       auth_method: ["password", "fingerprint", "number"],
       batch_status: ["pending", "processing", "completed", "failed"],

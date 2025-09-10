@@ -165,6 +165,45 @@ export type Database = {
         }
         Relationships: []
       }
+      currency_alerts: {
+        Row: {
+          alert_type: string | null
+          created_at: string | null
+          current_rate: number | null
+          from_currency: string
+          id: string
+          is_active: boolean | null
+          target_rate: number
+          to_currency: string
+          triggered_at: string | null
+          user_id: string
+        }
+        Insert: {
+          alert_type?: string | null
+          created_at?: string | null
+          current_rate?: number | null
+          from_currency: string
+          id?: string
+          is_active?: boolean | null
+          target_rate: number
+          to_currency: string
+          triggered_at?: string | null
+          user_id: string
+        }
+        Update: {
+          alert_type?: string | null
+          created_at?: string | null
+          current_rate?: number | null
+          from_currency?: string
+          id?: string
+          is_active?: boolean | null
+          target_rate?: number
+          to_currency?: string
+          triggered_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       early_access_features: {
         Row: {
           created_at: string | null
@@ -251,6 +290,77 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      family_groups: {
+        Row: {
+          created_at: string | null
+          creator_id: string
+          description: string | null
+          group_code: string
+          id: string
+          monthly_goal: number | null
+          name: string
+          total_savings: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          creator_id: string
+          description?: string | null
+          group_code: string
+          id?: string
+          monthly_goal?: number | null
+          name: string
+          total_savings?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          creator_id?: string
+          description?: string | null
+          group_code?: string
+          id?: string
+          monthly_goal?: number | null
+          name?: string
+          total_savings?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      family_members: {
+        Row: {
+          contribution_amount: number | null
+          family_group_id: string
+          id: string
+          joined_at: string | null
+          role: string | null
+          user_id: string
+        }
+        Insert: {
+          contribution_amount?: number | null
+          family_group_id: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id: string
+        }
+        Update: {
+          contribution_amount?: number | null
+          family_group_id?: string
+          id?: string
+          joined_at?: string | null
+          role?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "family_members_family_group_id_fkey"
+            columns: ["family_group_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       favorite_recipients: {
         Row: {
@@ -803,26 +913,94 @@ export type Database = {
         }
         Relationships: []
       }
+      referral_clicks: {
+        Row: {
+          clicked_at: string | null
+          conversion_value: number | null
+          converted: boolean | null
+          converted_at: string | null
+          country: string | null
+          id: string
+          ip_address: unknown | null
+          referral_code_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          clicked_at?: string | null
+          conversion_value?: number | null
+          converted?: boolean | null
+          converted_at?: string | null
+          country?: string | null
+          id?: string
+          ip_address?: unknown | null
+          referral_code_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          clicked_at?: string | null
+          conversion_value?: number | null
+          converted?: boolean | null
+          converted_at?: string | null
+          country?: string | null
+          id?: string
+          ip_address?: unknown | null
+          referral_code_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "referral_clicks_referral_code_id_fkey"
+            columns: ["referral_code_id"]
+            isOneToOne: false
+            referencedRelation: "referral_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       referral_codes: {
         Row: {
           code: string
           created_at: string | null
+          family_bonus_multiplier: number | null
           id: string
+          last_reset_date: string | null
+          monthly_referrals: number | null
+          qr_code_url: string | null
+          referral_link: string | null
           rewards_earned: number | null
+          successful_conversions: number | null
+          tier_level: string | null
+          total_clicks: number | null
           user_id: string
         }
         Insert: {
           code: string
           created_at?: string | null
+          family_bonus_multiplier?: number | null
           id?: string
+          last_reset_date?: string | null
+          monthly_referrals?: number | null
+          qr_code_url?: string | null
+          referral_link?: string | null
           rewards_earned?: number | null
+          successful_conversions?: number | null
+          tier_level?: string | null
+          total_clicks?: number | null
           user_id: string
         }
         Update: {
           code?: string
           created_at?: string | null
+          family_bonus_multiplier?: number | null
           id?: string
+          last_reset_date?: string | null
+          monthly_referrals?: number | null
+          qr_code_url?: string | null
+          referral_link?: string | null
           rewards_earned?: number | null
+          successful_conversions?: number | null
+          tier_level?: string | null
+          total_clicks?: number | null
           user_id?: string
         }
         Relationships: []
@@ -1260,6 +1438,71 @@ export type Database = {
             columns: ["transaction_id"]
             isOneToOne: true
             referencedRelation: "stellar_transactions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      transfer_recipients: {
+        Row: {
+          city: string | null
+          country: string
+          created_at: string | null
+          family_group_id: string | null
+          id: string
+          is_family_member: boolean | null
+          local_bank_account: string | null
+          mobile_wallet: string | null
+          next_scheduled_date: string | null
+          preferred_amount: number | null
+          recipient_name: string
+          relationship: string | null
+          stellar_address: string
+          transfer_frequency: string | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          city?: string | null
+          country: string
+          created_at?: string | null
+          family_group_id?: string | null
+          id?: string
+          is_family_member?: boolean | null
+          local_bank_account?: string | null
+          mobile_wallet?: string | null
+          next_scheduled_date?: string | null
+          preferred_amount?: number | null
+          recipient_name: string
+          relationship?: string | null
+          stellar_address: string
+          transfer_frequency?: string | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          city?: string | null
+          country?: string
+          created_at?: string | null
+          family_group_id?: string | null
+          id?: string
+          is_family_member?: boolean | null
+          local_bank_account?: string | null
+          mobile_wallet?: string | null
+          next_scheduled_date?: string | null
+          preferred_amount?: number | null
+          recipient_name?: string
+          relationship?: string | null
+          stellar_address?: string
+          transfer_frequency?: string | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "transfer_recipients_family_group_id_fkey"
+            columns: ["family_group_id"]
+            isOneToOne: false
+            referencedRelation: "family_groups"
             referencedColumns: ["id"]
           },
         ]

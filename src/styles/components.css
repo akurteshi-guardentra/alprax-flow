@@ -1,5 +1,16 @@
 /* Mobile-optimized component styles */
 
+/* Touch target utilities */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* Layout utilities */
+.sticky-bottom {
+  @apply sticky bottom-0 bg-background/95 backdrop-blur-sm;
+  @apply border-t border-white/10 p-4;
+}
+
 /* Enhanced button styles */
 .btn-mobile {
   @apply flex items-center justify-center gap-2;
@@ -45,6 +56,12 @@
 }
 
 /* Enhanced card styles */
+.mobile-card {
+  @apply p-4 rounded-lg;
+  @apply bg-white/5 border border-white/10;
+  @apply backdrop-blur-sm;
+}
+
 .card-mobile {
   @apply mobile-card;
   @apply transform hover:scale-[1.01] transition-transform;

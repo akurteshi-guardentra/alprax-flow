@@ -61,11 +61,18 @@
 
 /* Form submit area */
 .form-submit {
-  @apply sticky-bottom;
+  @apply sticky bottom-0 bg-background/95 backdrop-blur-sm;
+  @apply border-t border-white/10 p-4;
   @apply space-y-3;
 }
 
 .form-submit-button {
-  @apply btn-mobile-primary w-full;
-  @apply min-h-[52px] text-lg;
+  @apply flex items-center justify-center gap-2;
+  @apply min-h-[52px] px-6 py-3 w-full;
+  @apply text-white font-medium text-lg;
+  @apply rounded-lg;
+  @apply bg-primary hover:bg-primary/90;
+  @apply shadow-lg shadow-primary/25;
+  @apply active:scale-95 transition-transform;
+  @apply min-h-[44px] min-w-[44px];
 }

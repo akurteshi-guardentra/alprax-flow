@@ -1,6 +1,6 @@
 import { useState, Suspense } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SimplifiedPaymentForm } from '@/components/SimplifiedPaymentForm';
+import { FiatPaymentForm } from '@/components/remittance/FiatPaymentForm';
 import { PaymentWizard } from '@/components/payment-hub/PaymentWizard';
 import { PaymentTemplates } from '@/components/payment-hub/PaymentTemplates';
 import { PaymentErrorBoundary } from '@/components/payment/PaymentErrorBoundary';
@@ -47,7 +47,7 @@ const ModernPayments = () => {
 
           <TabsContent value="quick" className="mt-6">
             <div className="bg-slate-800/50 backdrop-blur-lg rounded-xl border border-slate-700/50 overflow-hidden">
-              <SimplifiedPaymentForm />
+              <FiatPaymentForm />
             </div>
           </TabsContent>
 

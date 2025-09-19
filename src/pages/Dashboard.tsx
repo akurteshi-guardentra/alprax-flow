@@ -7,6 +7,7 @@ import { BalanceCard } from "@/components/dashboard/BalanceCard";
 import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
 import { EnhancedTransactionList } from "@/components/transaction/EnhancedTransactionList";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
+import { QuickTestingActions } from "@/components/dashboard/QuickTestingActions";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -42,6 +43,7 @@ const Dashboard = () => {
             
             <div className="space-y-6 lg:space-y-8 flex flex-col items-center lg:items-start">
               <QuickActionsGrid />
+              <QuickTestingActions />
             </div>
           </div>
         </motion.div>

@@ -42,6 +42,7 @@ import KYC from "./pages/KYC";
 import Analytics from "./pages/Analytics";
 import SystemHealth from "./pages/SystemHealth";
 import TestDashboard from "./pages/TestDashboard";
+import MultiUserTesting from "./pages/MultiUserTesting";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -195,6 +196,11 @@ const AppContent = () => {
                   <Route path="/test-dashboard" element={
                     <AuthGuard requireAuth={true}>
                       <TestDashboard />
+                    </AuthGuard>
+                  } />
+                  <Route path="/multi-user-testing" element={
+                    <AuthGuard requireAuth={true}>
+                      <MultiUserTesting />
                     </AuthGuard>
                   } />
                   <Route path="*" element={<NotFound />} />

@@ -30,6 +30,7 @@ export interface PaymentResult {
   success: boolean;
   error?: string;
   txHash?: string;
+  errorType?: string;
 }
 
 export interface FundingResult {
@@ -96,13 +97,29 @@ export async function sendPayment(
       }
     }
 
-    // Verify destination account exists
+    // Verify destination account exists, auto-fund if needed
     try {
       await server.loadAccount(destinationAddress);
       console.log('Destination account verified');
     } catch (error) {
-      console.error('Destination account not found:', error);
-      throw new Error('Recipient account does not exist on the Stellar network');
+      console.log('Destination account not found, attempting to fund...');
+      
+      // Try to fund the recipient account
+      const fundingResult = await fundTestAccount(destinationAddress);
+      if (!fundingResult.success) {
+        throw new Error(`Recipient account does not exist. We tried to create it automatically but failed: ${fundingResult.error}`);
+      }
+      
+      console.log('Recipient account funded successfully');
+      // Wait a moment for the funding to be processed
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      try {
+        await server.loadAccount(destinationAddress);
+        console.log('Destination account verified after funding');
+      } catch (retryError) {
+        throw new Error('Account funding succeeded but account still not available. Please try again in a moment.');
+      }
     }
 
     // Get current user for database records
@@ -190,30 +207,45 @@ export async function sendPayment(
     console.error('Payment error:', error);
     
     let errorMessage = 'Payment failed. Please try again.';
+    let errorType = 'unknown';
     
     if (error.response?.data?.extras?.result_codes) {
       const resultCodes = error.response.data.extras.result_codes;
       console.log('Stellar error codes:', resultCodes);
       
       if (resultCodes.transaction === 'tx_insufficient_balance') {
-        errorMessage = 'Insufficient balance to complete this payment.';
+        errorMessage = 'You don\'t have enough XLM to complete this payment. Please add funds to your account.';
+        errorType = 'insufficient_balance';
       } else if (resultCodes.transaction === 'tx_insufficient_fee') {
-        errorMessage = 'Transaction fee too low. Please try again.';
+        errorMessage = 'Transaction fee is too low. This is usually a temporary network issue - please try again.';
+        errorType = 'network_error';
       } else if (resultCodes.operations?.includes('op_underfunded')) {
-        errorMessage = 'Insufficient funds for this payment amount.';
+        errorMessage = 'Insufficient funds for this payment amount. Please check your balance.';
+        errorType = 'insufficient_balance';
       } else if (resultCodes.operations?.includes('op_no_destination')) {
-        errorMessage = 'Recipient account does not exist.';
+        errorMessage = 'Recipient account does not exist. We can automatically activate it for them.';
+        errorType = 'account_not_found';
       }
     } else if (error.message) {
-      errorMessage = error.message;
+      if (error.message.includes('Account not found')) {
+        errorMessage = 'Your Stellar account needs to be activated. Please add test funds first.';
+        errorType = 'account_not_found';
+      } else if (error.message.includes('network') || error.message.includes('connection')) {
+        errorMessage = 'Network connection error. Please check your internet and try again.';
+        errorType = 'network_error';
+      } else {
+        errorMessage = error.message;
+      }
     }
 
+    // Show user-friendly error message
     toast.error(errorMessage);
     hapticFeedback('error');
 
     return {
       success: false,
-      error: errorMessage
+      error: errorMessage,
+      errorType
     };
   }
 }

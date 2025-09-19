@@ -4,7 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { StellarAccount } from '@/lib/stellar/types';
 import { server } from '@/lib/stellar/config';
-import { encryptStellarSecret } from '../encryption';
+import { encryptStellarSecret } from '../security/encryption';
 
 /**
  * Create a Stellar account for a specific user without requiring their direct interaction

@@ -1,7 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { useMonitoringAndAlerting } from '@/hooks/useMonitoringAndAlerting';
 import { useClientRateLimit } from '@/hooks/useClientRateLimit';
-import { useSecurityHardening } from '@/hooks/useSecurityHardening';
+import { useSecurityHardening } from '@/lib/security/hardening';
 import { useRealTimePaymentStatus } from '@/hooks/useRealTimePaymentStatus';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

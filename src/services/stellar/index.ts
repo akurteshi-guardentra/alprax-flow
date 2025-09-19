@@ -2,7 +2,7 @@
 // Re-export all modules from a single entry point
 import { createAccount, getAccountDetails } from './account';
 import { sendPayment } from './payment';
-import { encryptSecretKey, decryptSecretKey } from './security';
+import { encryptStellarSecret as encryptSecretKey, decryptStellarSecret as decryptSecretKey } from '@/lib/security/encryption';
 import { 
   getTransactionHistory, 
   getEnhancedTransactionHistory, 

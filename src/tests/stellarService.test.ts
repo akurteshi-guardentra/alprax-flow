@@ -108,24 +108,20 @@ describe('StellarService', () => {
   });
 
   describe('encryptDecrypt', () => {
-    it('should encrypt and decrypt a secret key', () => {
-      const secretKey = 'S12345678901234567890';
-      const password = 'testPassword';
+    it('should encrypt and decrypt a secret key', async () => {
+      const secretKey = 'S12345678901234567890123456789012345678901234567890123456';
       
-      const encrypted = StellarService.encryptSecretKey(secretKey, password);
+      const encrypted = await StellarService.encryptSecretKey(secretKey);
       expect(typeof encrypted).toBe('string');
       
-      const decrypted = StellarService.decryptSecretKey(encrypted, password);
+      const decrypted = await StellarService.decryptSecretKey(encrypted);
       expect(decrypted).toBe(secretKey);
     });
     
-    it('should throw an error for invalid password', () => {
-      const secretKey = 'S12345678901234567890';
-      const encrypted = StellarService.encryptSecretKey(secretKey, 'correctPassword');
-      
-      expect(() => {
-        StellarService.decryptSecretKey(encrypted, 'wrongPassword');
-      }).toThrow('Invalid password');
+    it('should throw an error for invalid encrypted data', async () => {
+      await expect(async () => {
+        await StellarService.decryptSecretKey('invalid-encrypted-data');
+      }).rejects.toThrow();
     });
   });
 });

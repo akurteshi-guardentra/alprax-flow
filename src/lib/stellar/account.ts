@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
 import { StellarAccount } from './types';
 import { server } from './config';
-import { encryptStellarSecret } from '../encryption';
+import { encryptStellarSecret } from '../security/encryption';
 
 export async function createAccount(): Promise<StellarAccount | null> {
   try {

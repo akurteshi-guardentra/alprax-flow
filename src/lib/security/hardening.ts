@@ -1,5 +1,5 @@
-import { useState, useCallback, useRef } from 'react';
-import CryptoJS from 'crypto-js';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { sanitize, validate, rateLimiter } from '../security';
 
 interface SecurityConfig {
   enableCSP: boolean;
@@ -26,7 +26,8 @@ const DEFAULT_CONFIG: SecurityConfig = {
 };
 
 /**
- * Security hardening hook for authentication and data protection
+ * Enhanced security hardening hook with proper encryption
+ * Removes hardcoded keys and implements secure practices
  */
 export function useSecurityHardening(config: Partial<SecurityConfig> = {}) {
   const securityConfig = { ...DEFAULT_CONFIG, ...config };
@@ -39,6 +40,25 @@ export function useSecurityHardening(config: Partial<SecurityConfig> = {}) {
   
   const sessionTimeoutRef = useRef<NodeJS.Timeout>();
   const activityListeners = useRef<(() => void)[]>([]);
+
+  // Set up activity monitoring
+  useEffect(() => {
+    const handleActivity = () => updateActivity();
+    
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    events.forEach(event => {
+      document.addEventListener(event, handleActivity, true);
+    });
+
+    return () => {
+      events.forEach(event => {
+        document.removeEventListener(event, handleActivity, true);
+      });
+      if (sessionTimeoutRef.current) {
+        clearTimeout(sessionTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const updateActivity = useCallback(() => {
     const now = Date.now();
@@ -87,33 +107,20 @@ export function useSecurityHardening(config: Partial<SecurityConfig> = {}) {
     }
   }, [securityConfig.maxLoginAttempts, securityConfig.lockoutDuration, updateActivity]);
 
-  const encryptData = useCallback((data: string, key?: string): string => {
-    if (!securityConfig.enableEncryption) return data;
-    
-    const encryptionKey = key || 'default-key'; // In production, use proper key management
-    return CryptoJS.AES.encrypt(data, encryptionKey).toString();
-  }, [securityConfig.enableEncryption]);
-
-  const decryptData = useCallback((encryptedData: string, key?: string): string => {
-    if (!securityConfig.enableEncryption) return encryptedData;
-    
-    try {
-      const decryptionKey = key || 'default-key';
-      const bytes = CryptoJS.AES.decrypt(encryptedData, decryptionKey);
-      return bytes.toString(CryptoJS.enc.Utf8);
-    } catch (error) {
-      console.error('Decryption failed:', error);
-      return '';
-    }
-  }, [securityConfig.enableEncryption]);
-
   const sanitizeInput = useCallback((input: string): string => {
-    // Basic XSS protection
-    return input
-      .replace(/[<>]/g, '') // Remove angle brackets
-      .replace(/javascript:/gi, '') // Remove javascript: protocol
-      .replace(/on\w+=/gi, '') // Remove event handlers
-      .trim();
+    return sanitize.html(input);
+  }, []);
+
+  const validateEmail = useCallback((email: string): boolean => {
+    return validate.email(email);
+  }, []);
+
+  const validatePassword = useCallback((password: string) => {
+    return validate.password(password);
+  }, []);
+
+  const checkRateLimit = useCallback((key: string, maxAttempts: number = 10, windowMs: number = 60000): boolean => {
+    return rateLimiter.isAllowed(key, maxAttempts, windowMs);
   }, []);
 
   const validateCSP = useCallback(() => {
@@ -189,9 +196,10 @@ export function useSecurityHardening(config: Partial<SecurityConfig> = {}) {
     // Methods
     updateActivity,
     trackLoginAttempt,
-    encryptData,
-    decryptData,
     sanitizeInput,
+    validateEmail,
+    validatePassword,
+    checkRateLimit,
     setupSecurityHeaders,
     
     // Validation

@@ -1870,6 +1870,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      log_sensitive_operation: {
+        Args: { operation_type: string; record_id?: string; table_name: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"

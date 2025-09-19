@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { CreditCard, Smartphone, Building } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { usePaymentFlow } from '@/hooks/usePaymentFlow';
+import { useFundingIntegration } from '@/hooks/useFundingIntegration';
 import { toast } from 'sonner';
 
 interface PaymentMethod {
@@ -29,7 +29,7 @@ export function PaymentMethodSelector({
   onPaymentComplete 
 }: PaymentMethodSelectorProps) {
   const [isProcessing, setIsProcessing] = useState(false);
-  const { createPaymentIntent, confirmPayment, isProcessing: flowProcessing } = usePaymentFlow();
+  const { createPaymentIntent, processPayment, isProcessing: flowProcessing } = useFundingIntegration();
 
   const paymentMethods: PaymentMethod[] = [
     {
@@ -78,7 +78,7 @@ export function PaymentMethodSelector({
       // Simulate payment processing based on selected method
       if (selected === 'card') {
         toast.loading('Processing card payment...', { id: 'payment-processing' });
-        // Simulate card payment flow
+        // Simulate card payment flow - in real app this would open Stripe Elements
         await new Promise(resolve => setTimeout(resolve, 3000));
       } else if (selected === 'apple_pay') {
         toast.loading('Processing Apple Pay...', { id: 'payment-processing' });
@@ -86,12 +86,16 @@ export function PaymentMethodSelector({
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
 
-      // Confirm the payment
-      const success = await confirmPayment(paymentIntent.id);
+      // Process the payment and add funds to account
+      const result = await processPayment(
+        paymentIntent.paymentIntentId, 
+        paymentIntent.orderId, 
+        amount
+      );
       
       toast.dismiss('payment-processing');
       
-      if (success) {
+      if (result && result.success) {
         onPaymentComplete();
       }
     } catch (error) {

@@ -9,6 +9,7 @@ import { useStellarAccount } from '@/hooks/useStellarAccount';
 import { AmountInputStep } from './steps/AmountInputStep';
 import { PaymentSelectionStep } from './steps/PaymentSelectionStep';
 import { FundingSuccessStep } from './steps/FundingSuccessStep';
+import { BackButton } from '@/components/ui/back-button';
 
 interface SimpleFundingModalProps {
   open: boolean;

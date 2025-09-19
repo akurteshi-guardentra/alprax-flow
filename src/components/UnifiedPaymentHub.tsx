@@ -12,6 +12,7 @@ import { RecipientSelectionStep } from './payment-hub/RecipientSelectionStep';
 import { PaymentMethodStep } from './payment-hub/PaymentMethodStep';
 import { ProcessingStep } from './payment-hub/ProcessingStep';
 import { SuccessStep } from './payment-hub/SuccessStep';
+import { BackButton } from '@/components/ui/back-button';
 
 interface UnifiedPaymentHubProps {
   open: boolean;

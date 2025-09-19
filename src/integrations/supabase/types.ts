@@ -1854,6 +1854,14 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      find_user_by_email: {
+        Args: { search_email: string }
+        Returns: {
+          email: string
+          has_stellar_account: boolean
+          user_id: string
+        }[]
+      }
       get_user_primary_stellar_account: {
         Args: { user_uuid: string }
         Returns: {

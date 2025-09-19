@@ -1,11 +1,12 @@
 import { useState, memo, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Search, Star, Clock, Plus, Filter, SortDesc } from "lucide-react";
+import { Search, Star, Clock, Plus, Filter, SortDesc, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { cn } from "@/lib/utils";
 import { FavoriteRecipient } from "@/types/favoriteRecipient";
+import { UserDiscoveryModal } from "@/components/user-discovery/UserDiscoveryModal";
 
 interface EnhancedRecipientSelectorProps {
   recipients: FavoriteRecipient[];
@@ -29,6 +30,7 @@ export const EnhancedRecipientSelector = memo(function EnhancedRecipientSelector
   const [sortBy, setSortBy] = useState<SortType>('recent');
   const [filterBy, setFilterBy] = useState<FilterType>('all');
   const [showFilters, setShowFilters] = useState(false);
+  const [showUserDiscovery, setShowUserDiscovery] = useState(false);
 
   const filteredAndSortedRecipients = useMemo(() => {
     let filtered = recipients.filter(recipient => {
@@ -141,13 +143,24 @@ export const EnhancedRecipientSelector = memo(function EnhancedRecipientSelector
       </div>
 
       {/* Add New Recipient */}
-      <Button
-        onClick={onAddNew}
-        className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
-      >
-        <Plus className="w-4 h-4 mr-2" />
-        Add New Recipient
-      </Button>
+      <div className="grid grid-cols-2 gap-2">
+        <Button
+          onClick={onAddNew}
+          variant="outline"
+          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+        >
+          <Plus className="w-4 h-4 mr-2" />
+          Add Manually
+        </Button>
+        
+        <Button
+          onClick={() => setShowUserDiscovery(true)}
+          className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white"
+        >
+          <UserPlus className="w-4 h-4 mr-2" />
+          Find User
+        </Button>
+      </div>
 
       {/* Recipients List */}
       <div className="space-y-2 max-h-60 overflow-y-auto">
@@ -208,6 +221,16 @@ export const EnhancedRecipientSelector = memo(function EnhancedRecipientSelector
           </div>
         )}
       </div>
+
+      {/* User Discovery Modal */}
+      <UserDiscoveryModal
+        open={showUserDiscovery}
+        onOpenChange={setShowUserDiscovery}
+        onUserSelected={() => {
+          // Refresh recipients list would happen here in real app
+          setShowUserDiscovery(false);
+        }}
+      />
     </div>
   );
 });

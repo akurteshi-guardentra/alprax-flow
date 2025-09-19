@@ -8,6 +8,7 @@ import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
 import { EnhancedTransactionList } from "@/components/transaction/EnhancedTransactionList";
 import { OnboardingFlow } from "@/components/onboarding/OnboardingFlow";
 import { QuickTestingActions } from "@/components/dashboard/QuickTestingActions";
+import { BackButton } from "@/components/ui/back-button";
 
 const Dashboard = () => {
   const { user } = useAuth();
@@ -33,7 +34,16 @@ const Dashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6 lg:space-y-8"
         >
-          <DashboardHeader />
+          <div className="flex items-center gap-4">
+            <BackButton 
+              to="/welcome"
+              variant="ghost"
+              className="text-white/70 hover:text-white hover:bg-white/10"
+            />
+            <div className="flex-1">
+              <DashboardHeader />
+            </div>
+          </div>
           
           <div className="grid gap-6 lg:gap-8 lg:grid-cols-3">
             <div className="lg:col-span-2 space-y-6 lg:space-y-8 flex flex-col">

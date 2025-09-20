@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
 import { useMobile } from "@/hooks/use-mobile";
 import { useDataSaverMode } from "@/hooks/use-data-saver";
+import { User } from "lucide-react";
 
 interface ProfileFormProps {
   profile: Profile | null;
@@ -151,11 +152,17 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
       animate={{ opacity: 1 }}
       transition={getTransition({ duration: 0.3 })}
     >
-      <div className="grid gap-5">
-        <FullNameField profile={profile} setProfile={setProfile} />
-        <PhoneNumberField profile={profile} setProfile={setProfile} />
-        <CountryField profile={profile} setProfile={setProfile} />
-        <LanguageField profile={profile} setProfile={setProfile} />
+      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <User className="h-5 w-5 text-blue-400" />
+          Personal Information
+        </h3>
+        <div className="grid gap-5">
+          <FullNameField profile={profile} setProfile={setProfile} />
+          <PhoneNumberField profile={profile} setProfile={setProfile} />
+          <CountryField profile={profile} setProfile={setProfile} />
+          <LanguageField profile={profile} setProfile={setProfile} />
+        </div>
       </div>
 
       {hasUnsavedChanges && (
@@ -170,61 +177,69 @@ export const ProfileForm = ({ profile, setProfile }: ProfileFormProps) => {
         </motion.div>
       )}
 
-      <div className="pt-2">
-        <Button 
-          onClick={handleSave}
-          disabled={loading || autoSaving || !hasUnsavedChanges}
-          className={`w-full ${
-            hasUnsavedChanges ? "bg-primary hover:bg-primary/90" : "bg-gray-500/50"
-          } text-white transition-colors h-11`}
-        >
-          {loading ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : autoSaving ? (
-            <>
-              <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-              Auto-saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </Button>
-      </div>
-      
-      <div className="text-xs flex items-center justify-center gap-2 text-white/60">
-        <input
-          type="checkbox"
-          checked={autoSaveEnabled}
-          onChange={(e) => setAutoSaveEnabled(e.target.checked)}
-          className="rounded border-white/20 bg-white/10 text-primary"
-        />
-        <span>Enable auto-save</span>
+      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+        <div className="space-y-4">
+          <Button 
+            onClick={handleSave}
+            disabled={loading || autoSaving || !hasUnsavedChanges}
+            className={`w-full ${
+              hasUnsavedChanges ? "bg-primary hover:bg-primary/90" : "bg-gray-500/50"
+            } text-white transition-colors h-11`}
+          >
+            {loading ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Saving...
+              </>
+            ) : autoSaving ? (
+              <>
+                <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                Auto-saving...
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </>
+            )}
+          </Button>
+          
+          <div className="text-xs flex items-center justify-center gap-2 text-white/60">
+            <input
+              type="checkbox"
+              checked={autoSaveEnabled}
+              onChange={(e) => setAutoSaveEnabled(e.target.checked)}
+              className="rounded border-white/20 bg-white/10 text-primary"
+            />
+            <span>Enable auto-save</span>
+          </div>
+        </div>
       </div>
 
-      <div className={`pt-2 ${isLowEndDevice ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-3"}`}>
-        <Button 
-          variant="outline" 
-          className="w-full flex items-center justify-center gap-2 border-white/10 hover:bg-white/5 text-white"
-          onClick={() => navigate('/kyc')}
-        >
-          <Shield className="h-4 w-4" />
-          {isMobile ? 'KYC Verification' : `KYC Status: ${kycStatus ? kycStatus.toString().charAt(0).toUpperCase() + kycStatus.toString().slice(1) : 'Not Started'}`}
-        </Button>
-        
-        <Button 
-          variant="outline" 
-          className="w-full flex items-center justify-center gap-2 border-white/10 hover:bg-white/5 text-white"
-          onClick={() => navigate('/settings')}
-        >
-          <ExternalLink className="h-4 w-4" />
-          Advanced Settings
-        </Button>
+      <div className="bg-slate-800/30 backdrop-blur-sm rounded-xl border border-slate-700/50 p-6">
+        <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+          <Shield className="h-5 w-5 text-green-400" />
+          Account Security
+        </h3>
+        <div className={`${isLowEndDevice ? "space-y-3" : "grid grid-cols-1 md:grid-cols-2 gap-3"}`}>
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2 border-white/10 hover:bg-white/5 text-white"
+            onClick={() => navigate('/kyc')}
+          >
+            <Shield className="h-4 w-4" />
+            {isMobile ? 'KYC Verification' : `KYC Status: ${kycStatus ? kycStatus.toString().charAt(0).toUpperCase() + kycStatus.toString().slice(1) : 'Not Started'}`}
+          </Button>
+          
+          <Button 
+            variant="outline" 
+            className="w-full flex items-center justify-center gap-2 border-white/10 hover:bg-white/5 text-white"
+            onClick={() => navigate('/settings')}
+          >
+            <ExternalLink className="h-4 w-4" />
+            Advanced Settings
+          </Button>
+        </div>
       </div>
     </motion.div>
   );

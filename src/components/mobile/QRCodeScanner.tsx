@@ -6,6 +6,7 @@ import { useCamera } from '@/hooks/use-camera';
 import { useAdvancedHaptics } from '@/hooks/use-advanced-haptics';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import jsQR from 'jsqr';
 
 interface QRCodeScannerProps {
   isOpen: boolean;
@@ -86,18 +87,41 @@ export function QRCodeScanner({ isOpen, onClose, onScan, className }: QRCodeScan
     onClose();
   };
 
-  const simulateQRScan = () => {
-    // For demo purposes - in real implementation, use a QR code library
-    setTimeout(() => {
+  const detectQRCode = () => {
+    if (!videoRef.current || !canvasRef.current || !isActive) return;
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+
+    if (!context || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+    const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+    if (code) {
       patterns.success();
-      onScan('STELLAR_ADDRESS_EXAMPLE_12345');
+      onScan(code.data);
       handleClose();
-    }, 2000);
+      return;
+    }
+
+    // Continue scanning
+    requestAnimationFrame(detectQRCode);
   };
 
   useEffect(() => {
-    if (isActive) {
-      simulateQRScan();
+    if (isActive && videoRef.current) {
+      // Start QR detection when camera becomes active
+      const timer = setTimeout(() => {
+        detectQRCode();
+      }, 1000); // Give camera time to start
+
+      return () => clearTimeout(timer);
     }
   }, [isActive]);
 

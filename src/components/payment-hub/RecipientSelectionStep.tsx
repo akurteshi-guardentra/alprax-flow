@@ -1,40 +1,17 @@
 import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { EnhancedRecipientSelector } from "./EnhancedRecipientSelector";
-import { FavoriteRecipient } from "@/types/favoriteRecipient";
+import { Search, User, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { SimplifiedRecipientFinder } from "@/components/transaction/SimplifiedRecipientFinder";
+import { FavoriteRecipient } from "@/types/favoriteRecipient";
 
 export interface RecipientSelectionStepProps {
   data: Record<string, any>;
   onNext: (data?: any) => void;
   onBack: () => void;
 }
-
-// Mock recipients data
-const mockRecipients: FavoriteRecipient[] = [
-  {
-    id: '1',
-    user_id: 'user1',
-    recipient_name: 'John Doe',
-    stellar_address: 'GDLOUHDVACXNO6OKZXKEOOMHVUYYKEWTLBPLSR6BZESJN7Y2A5IX5GJ2',
-    country: 'Germany',
-    currency: 'EUR',
-    relationship: 'Friend',
-    created_at: '2024-01-01T00:00:00Z',
-    last_sent_at: '2024-07-01T00:00:00Z'
-  },
-  {
-    id: '2',
-    user_id: 'user1',
-    recipient_name: 'Jane Smith',
-    stellar_address: 'GCLOUHDVACXNO6OKZXKEOOMHVUYYKEWTLBPLSR6BZESJN7Y2A5IX5GJ3',
-    country: 'France',
-    currency: 'EUR',
-    relationship: 'Family',
-    created_at: '2024-01-01T00:00:00Z',
-    last_sent_at: '2024-06-15T00:00:00Z'
-  }
-];
 
 export const RecipientSelectionStep = memo(function RecipientSelectionStep({
   data,
@@ -49,14 +26,15 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
     setSelectedRecipient(recipient);
   };
 
-  const handleAddNew = () => {
-    // Open add new recipient dialog
-    console.log('Add new recipient');
-  };
-
   const handleNext = () => {
     if (selectedRecipient) {
-      onNext({ recipient: selectedRecipient });
+      onNext({ 
+        recipient: selectedRecipient,
+        recipientName: selectedRecipient.recipient_name,
+        stellarAddress: selectedRecipient.stellar_address,
+        country: selectedRecipient.country,
+        relationship: selectedRecipient.relationship
+      });
     }
   };
 
@@ -68,15 +46,43 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
     >
       <div className="text-center">
         <h3 className="text-xl font-semibold text-white mb-2">Who are you sending to?</h3>
-        <p className="text-white/70">Select a recipient or add a new one</p>
+        <p className="text-white/70">Search for a contact or enter recipient details</p>
       </div>
 
-      <EnhancedRecipientSelector
-        recipients={mockRecipients}
-        onSelectRecipient={handleRecipientSelect}
-        onAddNew={handleAddNew}
-        selectedRecipient={selectedRecipient}
-      />
+      {selectedRecipient && (
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
+                <User className="w-5 h-5 text-blue-400" />
+              </div>
+              <div>
+                <h4 className="font-medium text-white">{selectedRecipient.recipient_name}</h4>
+                <p className="text-sm text-white/70">{selectedRecipient.relationship || 'Contact'}</p>
+                <p className="text-xs text-white/60">{selectedRecipient.country}</p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedRecipient(null)}
+              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
+            >
+              Change
+            </Button>
+          </div>
+        </motion.div>
+      )}
+
+      <div className="space-y-4">
+        <SimplifiedRecipientFinder 
+          onSelectRecipient={handleRecipientSelect}
+        />
+      </div>
 
       <div className="flex justify-between pt-4">
         <Button
@@ -91,7 +97,7 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
           disabled={!selectedRecipient}
           className="bg-blue-600 hover:bg-blue-700 text-white"
         >
-          Continue
+          Continue with {selectedRecipient?.recipient_name || 'Recipient'}
         </Button>
       </div>
     </motion.div>

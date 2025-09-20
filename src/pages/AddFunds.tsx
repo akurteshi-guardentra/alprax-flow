@@ -6,39 +6,21 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
 import { useNavigate } from "react-router-dom";
-import { Plus, CreditCard, Building, Wallet } from "lucide-react";
+import { Plus, CreditCard, Building, Wallet, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
+import { PaymentMethodSelector } from "@/components/payment/PaymentMethodSelector";
+import { useFundingIntegration } from "@/hooks/useFundingIntegration";
 
 const AddFunds = () => {
   const navigate = useNavigate();
   const [amount, setAmount] = useState("");
-  const [selectedMethod, setSelectedMethod] = useState("card");
+  const [selectedMethod, setSelectedMethod] = useState("");
+  const [step, setStep] = useState<'amount' | 'method' | 'success'>('amount');
+  const { isProcessing } = useFundingIntegration();
 
-  const paymentMethods = [
-    {
-      id: "card",
-      name: "Credit/Debit Card",
-      icon: CreditCard,
-      description: "Instant transfer",
-      fee: "2.9% + $0.30"
-    },
-    {
-      id: "bank",
-      name: "Bank Transfer",
-      icon: Building,
-      description: "1-3 business days",
-      fee: "Free"
-    },
-    {
-      id: "wallet",
-      name: "Digital Wallet",
-      icon: Wallet,
-      description: "Instant transfer",
-      fee: "1.5%"
-    }
-  ];
+  const quickAmounts = [10, 25, 50, 100, 250, 500];
 
-  const handleAddFunds = () => {
+  const handleAmountConfirm = () => {
     if (!amount) {
       toast.error("Please enter an amount");
       return;
@@ -50,8 +32,25 @@ const AddFunds = () => {
       return;
     }
 
-    toast.info("Redirecting to payment processor...");
-    // Here you would integrate with actual payment processing
+    if (amountValue < 1) {
+      toast.error("Minimum amount is $1.00");
+      return;
+    }
+
+    if (amountValue > 10000) {
+      toast.error("Maximum amount is $10,000.00");
+      return;
+    }
+
+    setStep('method');
+  };
+
+  const handlePaymentComplete = () => {
+    setStep('success');
+    toast.success(`Successfully added $${amount} to your account!`);
+    setTimeout(() => {
+      navigate('/dashboard');
+    }, 3000);
   };
 
   return (
@@ -67,73 +66,94 @@ const AddFunds = () => {
           animate={{ opacity: 1, y: 0 }}
           className="space-y-6"
         >
-          <Card className="glass-card modern-shadow">
-            <CardHeader>
-              <CardTitle className="text-white flex items-center gap-2">
-                <Plus className="h-5 w-5 text-blue-400" />
-                Add Funds to Your Account
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div>
-                <label className="text-white/90 text-sm font-medium mb-2 block">Amount (USD)</label>
-                <Input
-                  type="number"
-                  placeholder="0.00"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  className="modern-input text-2xl h-14"
-                />
-              </div>
-
-              <div>
-                <label className="text-white/90 text-sm font-medium mb-4 block">Payment Method</label>
-                <div className="space-y-3">
-                  {paymentMethods.map((method) => (
-                    <motion.div
-                      key={method.id}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                    >
-                      <Card 
-                        className={`cursor-pointer transition-all ${
-                          selectedMethod === method.id 
-                            ? 'glass-card border-blue-500/50 bg-blue-500/10' 
-                            : 'glass-card hover:bg-white/5'
-                        }`}
-                        onClick={() => setSelectedMethod(method.id)}
-                      >
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-4">
-                              <div className="p-2 rounded-full bg-white/10">
-                                <method.icon className="h-6 w-6 text-white" />
-                              </div>
-                              <div>
-                                <p className="font-medium text-white">{method.name}</p>
-                                <p className="text-sm text-white/60">{method.description}</p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="text-sm font-medium text-white">{method.fee}</p>
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  ))}
+          {step === 'amount' && (
+            <Card className="glass-card modern-shadow">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <Plus className="h-5 w-5 text-blue-400" />
+                  Add Funds to Your Account
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <label className="text-white/90 text-sm font-medium mb-2 block">Amount (USD)</label>
+                  <Input
+                    type="number"
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    className="modern-input text-2xl h-14"
+                    min="1"
+                    max="10000"
+                    step="0.01"
+                  />
                 </div>
-              </div>
 
-              <Button 
-                onClick={handleAddFunds}
-                className="w-full premium-button h-12"
-                disabled={!amount}
-              >
-                Add ${amount || '0.00'} to Account
-              </Button>
-            </CardContent>
-          </Card>
+                <div>
+                  <label className="text-white/90 text-sm font-medium mb-4 block">Quick Amounts</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {quickAmounts.map((quickAmount) => (
+                      <Button
+                        key={quickAmount}
+                        variant="outline"
+                        onClick={() => setAmount(quickAmount.toString())}
+                        className="glass-card border-white/20 text-white hover:bg-white/10"
+                      >
+                        ${quickAmount}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                <Button 
+                  onClick={handleAmountConfirm}
+                  className="w-full premium-button h-12"
+                  disabled={!amount || parseFloat(amount) <= 0}
+                >
+                  Continue with ${amount || '0.00'}
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {step === 'method' && (
+            <Card className="glass-card modern-shadow">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center gap-2">
+                  <CreditCard className="h-5 w-5 text-blue-400" />
+                  Choose Payment Method
+                </CardTitle>
+                <p className="text-white/70">Adding ${amount} to your account</p>
+              </CardHeader>
+              <CardContent>
+                <PaymentMethodSelector
+                  onSelect={setSelectedMethod}
+                  selected={selectedMethod}
+                  amount={parseFloat(amount)}
+                  onPaymentComplete={handlePaymentComplete}
+                />
+                
+                <Button 
+                  variant="outline"
+                  onClick={() => setStep('amount')}
+                  className="w-full mt-4 glass-card border-white/20 text-white hover:bg-white/10"
+                >
+                  Back to Amount
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {step === 'success' && (
+            <Card className="glass-card modern-shadow">
+              <CardContent className="text-center py-8">
+                <CheckCircle className="h-16 w-16 text-green-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold text-white mb-2">Funds Added Successfully!</h3>
+                <p className="text-white/70 mb-4">${amount} has been added to your account</p>
+                <p className="text-sm text-white/60">Redirecting to dashboard...</p>
+              </CardContent>
+            </Card>
+          )}
 
           <Card className="glass-card modern-shadow border-yellow-500/25">
             <CardContent className="p-4">

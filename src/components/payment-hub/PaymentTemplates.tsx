@@ -1,4 +1,4 @@
-import { useState, memo } from "react";
+import { useState, memo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Plus, Edit3, Trash2, Calendar, RefreshCw, Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
+import { useTransferTemplates } from "@/hooks/useTransferTemplates";
+import { toast } from "sonner";
 
 interface PaymentTemplate {
   id: string;
@@ -24,43 +26,11 @@ interface PaymentTemplatesProps {
   className?: string;
 }
 
-const mockTemplates: PaymentTemplate[] = [
-  {
-    id: '1',
-    name: 'Monthly Rent',
-    recipientName: 'Landlord',
-    amount: '1200',
-    currency: 'EUR',
-    frequency: 'monthly',
-    nextDate: '2024-08-01',
-    isActive: true
-  },
-  {
-    id: '2',
-    name: 'Weekly Allowance',
-    recipientName: 'Mom',
-    amount: '50',
-    currency: 'EUR',
-    frequency: 'weekly',
-    nextDate: '2024-07-15',
-    isActive: true
-  },
-  {
-    id: '3',
-    name: 'Quarterly Savings',
-    recipientName: 'Savings Account',
-    amount: '500',
-    currency: 'EUR',
-    frequency: 'quarterly',
-    isActive: false
-  }
-];
-
 export const PaymentTemplates = memo(function PaymentTemplates({
   onUseTemplate,
   className
 }: PaymentTemplatesProps) {
-  const [templates, setTemplates] = useState<PaymentTemplate[]>(mockTemplates);
+  const { templates, isLoading, addTemplate, deleteTemplate, isAdding, isDeleting } = useTransferTemplates();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<PaymentTemplate | null>(null);
 
@@ -72,23 +42,34 @@ export const PaymentTemplates = memo(function PaymentTemplates({
     frequency: 'monthly' as const
   });
 
-  const handleCreateTemplate = () => {
-    const template: PaymentTemplate = {
-      id: Date.now().toString(),
-      ...newTemplate,
-      isActive: true,
-      nextDate: getNextDate(newTemplate.frequency)
-    };
-    
-    setTemplates(prev => [...prev, template]);
-    setNewTemplate({
-      name: '',
-      recipientName: '',
-      amount: '',
-      currency: 'EUR',
-      frequency: 'monthly'
-    });
-    setShowCreateDialog(false);
+  const handleCreateTemplate = async () => {
+    if (!newTemplate.name || !newTemplate.recipientName || !newTemplate.amount) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+
+    try {
+      await addTemplate({
+        name: newTemplate.name,
+        currency: newTemplate.currency,
+        amount: parseFloat(newTemplate.amount),
+        frequency: newTemplate.frequency,
+        recipient_id: null, // We'll need to link this to actual recipients later
+        next_transfer_date: getNextDate(newTemplate.frequency)
+      });
+
+      setNewTemplate({
+        name: '',
+        recipientName: '',
+        amount: '',
+        currency: 'EUR',
+        frequency: 'monthly'
+      });
+      setShowCreateDialog(false);
+      toast.success('Template created successfully');
+    } catch (error) {
+      toast.error('Failed to create template');
+    }
   };
 
   const getNextDate = (frequency: string): string => {
@@ -194,8 +175,19 @@ export const PaymentTemplates = memo(function PaymentTemplates({
                 </div>
               </div>
               
-              <Button onClick={handleCreateTemplate} className="w-full bg-blue-600 hover:bg-blue-700">
-                Create Template
+              <Button 
+                onClick={handleCreateTemplate} 
+                disabled={isAdding}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {isAdding ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  'Create Template'
+                )}
               </Button>
             </div>
           </DialogContent>
@@ -203,34 +195,33 @@ export const PaymentTemplates = memo(function PaymentTemplates({
       </div>
 
       <div className="grid gap-3">
-        {templates.map((template, index) => (
+        {isLoading ? (
+          <div className="text-center py-8 text-white/60">
+            <RefreshCw className="w-6 h-6 mx-auto mb-2 animate-spin" />
+            <p>Loading templates...</p>
+          </div>
+        ) : templates && templates.length > 0 ? templates.map((template, index) => (
           <motion.div
             key={template.id}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-            className={cn(
-              "p-4 rounded-lg border transition-all duration-200",
-              template.isActive 
-                ? "bg-white/5 border-white/20 hover:bg-white/10" 
-                : "bg-gray-800/50 border-gray-700 opacity-60"
-            )}
+              className="p-4 rounded-lg border transition-all duration-200 bg-white/5 border-white/20 hover:bg-white/10"
           >
             <div className="flex items-start justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-medium text-white">{template.name}</h4>
-                  <div className={cn("flex items-center gap-1 text-xs", getFrequencyColor(template.frequency))}>
-                    {getFrequencyIcon(template.frequency)}
-                    <span className="capitalize">{template.frequency}</span>
+                  <div className={cn("flex items-center gap-1 text-xs", getFrequencyColor(template.frequency || 'monthly'))}>
+                    {getFrequencyIcon(template.frequency || 'monthly')}
+                    <span className="capitalize">{template.frequency || 'monthly'}</span>
                   </div>
                 </div>
                 
                 <div className="space-y-1 text-sm text-white/70">
-                  <p>To: {template.recipientName}</p>
                   <p>Amount: {template.amount} {template.currency}</p>
-                  {template.nextDate && (
-                    <p>Next: {new Date(template.nextDate).toLocaleDateString()}</p>
+                  {template.next_transfer_date && (
+                    <p>Next: {new Date(template.next_transfer_date).toLocaleDateString()}</p>
                   )}
                 </div>
               </div>
@@ -239,7 +230,15 @@ export const PaymentTemplates = memo(function PaymentTemplates({
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => onUseTemplate(template)}
+                  onClick={() => onUseTemplate({
+                    id: template.id,
+                    name: template.name,
+                    recipientName: template.favorite_recipients?.recipient_name || 'Unknown',
+                    amount: template.amount.toString(),
+                    currency: template.currency,
+                    frequency: template.frequency as any,
+                    isActive: true
+                  })}
                   className="bg-white/10 border-white/20 text-white hover:bg-white/20"
                 >
                   Use
@@ -256,6 +255,8 @@ export const PaymentTemplates = memo(function PaymentTemplates({
                 <Button
                   size="sm"
                   variant="outline"
+                  onClick={() => deleteTemplate(template.id)}
+                  disabled={isDeleting}
                   className="bg-red-500/20 border-red-500/30 text-red-400 hover:bg-red-500/30 p-2"
                 >
                   <Trash2 className="w-3 h-3" />
@@ -263,9 +264,7 @@ export const PaymentTemplates = memo(function PaymentTemplates({
               </div>
             </div>
           </motion.div>
-        ))}
-        
-        {templates.length === 0 && (
+        )) : (
           <div className="text-center py-8 text-white/60">
             <Calendar className="w-8 h-8 mx-auto mb-2 opacity-50" />
             <p>No payment templates yet</p>

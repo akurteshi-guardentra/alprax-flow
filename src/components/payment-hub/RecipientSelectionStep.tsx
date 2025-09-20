@@ -1,11 +1,9 @@
 import { memo, useState } from "react";
 import { motion } from "framer-motion";
-import { Search, User, Plus } from "lucide-react";
+import { QrCode } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { SimplifiedRecipientFinder } from "@/components/transaction/SimplifiedRecipientFinder";
-import { FavoriteRecipient } from "@/types/favoriteRecipient";
+import { SimplifiedRecipientFinder } from "./SimplifiedRecipientFinder";
+import { QRCodeScanner } from "../mobile/QRCodeScanner";
 
 export interface RecipientSelectionStepProps {
   data: Record<string, any>;
@@ -15,91 +13,93 @@ export interface RecipientSelectionStepProps {
 
 export const RecipientSelectionStep = memo(function RecipientSelectionStep({
   data,
-  onNext,
-  onBack
+  onNext
 }: RecipientSelectionStepProps) {
-  const [selectedRecipient, setSelectedRecipient] = useState<FavoriteRecipient | null>(
-    data.recipient || null
-  );
+  const [showQRScanner, setShowQRScanner] = useState(false);
 
-  const handleRecipientSelect = (recipient: FavoriteRecipient) => {
-    setSelectedRecipient(recipient);
+  const handleRecipientSelect = (recipient: any) => {
+    onNext({ 
+      recipient: {
+        id: recipient.id,
+        name: recipient.recipient_name,
+        stellar_address: recipient.stellar_address,
+        country: recipient.country,
+        relationship: recipient.relationship
+      }
+    });
   };
 
-  const handleNext = () => {
-    if (selectedRecipient) {
-      onNext({ 
-        recipient: selectedRecipient,
-        recipientName: selectedRecipient.recipient_name,
-        stellarAddress: selectedRecipient.stellar_address,
-        country: selectedRecipient.country,
-        relationship: selectedRecipient.relationship
-      });
+  const handleQRScan = (result: string) => {
+    // Parse QR result - could be Stellar address or payment URL
+    let stellarAddress = result;
+    let amount;
+    
+    // Check if it's a Stellar payment URL
+    if (result.startsWith('web+stellar:pay') || result.includes('stellar:')) {
+      try {
+        const url = new URL(result.replace('web+stellar:', 'https://'));
+        stellarAddress = url.searchParams.get('destination') || url.pathname.split('/').pop() || result;
+        amount = url.searchParams.get('amount');
+      } catch {
+        // If URL parsing fails, treat as plain address
+        stellarAddress = result;
+      }
     }
+
+    onNext({ 
+      recipient: {
+        id: `qr_${Date.now()}`,
+        name: 'QR Recipient',
+        stellar_address: stellarAddress,
+        country: 'Unknown',
+        relationship: 'Other'
+      },
+      ...(amount && { amount })
+    });
+    setShowQRScanner(false);
   };
+
+  if (showQRScanner) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="p-6"
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-white">Scan QR Code</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowQRScanner(false)}
+            className="text-white/70 hover:text-white"
+          >
+            Cancel
+          </Button>
+        </div>
+        <QRCodeScanner 
+          isOpen={showQRScanner}
+          onScan={handleQRScan} 
+          onClose={() => setShowQRScanner(false)}
+        />
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="p-6 space-y-6"
     >
-      <div className="text-center">
-        <h3 className="text-xl font-semibold text-white mb-2">Who are you sending to?</h3>
-        <p className="text-white/70">Search for a contact or enter recipient details</p>
+      <div className="text-center p-6 pb-0">
+        <h3 className="text-xl font-semibold text-white mb-2">Choose Recipient</h3>
+        <p className="text-white/70">Select who you want to send money to</p>
       </div>
 
-      {selectedRecipient && (
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20"
-        >
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center">
-                <User className="w-5 h-5 text-blue-400" />
-              </div>
-              <div>
-                <h4 className="font-medium text-white">{selectedRecipient.recipient_name}</h4>
-                <p className="text-sm text-white/70">{selectedRecipient.relationship || 'Contact'}</p>
-                <p className="text-xs text-white/60">{selectedRecipient.country}</p>
-              </div>
-            </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedRecipient(null)}
-              className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-            >
-              Change
-            </Button>
-          </div>
-        </motion.div>
-      )}
-
-      <div className="space-y-4">
-        <SimplifiedRecipientFinder 
-          onSelectRecipient={handleRecipientSelect}
-        />
-      </div>
-
-      <div className="flex justify-between pt-4">
-        <Button
-          variant="outline"
-          onClick={onBack}
-          className="bg-white/10 border-white/20 text-white hover:bg-white/20"
-        >
-          Back
-        </Button>
-        <Button
-          onClick={handleNext}
-          disabled={!selectedRecipient}
-          className="bg-blue-600 hover:bg-blue-700 text-white"
-        >
-          Continue with {selectedRecipient?.recipient_name || 'Recipient'}
-        </Button>
-      </div>
+      <SimplifiedRecipientFinder 
+        onSelectRecipient={handleRecipientSelect}
+        onShowQRScanner={() => setShowQRScanner(true)}
+      />
     </motion.div>
   );
 });

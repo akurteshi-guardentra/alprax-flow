@@ -1,113 +1,72 @@
-import { memo, useState } from "react";
-import { motion } from "framer-motion";
-import { CreditCard, Wallet, Smartphone, Shield } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
-import { StripeCardPaymentWrapper } from "@/components/payment/StripeCardPayment";
-import { StripePaymentService } from "@/services/StripePaymentService";
-import { toast } from "sonner";
+import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { PaymentMethodSelector } from './PaymentMethodSelector';
+import { StripeCardPaymentWrapper } from '@/components/payment/StripeCardPayment';
+import { useFundingIntegration } from '@/hooks/useFundingIntegration';
+import { toast } from 'sonner';
 
-export interface PaymentMethodStepProps {
+interface PaymentMethodStepProps {
   data: Record<string, any>;
   onNext: (data?: any) => void;
   onBack: () => void;
 }
 
-const paymentMethods = [
-  {
-    id: 'stellar',
-    title: 'Stellar Wallet',
-    description: 'Fast and secure blockchain payment',
-    icon: Wallet,
-    fee: '0.00001 XLM',
-    time: 'Instant',
-    recommended: true
-  },
-  {
-    id: 'card',
-    title: 'Credit/Debit Card',
-    description: 'Pay with your card',
-    icon: CreditCard,
-    fee: '2.9% + €0.30',
-    time: '1-3 minutes'
-  },
-  {
-    id: 'mobile',
-    title: 'Mobile Payment',
-    description: 'Use mobile wallet',
-    icon: Smartphone,
-    fee: '1.5%',
-    time: 'Instant'
-  }
-];
-
-export const PaymentMethodStep = memo(function PaymentMethodStep({
-  data,
-  onNext,
-  onBack
-}: PaymentMethodStepProps) {
+export function PaymentMethodStep({ data, onNext, onBack }: PaymentMethodStepProps) {
   const [selectedMethod, setSelectedMethod] = useState(data.paymentMethod || 'stellar');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [showStripePayment, setShowStripePayment] = useState(false);
   const [stripeClientSecret, setStripeClientSecret] = useState<string>('');
-  const [paymentAmount] = useState(data.amount || 50); // Default to $50
+  
+  const { createPaymentIntent, processPayment, isProcessing } = useFundingIntegration();
 
   const handleNext = async () => {
     if (selectedMethod === 'card') {
       await handleCardPayment();
     } else {
-      // For other payment methods (stellar, mobile), proceed directly
-      setIsProcessing(true);
-      try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        onNext({ paymentMethod: selectedMethod });
-      } finally {
-        setIsProcessing(false);
-      }
+      // For Stellar payments, proceed directly
+      onNext({ 
+        paymentMethod: selectedMethod, 
+        status: 'ready_to_process',
+        amount: data.amount,
+        recipient: data.recipient
+      });
     }
   };
 
   const handleCardPayment = async () => {
-    setIsProcessing(true);
     try {
-      // Create payment intent
-      const paymentIntent = await StripePaymentService.createPaymentIntent(
-        paymentAmount,
-        'usd',
-        'Alprax Flow Payment',
-        { 
-          recipient: data.recipient?.recipient_name || 'Unknown',
-          amount: paymentAmount.toString()
-        }
-      );
-
-      if (paymentIntent) {
+      const amount = parseFloat(data.amount) * 100; // Convert to cents
+      const paymentIntent = await createPaymentIntent(amount);
+      
+      if (paymentIntent?.clientSecret) {
         setStripeClientSecret(paymentIntent.clientSecret);
         setShowStripePayment(true);
-      } else {
-        toast.error('Failed to initialize payment');
       }
     } catch (error) {
-      console.error('Payment initialization failed:', error);
-      toast.error('Failed to initialize payment');
-    } finally {
-      setIsProcessing(false);
+      toast.error('Failed to initialize card payment');
     }
   };
 
-  const handlePaymentSuccess = () => {
-    setShowStripePayment(false);
-    toast.success('Payment completed successfully!');
-    onNext({ 
-      paymentMethod: selectedMethod,
-      paymentCompleted: true,
-      amount: paymentAmount
-    });
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    try {
+      const amount = parseFloat(data.amount) * 100;
+      const orderId = `order_${Date.now()}`;
+      
+      await processPayment(paymentIntentId, orderId, amount);
+      onNext({ 
+        paymentMethod: 'card', 
+        status: 'completed',
+        paymentIntentId,
+        orderId 
+      });
+    } catch (error) {
+      toast.error('Payment processing failed');
+    }
   };
 
   const handlePaymentError = (error: string) => {
+    toast.error(error);
     setShowStripePayment(false);
-    toast.error(`Payment failed: ${error}`);
   };
 
   if (showStripePayment && stripeClientSecret) {
@@ -115,13 +74,28 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="p-6 flex items-center justify-center min-h-[400px]"
+        className="p-6"
       >
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-xl font-semibold text-white">Complete Payment</h3>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowStripePayment(false)}
+            className="text-white/70 hover:text-white"
+          >
+            Back
+          </Button>
+        </div>
+        
         <StripeCardPaymentWrapper
           clientSecret={stripeClientSecret}
-          amount={paymentAmount}
+          amount={parseFloat(data.amount || '0')}
           currency="usd"
-          onSuccess={handlePaymentSuccess}
+          onSuccess={() => { 
+            setShowStripePayment(false);
+            onNext({ paymentMethod: 'card', status: 'completed' });
+          }}
           onError={handlePaymentError}
         />
       </motion.div>
@@ -135,84 +109,24 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
       className="p-6 space-y-6"
     >
       <div className="text-center">
-        <h3 className="text-xl font-semibold text-white mb-2">Choose payment method</h3>
-        <p className="text-white/70">Select how you'd like to send the payment</p>
+        <h3 className="text-xl font-semibold text-white mb-2">Choose Payment Method</h3>
+        <p className="text-white/70">How would you like to complete this payment?</p>
         {data.amount && (
-          <div className="mt-2 text-lg font-semibold text-white">
-            Amount: ${data.amount}
-          </div>
+          <p className="text-2xl font-bold text-white mt-2">
+            ${parseFloat(data.amount).toFixed(2)}
+          </p>
         )}
       </div>
 
-      <div className="space-y-3">
-        {paymentMethods.map((method) => (
-          <motion.div
-            key={method.id}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <div
-              onClick={() => setSelectedMethod(method.id)}
-              className={cn(
-                "p-4 rounded-lg border cursor-pointer transition-all duration-200 relative",
-                selectedMethod === method.id
-                  ? "bg-blue-600/20 border-blue-500/50 ring-1 ring-blue-500/30"
-                  : "bg-white/5 border-white/20 hover:bg-white/10 hover:border-white/30"
-              )}
-            >
-              {method.recommended && (
-                <div className="absolute -top-2 left-4">
-                  <span className="bg-green-500 text-white text-xs px-2 py-1 rounded-full">
-                    Recommended
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-start gap-4">
-                <div className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center",
-                  selectedMethod === method.id ? "bg-blue-500/30" : "bg-white/10"
-                )}>
-                  <method.icon className="w-6 h-6 text-white" />
-                </div>
-
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium text-white">{method.title}</h4>
-                    {method.recommended && (
-                      <Shield className="w-4 h-4 text-green-400" />
-                    )}
-                  </div>
-                  <p className="text-sm text-white/70 mb-2">{method.description}</p>
-                  
-                  <div className="flex items-center gap-4 text-xs text-white/60">
-                    <span>Fee: {method.fee}</span>
-                    <span>•</span>
-                    <span>Time: {method.time}</span>
-                  </div>
-                </div>
-
-                <div className={cn(
-                  "w-4 h-4 rounded-full border-2 transition-colors",
-                  selectedMethod === method.id
-                    ? "border-blue-500 bg-blue-500"
-                    : "border-white/30"
-                )}>
-                  {selectedMethod === method.id && (
-                    <div className="w-full h-full rounded-full bg-white/20" />
-                  )}
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        ))}
-      </div>
+      <PaymentMethodSelector
+        selectedMethod={selectedMethod}
+        onMethodSelect={setSelectedMethod}
+      />
 
       <div className="flex justify-between pt-4">
         <Button
           variant="outline"
           onClick={onBack}
-          disabled={isProcessing}
           className="bg-white/10 border-white/20 text-white hover:bg-white/20"
         >
           Back
@@ -220,18 +134,11 @@ export const PaymentMethodStep = memo(function PaymentMethodStep({
         <Button
           onClick={handleNext}
           disabled={isProcessing}
-          className="bg-green-600 hover:bg-green-700 text-white font-semibold min-w-[140px]"
+          className="bg-primary hover:bg-primary/90 text-white"
         >
-          {isProcessing ? (
-            <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2" />
-              Processing...
-            </>
-          ) : (
-            'Complete Payment'
-          )}
+          {isProcessing ? 'Processing...' : selectedMethod === 'card' ? 'Pay with Card' : 'Continue'}
         </Button>
       </div>
     </motion.div>
   );
-});
+}

@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useMobileViewport } from '@/hooks/use-mobile-viewport'
-import { offlineStorage } from '@/utils/offline-storage'
 
 interface MobileOptimizationsProps {
   children: React.ReactNode
@@ -94,11 +93,6 @@ export function MobileOptimizations({ children }: MobileOptimizationsProps) {
 
     // Setup performance optimizations
     const setupPerformanceOptimizations = () => {
-      // Cleanup expired cache periodically
-      const cleanupInterval = setInterval(() => {
-        offlineStorage.cleanup()
-      }, 5 * 60 * 1000) // Every 5 minutes
-
       // Prefetch critical resources on idle
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
@@ -114,7 +108,7 @@ export function MobileOptimizations({ children }: MobileOptimizationsProps) {
       }
 
       return () => {
-        clearInterval(cleanupInterval)
+        // No cleanup needed for this simplified version
       }
     }
 

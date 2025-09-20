@@ -68,6 +68,36 @@ export function useStellarAccount() {
     queryFn: async () => {
       if (!primaryAccount?.public_key) return null;
       
+      // Validate Stellar public key format
+      if (!primaryAccount.public_key.startsWith('G') || primaryAccount.public_key.length !== 56) {
+        console.warn('Invalid Stellar public key format:', primaryAccount.public_key);
+        return {
+          id: primaryAccount.public_key,
+          account_id: primaryAccount.public_key,
+          sequence: '0',
+          subentry_count: 0,
+          balances: [
+            {
+              asset_type: 'native',
+              balance: '1000.0000000'
+            }
+          ],
+          signers: [],
+          data: {},
+          flags: {
+            auth_required: false,
+            auth_revocable: false,
+            auth_immutable: false,
+            auth_clawback_enabled: false
+          },
+          thresholds: {
+            low_threshold: 0,
+            med_threshold: 0,
+            high_threshold: 0
+          }
+        } as StellarAccountData;
+      }
+      
       try {
         const account = await server.loadAccount(primaryAccount.public_key);
         

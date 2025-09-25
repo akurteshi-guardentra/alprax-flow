@@ -26,6 +26,8 @@ import { toast } from "sonner";
 import { FavoriteRecipient } from "@/types/favoriteRecipient";
 import { ContactPicker } from "@/components/contacts/ContactPicker";
 import { CountrySelector } from "@/components/CountrySelector";
+import { PaymentConfirmation } from "@/components/payment/PaymentConfirmation";
+import { fundTestAccount } from "@/lib/stellar/payment";
 
 interface PaymentFormData {
   recipient: FavoriteRecipient | null;
@@ -169,9 +171,43 @@ export function UnifiedPaymentForm() {
     } catch (error) {
       console.error('Payment error:', error);
       const message = error instanceof Error ? error.message : 'Payment failed';
-      setErrorMessage(message);
+      
+      // Check if it's an account not found error and offer recovery
+      if (message.includes('account') && (message.includes('not found') || message.includes('does not exist'))) {
+        setErrorMessage(`${message}\n\nWould you like to activate the recipient's account and retry?`);
+        // Could add a retry button here in the error UI
+      } else {
+        setErrorMessage(message);
+      }
+      
       setCurrentStep('error');
       hapticFeedback('error');
+    }
+  };
+
+  const handleActivateAndRetry = async () => {
+    if (!formData.recipient?.stellar_address) return;
+    
+    try {
+      setCurrentStep('processing');
+      toast.info('Activating recipient account...');
+      
+      const fundingResult = await fundTestAccount(formData.recipient.stellar_address);
+      
+      if (fundingResult.success) {
+        toast.success('Account activated! Retrying payment...');
+        // Wait a moment for the account to be fully activated
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        await executeTransaction();
+      } else {
+        throw new Error(fundingResult.error || 'Failed to activate account');
+      }
+    } catch (error) {
+      console.error('Activation error:', error);
+      const message = error instanceof Error ? error.message : 'Failed to activate account';
+      toast.error(message);
+      setErrorMessage(`Account activation failed: ${message}`);
+      setCurrentStep('error');
     }
   };
 
@@ -417,70 +453,47 @@ export function UnifiedPaymentForm() {
             </motion.div>
           )}
 
-          {currentStep === 'confirmation' && (
+          {currentStep === 'confirmation' && formData.recipient && (
             <motion.div
               key="confirmation"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
             >
-              <Card className="bg-white/10 border-white/20 text-white">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Shield className="w-5 h-5" />
-                    Confirm Payment
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="space-y-4">
-                    <div className="p-4 bg-white/5 rounded-lg">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white/70">To:</span>
-                        <span className="font-medium">{formData.recipient?.recipient_name}</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white/70">Amount:</span>
-                        <span className="font-medium">{formData.amount} {formData.currency}</span>
-                      </div>
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-white/70">XLM Amount:</span>
-                        <span className="font-medium">{getXlmAmount()} XLM</span>
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <span className="text-white/70">Purpose:</span>
-                        <span className="font-medium">{formData.memo}</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3 bg-green-900/20 border border-green-500/30 rounded-lg flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4 text-green-400" />
-                      <span className="text-green-300 text-sm">Payment details verified</span>
-                    </div>
-                  </div>
-
-                  <div className="flex gap-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => setCurrentStep('form')}
-                      className="flex-1 border-white/20 text-white hover:bg-white/10"
-                    >
-                      Back
-                    </Button>
-                    <Button
-                      onClick={executeTransaction}
-                      disabled={isProcessing}
-                      className="flex-1 bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 text-white"
-                    >
-                      {isProcessing ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Sending...
-                        </>
-                      ) : (
-                        'Confirm & Send'
-                      )}
-                    </Button>
-                  </div>
+              <PaymentConfirmation
+                recipient={{
+                  name: formData.recipient.recipient_name,
+                  stellar_address: formData.recipient.stellar_address,
+                  country: formData.country
+                }}
+                amount={formData.amount}
+                currency={formData.currency}
+                xlmAmount={getXlmAmount()}
+                memo={formData.memo}
+                onConfirm={executeTransaction}
+                onBack={() => setCurrentStep('form')}
+                isProcessing={isProcessing}
+              />
+            </motion.div>
+          )}
+          
+           {currentStep === 'confirmation' && !formData.recipient && (
+            <motion.div
+              key="confirmation-error"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <Card className="bg-red-900/20 border-red-500/30 text-white">
+                <CardContent className="text-center py-8">
+                  <AlertTriangle className="w-12 h-12 mx-auto mb-4 text-red-400" />
+                  <p className="text-red-300">No recipient selected</p>
+                  <Button
+                    onClick={() => setCurrentStep('form')}
+                    className="mt-4 bg-red-600 hover:bg-red-700"
+                  >
+                    Back
+                  </Button>
                 </CardContent>
               </Card>
             </motion.div>

@@ -269,8 +269,8 @@ export async function fundTestAccount(publicKey: string): Promise<FundingResult>
       throw new Error('Invalid Stellar address format for funding');
     }
     
-    // Retry mechanism for Friendbot with exponential backoff
-    let retries = 3;
+    // Enhanced retry mechanism for Friendbot with exponential backoff and jitter
+    let retries = 5; // Increased from 3 to 5
     let delay = 1000; // Start with 1 second delay
     
     for (let i = 0; i < retries; i++) {
@@ -286,20 +286,26 @@ export async function fundTestAccount(publicKey: string): Promise<FundingResult>
             hash: result.hash
           };
         } else if (response.status === 429) {
-          // Rate limited, wait and retry
-          console.log(`Rate limited, retrying in ${delay}ms...`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          // Rate limited, wait and retry with jitter
+          const jitter = Math.random() * 500; // Add up to 500ms jitter
+          const waitTime = delay + jitter;
+          console.log(`Rate limited, retrying in ${Math.round(waitTime)}ms...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
           delay *= 2; // Exponential backoff
           continue;
         } else {
-          throw new Error(`Funding failed with status ${response.status}`);
+          // Get response text for better error diagnostics
+          const errorText = await response.text().catch(() => 'Unknown error');
+          throw new Error(`Friendbot error (${response.status}): ${errorText}`);
         }
       } catch (fetchError) {
         if (i === retries - 1) {
           throw fetchError; // Last retry, throw the error
         }
-        console.log(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const jitter = Math.random() * 500;
+        const waitTime = delay + jitter;
+        console.log(`Attempt ${i + 1} failed, retrying in ${Math.round(waitTime)}ms...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
         delay *= 2;
       }
     }

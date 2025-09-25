@@ -99,6 +99,7 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
       <SimplifiedRecipientFinder 
         onSelectRecipient={handleRecipientSelect}
         onShowQRScanner={() => setShowQRScanner(true)}
+        showValidation={true}
       />
     </motion.div>
   );

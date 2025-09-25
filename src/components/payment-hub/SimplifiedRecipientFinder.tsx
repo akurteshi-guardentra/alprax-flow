@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, Plus, QrCode } from 'lucide-react';
+import { Search, User, Plus, QrCode, ExternalLink } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,6 +8,8 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
+import { useAccountValidation } from '@/hooks/useAccountValidation';
+import { RecipientAccountValidator } from '../payment/RecipientAccountValidator';
 
 interface Recipient {
   id: string;
@@ -21,20 +23,25 @@ interface Recipient {
 interface SimplifiedRecipientFinderProps {
   onSelectRecipient: (recipient: Recipient) => void;
   onShowQRScanner?: () => void;
+  showValidation?: boolean;
 }
 
 export function SimplifiedRecipientFinder({ 
   onSelectRecipient, 
-  onShowQRScanner 
+  onShowQRScanner,
+  showValidation = false 
 }: SimplifiedRecipientFinderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
+  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
   const [newRecipient, setNewRecipient] = useState({
     name: '',
     stellarAddress: '',
     country: '',
     relationship: ''
   });
+
+  const { validateAccount } = useAccountValidation();
 
   // Fetch favorite recipients
   const { data: favoriteRecipients, isLoading } = useQuery({
@@ -60,6 +67,17 @@ export function SimplifiedRecipientFinder({
   const validateStellarAddress = (address: string): boolean => {
     // Basic Stellar address validation
     return /^G[0-9A-Z]{55}$/.test(address);
+  };
+
+  const handleRecipientClick = async (recipient: Recipient) => {
+    setSelectedRecipient(recipient);
+    
+    // Background validation on select
+    if (showValidation && recipient.stellar_address) {
+      await validateAccount(recipient.stellar_address);
+    }
+    
+    onSelectRecipient(recipient);
   };
 
   const handleAddRecipient = useCallback(async () => {
@@ -88,7 +106,7 @@ export function SimplifiedRecipientFinder({
 
       if (existing) {
         toast.success('Recipient already exists, selecting...');
-        onSelectRecipient(existing);
+        handleRecipientClick(existing);
         setIsAddingNew(false);
         setNewRecipient({ name: '', stellarAddress: '', country: '', relationship: '' });
         return;
@@ -110,14 +128,14 @@ export function SimplifiedRecipientFinder({
       if (error) throw error;
 
       toast.success('Recipient added successfully');
-      onSelectRecipient(data);
+      handleRecipientClick(data);
       setIsAddingNew(false);
       setNewRecipient({ name: '', stellarAddress: '', country: '', relationship: '' });
     } catch (error) {
       console.error('Error adding recipient:', error);
       toast.error('Failed to add recipient');
     }
-  }, [newRecipient, onSelectRecipient]);
+  }, [newRecipient, onSelectRecipient, showValidation, validateAccount]);
 
   if (isAddingNew) {
     return (
@@ -236,31 +254,56 @@ export function SimplifiedRecipientFinder({
           <div className="text-center py-4 text-white/50">Loading recipients...</div>
         ) : favoriteRecipients && favoriteRecipients.length > 0 ? (
           favoriteRecipients.map((recipient) => (
-            <Card
-              key={recipient.id}
-              className="p-3 bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
-              onClick={() => onSelectRecipient(recipient)}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                  <User className="w-4 h-4 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium text-white text-sm">{recipient.recipient_name}</p>
-                    {recipient.relationship && (
-                      <Badge variant="secondary" className="text-xs">
-                        {recipient.relationship}
-                      </Badge>
-                    )}
+            <div key={recipient.id} className="space-y-2">
+              <Card
+                className="p-3 bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
+                onClick={() => handleRecipientClick(recipient)}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary" />
                   </div>
-                  <p className="text-xs text-white/50 font-mono truncate">
-                    {recipient.stellar_address}
-                  </p>
-                  <p className="text-xs text-white/40">{recipient.country}</p>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium text-white text-sm">{recipient.recipient_name}</p>
+                      {recipient.relationship && (
+                        <Badge variant="secondary" className="text-xs">
+                          {recipient.relationship}
+                        </Badge>
+                      )}
+                    </div>
+                    <p className="text-xs text-white/50 font-mono truncate">
+                      {recipient.stellar_address}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs text-white/40">{recipient.country}</p>
+                      <Button
+                        variant="link"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.open(`https://stellar.expert/explorer/testnet/account/${recipient.stellar_address}`, '_blank');
+                        }}
+                        className="text-xs text-primary hover:text-primary/80 p-0 h-auto"
+                      >
+                        <ExternalLink className="w-3 h-3 mr-1" />
+                        Explorer
+                      </Button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+              
+              {/* Show validation for selected recipient */}
+              {showValidation && selectedRecipient?.id === recipient.id && (
+                <RecipientAccountValidator
+                  stellarAddress={recipient.stellar_address}
+                  onValidationChange={(isValid, needsFunding) => {
+                    // Could emit this info to parent if needed
+                  }}
+                />
+              )}
+            </div>
           ))
         ) : searchQuery.trim() ? (
           <div className="text-center py-8 text-white/50">

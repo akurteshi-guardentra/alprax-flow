@@ -26,6 +26,27 @@ export async function sendPayment({
     // Load the source account
     const sourceKeypair = Keypair.fromSecret(sourceSecretKey);
     const sourcePublicKey = sourceKeypair.publicKey();
+    
+    // Check if destination account exists, if not try to fund it
+    try {
+      await server.loadAccount(destinationPublicKey);
+    } catch (error) {
+      console.log('Destination account does not exist, attempting to fund...');
+      try {
+        const response = await fetch(
+          `https://friendbot.stellar.org?addr=${destinationPublicKey}`
+        );
+        if (!response.ok) {
+          throw new Error(`Funding failed with status ${response.status}`);
+        }
+        console.log('Successfully funded destination account');
+        // Wait a moment for the account to be created
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      } catch (fundError) {
+        throw new Error(`Recipient account does not exist. We tried to create it automatically but failed: ${fundError instanceof Error ? fundError.message : 'Unknown error'}`);
+      }
+    }
+    
     const sourceAccount = await server.loadAccount(sourcePublicKey);
     
     // Create a transaction record in our database first

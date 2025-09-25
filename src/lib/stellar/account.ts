@@ -39,12 +39,43 @@ export async function createAccount(): Promise<StellarAccount | null> {
     try {
       toast.loading('Setting up your account with funds...');
       
-      const response = await fetch(
-        `https://friendbot.stellar.org?addr=${publicKey}`
-      );
+      // Add a delay and retry mechanism for friendbot
+      let retryCount = 0;
+      let response;
       
-      if (!response.ok) {
-        throw new Error(`Funding failed with status ${response.status}`);
+      while (retryCount < 3) {
+        try {
+          response = await fetch(
+            `https://friendbot.stellar.org?addr=${publicKey}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': 'application/json',
+              },
+            }
+          );
+          
+          if (response.ok) {
+            break;
+          } else if (response.status === 429) {
+            // Rate limited, wait and retry
+            await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+            retryCount++;
+            continue;
+          } else {
+            throw new Error(`Funding failed with status ${response.status}`);
+          }
+        } catch (fetchError) {
+          retryCount++;
+          if (retryCount >= 3) {
+            throw fetchError;
+          }
+          await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        }
+      }
+      
+      if (!response || !response.ok) {
+        throw new Error(`Funding failed after ${retryCount} attempts`);
       }
       
       const responseBody = await response.json();
@@ -144,12 +175,43 @@ export async function addTestFunds(publicKey: string): Promise<boolean> {
   try {
     toast.loading('Adding test funds to your account...');
     
-    const response = await fetch(
-      `https://friendbot.stellar.org?addr=${publicKey}`
-    );
+    // Add retry mechanism for friendbot
+    let retryCount = 0;
+    let response;
     
-    if (!response.ok) {
-      throw new Error(`Funding failed with status ${response.status}`);
+    while (retryCount < 3) {
+      try {
+        response = await fetch(
+          `https://friendbot.stellar.org?addr=${publicKey}`,
+          {
+            method: 'GET',
+            headers: {
+              'Accept': 'application/json',
+            },
+          }
+        );
+        
+        if (response.ok) {
+          break;
+        } else if (response.status === 429) {
+          // Rate limited, wait and retry
+          await new Promise(resolve => setTimeout(resolve, 2000 * (retryCount + 1)));
+          retryCount++;
+          continue;
+        } else {
+          throw new Error(`Funding failed with status ${response.status}`);
+        }
+      } catch (fetchError) {
+        retryCount++;
+        if (retryCount >= 3) {
+          throw fetchError;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+      }
+    }
+    
+    if (!response || !response.ok) {
+      throw new Error(`Funding failed after ${retryCount} attempts`);
     }
     
     const responseBody = await response.json();

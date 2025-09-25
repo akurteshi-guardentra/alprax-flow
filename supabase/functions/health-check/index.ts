@@ -1,4 +1,4 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.48.1'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3?target=deno'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       healthCheck.services.database = {
         status: 'unhealthy',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }
     }
 
@@ -74,7 +74,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       healthCheck.services.auth = {
         status: 'unhealthy',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }
     }
 
@@ -93,7 +93,7 @@ Deno.serve(async (req) => {
     } catch (error) {
       healthCheck.services.storage = {
         status: 'unhealthy',
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       }
     }
 
@@ -121,7 +121,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       status: 'unhealthy',
       timestamp: new Date().toISOString(),
-      error: error.message
+      error: error instanceof Error ? error.message : String(error)
     }), {
       status: 503,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

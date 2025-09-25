@@ -56,15 +56,43 @@ export function SimplifiedRecipientFinder({
     enabled: !isAddingNew
   });
 
+  // Validate Stellar address format
+  const validateStellarAddress = (address: string): boolean => {
+    // Basic Stellar address validation
+    return /^G[0-9A-Z]{55}$/.test(address);
+  };
+
   const handleAddRecipient = useCallback(async () => {
     if (!newRecipient.name || !newRecipient.stellarAddress) {
       toast.error('Please fill in required fields');
       return;
     }
 
+    // Validate Stellar address format
+    if (!validateStellarAddress(newRecipient.stellarAddress)) {
+      toast.error('Invalid Stellar address format. Address should start with G and be 56 characters long.');
+      return;
+    }
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+
+      // Check if recipient already exists
+      const { data: existing } = await supabase
+        .from('favorite_recipients')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('stellar_address', newRecipient.stellarAddress)
+        .maybeSingle();
+
+      if (existing) {
+        toast.success('Recipient already exists, selecting...');
+        onSelectRecipient(existing);
+        setIsAddingNew(false);
+        setNewRecipient({ name: '', stellarAddress: '', country: '', relationship: '' });
+        return;
+      }
 
       const { data, error } = await supabase
         .from('favorite_recipients')
@@ -237,14 +265,28 @@ export function SimplifiedRecipientFinder({
         ) : searchQuery.trim() ? (
           <div className="text-center py-8 text-white/50">
             <p>No recipients found for "{searchQuery}"</p>
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => setIsAddingNew(true)}
-              className="text-primary hover:text-primary/80 mt-2"
-            >
-              Add as new recipient
-            </Button>
+            {/^G[0-9A-Z]{55}$/.test(searchQuery.trim()) ? (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => {
+                  setNewRecipient(prev => ({ ...prev, stellarAddress: searchQuery.trim() }));
+                  setIsAddingNew(true);
+                }}
+                className="text-primary hover:text-primary/80 mt-2"
+              >
+                Add "{searchQuery.slice(0, 10)}..." as new recipient
+              </Button>
+            ) : (
+              <Button
+                variant="link"
+                size="sm"
+                onClick={() => setIsAddingNew(true)}
+                className="text-primary hover:text-primary/80 mt-2"
+              >
+                Add as new recipient
+              </Button>
+            )}
           </div>
         ) : (
           <div className="text-center py-8 text-white/50">

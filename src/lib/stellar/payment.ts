@@ -39,6 +39,11 @@ export interface FundingResult {
   hash?: string;
 }
 
+// Validate Stellar address format
+function validateStellarAddress(address: string): boolean {
+  return /^G[0-9A-Z]{55}$/.test(address);
+}
+
 export async function sendPayment(
   destinationAddress: string,
   amount: string,
@@ -58,6 +63,11 @@ export async function sendPayment(
     console.log('Amount:', amount, assetCode);
     console.log('Memo:', memo);
     console.log('Metadata:', metadata);
+
+    // Validate Stellar address format
+    if (!validateStellarAddress(destinationAddress)) {
+      throw new Error('Invalid Stellar address format. Address should start with G and be 56 characters long.');
+    }
 
     // Get the user's Stellar account
     const account = await getAccount();
@@ -254,19 +264,47 @@ export async function fundTestAccount(publicKey: string): Promise<FundingResult>
   try {
     console.log('Funding test account:', publicKey);
     
-    const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
-    
-    if (!response.ok) {
-      throw new Error(`Funding failed with status ${response.status}`);
+    // Validate Stellar address format before funding
+    if (!validateStellarAddress(publicKey)) {
+      throw new Error('Invalid Stellar address format for funding');
     }
     
-    const result = await response.json();
-    console.log('Account funded successfully:', result);
+    // Retry mechanism for Friendbot with exponential backoff
+    let retries = 3;
+    let delay = 1000; // Start with 1 second delay
     
-    return {
-      success: true,
-      hash: result.hash
-    };
+    for (let i = 0; i < retries; i++) {
+      try {
+        const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Account funded successfully:', result);
+          
+          return {
+            success: true,
+            hash: result.hash
+          };
+        } else if (response.status === 429) {
+          // Rate limited, wait and retry
+          console.log(`Rate limited, retrying in ${delay}ms...`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          delay *= 2; // Exponential backoff
+          continue;
+        } else {
+          throw new Error(`Funding failed with status ${response.status}`);
+        }
+      } catch (fetchError) {
+        if (i === retries - 1) {
+          throw fetchError; // Last retry, throw the error
+        }
+        console.log(`Attempt ${i + 1} failed, retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        delay *= 2;
+      }
+    }
+    
+    throw new Error('All funding attempts failed');
   } catch (error) {
     console.error('Error funding account:', error);
     return {

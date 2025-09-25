@@ -148,6 +148,33 @@ function detectMobileInfo(): MobileInfo {
   };
 }
 
+// Media query hook for backward compatibility
+export function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const mediaQuery = window.matchMedia(query);
+      setMatches(mediaQuery.matches);
+      
+      const handleChange = (event: MediaQueryListEvent) => {
+        setMatches(event.matches);
+      };
+      
+      try {
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+      } catch (e) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
+    }
+    return () => {};
+  }, [query]);
+  
+  return matches;
+}
+
 export function useIsMobile(): boolean {
   const [isMobile, setIsMobile] = useState(() => {
     if (typeof window === 'undefined') return false;
@@ -164,6 +191,12 @@ export function useIsMobile(): boolean {
   }, []);
 
   return isMobile;
+}
+
+// Backward compatibility hook
+export function useMobile() {
+  const isMobile = useIsMobile();
+  return { isMobile };
 }
 
 export function useMobileInfo(): MobileInfo {

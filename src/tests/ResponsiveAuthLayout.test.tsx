@@ -3,19 +3,19 @@ import { ResponsiveAuthLayout } from '@/components/auth/ResponsiveAuthLayout';
 import { vi, describe, it, expect } from 'vitest';
 import * as hooks from '@/hooks/use-mobile';
 
-// Mock the useMediaQuery hook to test different viewport sizes
+// Mock the useIsMobile hook to test different viewport sizes
 vi.mock('@/hooks/use-mobile', async () => {
   const actual = await vi.importActual('@/hooks/use-mobile');
   return {
     ...actual,
-    useMediaQuery: vi.fn()
+    useIsMobile: vi.fn()
   };
 });
 
 describe('ResponsiveAuthLayout', () => {
   it('renders with desktop styles when not on mobile', () => {
     // Mock the hook to return false (not mobile)
-    vi.spyOn(hooks, 'useMediaQuery').mockReturnValue(false);
+    vi.spyOn(hooks, 'useIsMobile').mockReturnValue(false);
 
     render(
       <ResponsiveAuthLayout>
@@ -38,7 +38,7 @@ describe('ResponsiveAuthLayout', () => {
 
   it('renders with mobile styles when on mobile', () => {
     // Mock the hook to return true (mobile)
-    vi.spyOn(hooks, 'useMediaQuery').mockReturnValue(true);
+    vi.spyOn(hooks, 'useIsMobile').mockReturnValue(true);
 
     render(
       <ResponsiveAuthLayout>
@@ -60,7 +60,7 @@ describe('ResponsiveAuthLayout', () => {
   });
 
   it('applies custom className when provided', () => {
-    vi.spyOn(hooks, 'useMediaQuery').mockReturnValue(false);
+    vi.spyOn(hooks, 'useIsMobile').mockReturnValue(false);
 
     render(
       <ResponsiveAuthLayout className="test-custom-class">
@@ -73,7 +73,7 @@ describe('ResponsiveAuthLayout', () => {
   });
 
   it('renders with animation properties', async () => {
-    vi.spyOn(hooks, 'useMediaQuery').mockReturnValue(false);
+    vi.spyOn(hooks, 'useIsMobile').mockReturnValue(false);
 
     render(
       <ResponsiveAuthLayout>

@@ -98,7 +98,7 @@ export function StellarAddressDisplay({
                 <code className="bg-muted px-2 py-1 rounded text-xs font-mono">
                   {displayAddress}
                 </code>
-                {mode !== 'memorable' && (
+                {displayName !== memorableName && (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>

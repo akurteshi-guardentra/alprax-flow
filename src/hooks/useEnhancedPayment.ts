@@ -109,9 +109,12 @@ export function useEnhancedPayment() {
       
       // Refresh data after payment
       if (result.success) {
-        queryClient.invalidateQueries({ queryKey: ['stellar-balance'] });
+        // Use wildcard to catch all stellar account data queries
+        queryClient.invalidateQueries({ queryKey: ['stellar-account-data'] });
+        queryClient.invalidateQueries({ queryKey: ['stellar-accounts'] });
         queryClient.invalidateQueries({ queryKey: ['transaction-history'] });
         await loadUserData();
+        console.log('✅ Balance queries invalidated after successful payment');
       }
       
       return result;
@@ -131,7 +134,9 @@ export function useEnhancedPayment() {
       
       if (result.success) {
         await loadUserData();
-        queryClient.invalidateQueries({ queryKey: ['stellar-balance'] });
+        queryClient.invalidateQueries({ queryKey: ['stellar-account-data'] });
+        queryClient.invalidateQueries({ queryKey: ['stellar-accounts'] });
+        console.log('✅ Balance queries invalidated after retry');
       }
       
       return result;

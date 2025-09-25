@@ -159,6 +159,8 @@ export class EnhancedPaymentService {
         
         // Update transaction queue if there was a queued transaction
         await this.updateQueuedTransactionStatus(result.txHash, 'completed');
+        
+        console.log('💰 Payment successful, balance should refresh automatically');
       } else {
         // Log the error with enhanced details
         await PaymentErrorService.logError({

@@ -41,7 +41,7 @@ type PaymentStep = 'form' | 'confirmation' | 'processing' | 'success' | 'error';
 
 export function UnifiedPaymentForm() {
   const navigate = useNavigate();
-  const { balance, isFunding, fundAccount, publicKey } = useStellarAccount();
+  const { balance, isFunding, fundAccount, publicKey, refreshBalance } = useStellarAccount();
   const { rates, isLoading: ratesLoading } = useRealTimeExchangeRates();
   const { executePayment, validatePayment, isProcessing } = useEnhancedPayment();
   
@@ -165,6 +165,12 @@ export function UnifiedPaymentForm() {
         setTransactionId(result.txHash || `tx_${Date.now()}`);
         setCurrentStep('success');
         hapticFeedback('success');
+        
+        // Explicitly refresh balance after a short delay
+        setTimeout(() => {
+          console.log('🔄 Refreshing balance after payment success');
+          refreshBalance();
+        }, 1500);
       } else {
         throw new Error(result.error || 'Payment failed');
       }

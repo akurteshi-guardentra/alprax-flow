@@ -1,0 +1,153 @@
+/* Mobile-First Design System */
+
+/* Touch Target Optimization */
+.touch-target {
+  @apply min-h-[44px] min-w-[44px] flex items-center justify-center;
+}
+
+.touch-target-small {
+  @apply min-h-[32px] min-w-[32px] flex items-center justify-center;
+}
+
+/* Mobile-Specific Layouts */
+.mobile-container {
+  @apply px-4 py-2 max-w-full overflow-x-hidden;
+}
+
+.mobile-card {
+  @apply rounded-lg bg-card/50 backdrop-blur-sm border border-border/50 p-4 shadow-lg;
+}
+
+.mobile-header {
+  @apply sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/20;
+}
+
+.mobile-nav {
+  @apply fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-md border-t border-border/20;
+}
+
+/* Mobile Typography */
+.mobile-title {
+  @apply text-lg font-semibold text-foreground;
+}
+
+.mobile-subtitle {
+  @apply text-sm text-muted-foreground;
+}
+
+.mobile-body {
+  @apply text-sm text-foreground leading-relaxed;
+}
+
+/* Mobile Forms */
+.mobile-input {
+  @apply w-full min-h-[48px] px-4 py-3 text-base rounded-lg border border-border bg-background text-foreground;
+}
+
+.mobile-button {
+  @apply w-full min-h-[48px] px-6 py-3 text-base font-medium rounded-lg transition-all duration-200;
+}
+
+.mobile-button-primary {
+  @apply mobile-button bg-primary text-primary-foreground hover:bg-primary/90 active:bg-primary/80;
+}
+
+.mobile-button-secondary {
+  @apply mobile-button bg-secondary text-secondary-foreground hover:bg-secondary/90 active:bg-secondary/80;
+}
+
+/* Mobile Spacing */
+.mobile-section {
+  @apply space-y-4 py-4;
+}
+
+.mobile-grid {
+  @apply grid grid-cols-1 gap-4;
+}
+
+.mobile-flex {
+  @apply flex flex-col space-y-3;
+}
+
+/* Mobile Animations */
+.mobile-slide-up {
+  @apply transform translate-y-full transition-transform duration-300 ease-out;
+}
+
+.mobile-slide-up.active {
+  @apply translate-y-0;
+}
+
+.mobile-fade-in {
+  @apply opacity-0 transform translate-y-2 transition-all duration-200 ease-out;
+}
+
+.mobile-fade-in.active {
+  @apply opacity-100 translate-y-0;
+}
+
+/* Safe Area Support */
+.safe-area-top {
+  padding-top: env(safe-area-inset-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.safe-area-left {
+  padding-left: env(safe-area-inset-left);
+}
+
+.safe-area-right {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* Mobile-Specific Utilities */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.mobile-overflow-scroll {
+  @apply overflow-y-auto hide-scrollbar;
+}
+
+/* Keyboard Handling */
+.keyboard-adjust {
+  @apply transition-all duration-300 ease-out;
+}
+
+/* Mobile Dark Mode Adjustments */
+@media (prefers-color-scheme: dark) {
+  .mobile-card {
+    @apply bg-card/30 border-border/30;
+  }
+  
+  .mobile-header {
+    @apply bg-background/70;
+  }
+  
+  .mobile-nav {
+    @apply bg-background/80;
+  }
+}
+
+/* Mobile Landscape Optimizations */
+@media (orientation: landscape) and (max-height: 500px) {
+  .mobile-header {
+    @apply h-12;
+  }
+  
+  .mobile-section {
+    @apply py-2 space-y-2;
+  }
+  
+  .mobile-button {
+    @apply min-h-[40px] py-2;
+  }
+}

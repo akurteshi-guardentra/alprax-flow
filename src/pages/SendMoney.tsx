@@ -20,6 +20,7 @@ const SendMoney = () => {
   const [loading, setLoading] = useState(false);
 
   const handleSend = async () => {
+    // Validation
     if (!selectedRecipient) {
       toast.error("Please select a recipient");
       return;
@@ -31,46 +32,71 @@ const SendMoney = () => {
     }
 
     setLoading(true);
+    const toastId = toast.loading("Processing payment...");
+
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
 
       // Get user's stellar account
       const { data: account } = await supabase
         .from('stellar_accounts')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .order('is_primary', { ascending: false })
+        .maybeSingle();
 
       if (!account) {
-        toast.error("No Stellar account found");
+        toast.dismiss(toastId);
+        toast.error("No Stellar account found. Please create one first.");
         return;
       }
 
-      // Send payment - the function now handles getting the secret key internally
+      // Send payment
       const result = await sendPayment(
-        selectedRecipient.stellar_address, // destinationAddress
-        amount, // amount
-        'XLM', // assetCode
-        selectedRecipient.recipient_name, // recipientName
-        selectedRecipient.id, // recipientId
-        memo, // memo
-        { // metadata
+        selectedRecipient.stellar_address,
+        amount,
+        'XLM',
+        selectedRecipient.recipient_name,
+        selectedRecipient.id,
+        memo,
+        {
           recipient_country: selectedRecipient.country,
           transfer_purpose: 'personal',
-          transfer_category: 'family_support'
+          transfer_category: 'money_transfer'
         }
       );
 
+      toast.dismiss(toastId);
+
       if (result.success) {
-        toast.success("Payment sent successfully!");
-        navigate('/dashboard');
+        toast.success(
+          `Payment sent! ${result.txHash ? `TX: ${result.txHash.substring(0, 8)}...` : ''}`,
+          { duration: 5000 }
+        );
+        
+        // Wait a moment then navigate
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
       } else {
-        toast.error(result.error || "Payment failed");
+        // Show specific error messages
+        if (result.errorType === 'insufficient_balance') {
+          toast.error("Insufficient balance. Please add funds to your account.");
+        } else if (result.errorType === 'account_not_found') {
+          toast.error("Recipient account not found.");
+        } else if (result.errorType === 'network_error') {
+          toast.error("Network error. Please check your connection and try again.");
+        } else {
+          toast.error(result.error || "Payment failed");
+        }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Send error:', error);
-      toast.error("Failed to send payment");
+      toast.dismiss(toastId);
+      toast.error(error.message || "Failed to send payment");
     } finally {
       setLoading(false);
     }

@@ -21,18 +21,36 @@ const ReceiveMoney = () => {
   const fetchStellarAccount = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
+      if (!user) {
+        toast.error("Please log in to view your account");
+        return;
+      }
 
-      const { data: account } = await supabase
+      const { data: account, error } = await supabase
         .from('stellar_accounts')
         .select('public_key')
         .eq('user_id', user.id)
-        .single();
+        .order('is_primary', { ascending: false })
+        .maybeSingle();
 
-      if (account?.public_key) {
-        setPublicKey(account.public_key);
-        generateQRCode(account.public_key);
+      if (error) {
+        console.error('Database error:', error);
+        toast.error("Failed to load account details");
+        return;
       }
+
+      if (!account?.public_key) {
+        toast.error("No Stellar account found. Please create one first.", {
+          action: {
+            label: "Create Account",
+            onClick: () => navigate('/dashboard')
+          }
+        });
+        return;
+      }
+
+      setPublicKey(account.public_key);
+      generateQRCode(account.public_key);
     } catch (error) {
       console.error('Error fetching account:', error);
       toast.error("Failed to load account details");

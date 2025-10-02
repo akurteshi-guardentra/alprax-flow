@@ -12,15 +12,14 @@ import { Profile as ProfileType } from "@/types/profile";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { ProfileCompletionCard } from "@/components/profile/ProfileCompletionCard";
-import { useOptimizedAnimations } from "@/hooks/use-optimized-animations";
-import { useNetworkAwareLoading } from "@/hooks/use-network-aware-loading";
+import { ProfileSecurity } from "@/components/profile/ProfileSecurity";
+import { ProfileTransactions } from "@/components/profile/ProfileTransactions";
 
 const Profile = () => {
   const navigate = useNavigate();
   const [profile, setProfile] = useState<ProfileType | null>(null);
   const [loading, setLoading] = useState(true);
-  const { shouldAnimate, getTransition } = useOptimizedAnimations();
-  const { isLoadingWithFallback } = useNetworkAwareLoading(loading);
+  const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'transactions'>('profile');
   const formRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -140,21 +139,58 @@ const Profile = () => {
                 )}
               </CardHeader>
               <CardContent>
-                <ProfileAvatar profile={profile} />
-                <div className="mb-6">
-                  <ProfileCompletionCard 
-                    profile={profile}
-                    onAddMissing={(field) => {
-                      // Scroll to the form
-                      if (formRef.current) {
-                        formRef.current.scrollIntoView({ behavior: 'smooth' });
-                      }
-                    }}
-                  />
+                {/* Tab Navigation */}
+                <div className="flex gap-2 mb-6 p-1 bg-white/5 rounded-lg">
+                  <Button
+                    variant={activeTab === 'profile' ? 'default' : 'ghost'}
+                    onClick={() => setActiveTab('profile')}
+                    className="flex-1"
+                  >
+                    Profile
+                  </Button>
+                  <Button
+                    variant={activeTab === 'security' ? 'default' : 'ghost'}
+                    onClick={() => setActiveTab('security')}
+                    className="flex-1"
+                  >
+                    Security
+                  </Button>
+                  <Button
+                    variant={activeTab === 'transactions' ? 'default' : 'ghost'}
+                    onClick={() => setActiveTab('transactions')}
+                    className="flex-1"
+                  >
+                    Transactions
+                  </Button>
                 </div>
-                <div ref={formRef}>
-                  <ProfileForm profile={profile} setProfile={setProfile} />
-                </div>
+
+                {/* Tab Content */}
+                {activeTab === 'profile' && (
+                  <div>
+                    <ProfileAvatar profile={profile} />
+                    <div className="mb-6">
+                      <ProfileCompletionCard 
+                        profile={profile}
+                        onAddMissing={(field) => {
+                          if (formRef.current) {
+                            formRef.current.scrollIntoView({ behavior: 'smooth' });
+                          }
+                        }}
+                      />
+                    </div>
+                    <div ref={formRef}>
+                      <ProfileForm profile={profile} setProfile={setProfile} />
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === 'security' && (
+                  <ProfileSecurity />
+                )}
+
+                {activeTab === 'transactions' && (
+                  <ProfileTransactions />
+                )}
               </CardContent>
             </Card>
           </motion.div>

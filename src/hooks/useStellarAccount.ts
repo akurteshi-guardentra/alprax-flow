@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Horizon, Keypair } from 'stellar-sdk';
 import { toast } from 'sonner';
+import { encryptStellarSecret } from '@/lib/security/encryption';
 
 export interface Balance {
   asset_type: string;
@@ -173,7 +174,8 @@ export function useStellarAccount() {
       const publicKey = keypair.publicKey();
       const secretKey = keypair.secret();
       
-      const encryptedSecret = btoa(secretKey);
+      // Encrypt the secret key properly
+      const encryptedSecret = await encryptStellarSecret(secretKey);
 
       const { data: { user } } = await supabase.auth.getUser();
       
@@ -201,8 +203,9 @@ export function useStellarAccount() {
         toast.success('Account created successfully!');
       }
 
-      // Refresh queries
-      window.location.reload();
+      // Refresh queries without full page reload
+      await queryClient.invalidateQueries({ queryKey: ['stellar-accounts'] });
+      await queryClient.invalidateQueries({ queryKey: ['stellar-account-data'] });
     } catch (error) {
       console.error('Error creating account:', error);
       toast.error('Failed to create account');

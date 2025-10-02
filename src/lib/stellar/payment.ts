@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
 import { server, networkPassphrase } from './config';
 import { getAccount } from './account';
+import { decryptStellarSecret, isLegacyFormat } from '../security/encryption';
 
 export interface PaymentParams {
   destinationAddress: string;
@@ -77,8 +78,21 @@ export async function sendPayment(
 
     console.log('Using account:', account.publicKey);
 
-    // Decode the secret key
-    const secretKey = atob(account.encryptedSecret);
+    // Decrypt the secret key (supports both legacy and modern encryption)
+    let secretKey: string;
+    try {
+      if (isLegacyFormat(account.encryptedSecret)) {
+        // Legacy format: simple Base64
+        secretKey = atob(account.encryptedSecret);
+      } else {
+        // Modern format: proper encryption
+        secretKey = await decryptStellarSecret(account.encryptedSecret);
+      }
+    } catch (error) {
+      console.error('Failed to decrypt secret key:', error);
+      throw new Error('Failed to access your account credentials. Please try logging out and back in.');
+    }
+    
     const sourceKeypair = Keypair.fromSecret(secretKey);
     
     // Load the source account from Stellar network, fund if needed

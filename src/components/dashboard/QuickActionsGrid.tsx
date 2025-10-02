@@ -11,16 +11,16 @@ const quickActions = [
     title: "Send Money",
     description: "Transfer funds globally",
     color: "from-blue-500 to-purple-600",
-    route: "/payments", // Now correctly routes to ModernPayments
+    route: "/send-money",
     benefits: ["Instant transfers", "Low fees", "Global reach"],
     popular: true
   },
   {
     icon: ArrowDownLeft,
-    title: "Request Money",
-    description: "Generate payment request",
+    title: "Receive Money",
+    description: "Show your QR code",
     color: "from-green-500 to-teal-600",
-    route: "/request",
+    route: "/receive-money",
     benefits: ["Easy sharing", "QR codes", "Payment links"],
     popular: false
   },
@@ -53,7 +53,7 @@ export function QuickActionsGrid() {
 
   const handleActionClick = (action: typeof quickActions[0]) => {
     // Show helpful guidance for users with low balance trying to send money
-    if (action.route === "/payments" && hasLowBalance) {
+    if (action.route === "/send-money" && hasLowBalance) {
       // Still navigate but user will see balance warning on payments page
     }
     navigate(action.route);

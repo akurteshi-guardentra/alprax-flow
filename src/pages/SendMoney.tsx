@@ -47,14 +47,19 @@ const SendMoney = () => {
         return;
       }
 
-      // Send payment
+      // Send payment - the function now handles getting the secret key internally
       const result = await sendPayment(
-        atob(account.encrypted_secret),
-        selectedRecipient.stellar_address,
-        amount,
-        undefined,
-        memo,
-        selectedRecipient.recipient_name
+        selectedRecipient.stellar_address, // destinationAddress
+        amount, // amount
+        'XLM', // assetCode
+        selectedRecipient.recipient_name, // recipientName
+        selectedRecipient.id, // recipientId
+        memo, // memo
+        { // metadata
+          recipient_country: selectedRecipient.country,
+          transfer_purpose: 'personal',
+          transfer_category: 'family_support'
+        }
       );
 
       if (result.success) {

@@ -31,6 +31,8 @@ import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
 import ModernPayments from "./pages/ModernPayments"; // The actual send money form
 import Payments from "./pages/Payments"; // Payment methods management
+import SendMoney from "./pages/SendMoney"; // Simple send money page
+import ReceiveMoney from "./pages/ReceiveMoney"; // Simple receive money page
 import RequestMoney from "./pages/RequestMoney";
 import AddFunds from "./pages/AddFunds";
 import Contacts from "./pages/Contacts";
@@ -131,6 +133,16 @@ const AppContent = () => {
                   <Route path="/profile" element={
                     <AuthGuard requireAuth={true}>
                       <Profile />
+                    </AuthGuard>
+                  } />
+                  <Route path="/send-money" element={
+                    <AuthGuard requireAuth={true}>
+                      <SendMoney />
+                    </AuthGuard>
+                  } />
+                  <Route path="/receive-money" element={
+                    <AuthGuard requireAuth={true}>
+                      <ReceiveMoney />
                     </AuthGuard>
                   } />
                   <Route path="/payments" element={

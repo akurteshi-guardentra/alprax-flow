@@ -1,6 +1,11 @@
 
 import { server } from './config';
 
+/**
+ * Fetch account balance from Stellar network
+ * @param publicKey - Stellar public key to query
+ * @returns Array of balances for different assets
+ */
 export async function getBalance(publicKey: string): Promise<{ asset: string; balance: string }[]> {
   try {
     console.log(`Fetching balance for: ${publicKey}`);
@@ -21,6 +26,11 @@ export async function getBalance(publicKey: string): Promise<{ asset: string; ba
   }
 }
 
+/**
+ * Check if a Stellar address exists on the network
+ * @param address - Stellar public key to verify
+ * @returns true if account exists, false otherwise
+ */
 export async function checkAddressExists(address: string): Promise<boolean> {
   try {
     await server.loadAccount(address);

@@ -7,6 +7,11 @@ import { StellarAccount } from './types';
 import { server } from './config';
 import { encryptStellarSecret } from '../security/encryption';
 
+/**
+ * Create a new Stellar account for the authenticated user
+ * Generates keypair, encrypts secret, stores in database, and funds via Friendbot
+ * @returns StellarAccount object or null on failure
+ */
 export async function createAccount(): Promise<StellarAccount | null> {
   try {
     const keypair = Keypair.random();
@@ -123,6 +128,10 @@ export async function createAccount(): Promise<StellarAccount | null> {
   }
 }
 
+/**
+ * Retrieve the authenticated user's primary Stellar account
+ * @returns StellarAccount object or null if not found
+ */
 export async function getAccount(): Promise<StellarAccount | null> {
   try {
     const { data: { user } } = await supabase.auth.getUser();

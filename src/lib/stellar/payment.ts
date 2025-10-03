@@ -45,6 +45,17 @@ function validateStellarAddress(address: string): boolean {
   return /^G[0-9A-Z]{55}$/.test(address);
 }
 
+/**
+ * Send a payment via the Stellar network
+ * @param destinationAddress - Stellar public key of the recipient
+ * @param amount - Amount to send in XLM or specified asset
+ * @param assetCode - Asset code (default: 'XLM')
+ * @param recipientName - Optional recipient name for transaction record
+ * @param recipientId - Optional recipient ID from database
+ * @param memo - Optional transaction memo
+ * @param metadata - Optional metadata for transaction tracking
+ * @returns PaymentResult with success status and transaction details
+ */
 export async function sendPayment(
   destinationAddress: string,
   amount: string,
@@ -274,6 +285,11 @@ export async function sendPayment(
   }
 }
 
+/**
+ * Fund a test account using Stellar Friendbot
+ * @param publicKey - The Stellar public key to fund
+ * @returns FundingResult indicating success or failure
+ */
 export async function fundTestAccount(publicKey: string): Promise<FundingResult> {
   try {
     console.log('Funding test account:', publicKey);

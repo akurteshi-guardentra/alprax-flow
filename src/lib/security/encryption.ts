@@ -65,6 +65,11 @@ async function deriveKey(password: string, salt: Uint8Array): Promise<CryptoKey>
  * @param secretKey The Stellar secret key to encrypt
  * @returns Base64 encoded encrypted data with salt and IV
  */
+/**
+ * Encrypt a Stellar secret key using AES-256-GCM
+ * @param secretKey - The Stellar secret key to encrypt
+ * @returns Base64-encoded encrypted data with salt and IV
+ */
 export async function encryptStellarSecret(secretKey: string): Promise<string> {
   try {
     // Validate Stellar secret key format
@@ -115,6 +120,12 @@ export async function encryptStellarSecret(secretKey: string): Promise<string> {
  * Decrypts a Stellar secret key using AES-256-GCM
  * @param encryptedData Base64 encoded encrypted data
  * @returns The decrypted Stellar secret key
+ */
+/**
+ * Decrypt a Stellar secret key from encrypted data
+ * Handles both modern encrypted format and legacy base64 format
+ * @param encryptedData - Base64-encoded encrypted data or legacy format
+ * @returns Decrypted Stellar secret key
  */
 export async function decryptStellarSecret(encryptedData: string): Promise<string> {
   try {

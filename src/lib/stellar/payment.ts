@@ -13,6 +13,8 @@ import { hapticFeedback } from '@/lib/haptics';
 import { server, networkPassphrase } from './config';
 import { getAccount } from './account';
 import { decryptStellarSecret, isLegacyFormat } from '../security/encryption';
+import { PaymentErrorService } from '@/services/PaymentErrorService';
+import { TransactionQueueService } from '@/services/TransactionQueueService';
 
 export interface PaymentParams {
   destinationAddress: string;
@@ -242,7 +244,7 @@ export async function sendPayment(
     console.error('Payment error:', error);
     
     let errorMessage = 'Payment failed. Please try again.';
-    let errorType = 'unknown';
+    let errorType: 'validation' | 'network' | 'stellar' | 'balance' | 'unknown' = 'unknown';
     
     if (error.response?.data?.extras?.result_codes) {
       const resultCodes = error.response.data.extras.result_codes;
@@ -250,27 +252,56 @@ export async function sendPayment(
       
       if (resultCodes.transaction === 'tx_insufficient_balance') {
         errorMessage = 'You don\'t have enough XLM to complete this payment. Please add funds to your account.';
-        errorType = 'insufficient_balance';
+        errorType = 'balance';
       } else if (resultCodes.transaction === 'tx_insufficient_fee') {
         errorMessage = 'Transaction fee is too low. This is usually a temporary network issue - please try again.';
-        errorType = 'network_error';
+        errorType = 'network';
       } else if (resultCodes.operations?.includes('op_underfunded')) {
         errorMessage = 'Insufficient funds for this payment amount. Please check your balance.';
-        errorType = 'insufficient_balance';
+        errorType = 'balance';
       } else if (resultCodes.operations?.includes('op_no_destination')) {
         errorMessage = 'Recipient account does not exist. We can automatically activate it for them.';
-        errorType = 'account_not_found';
+        errorType = 'stellar';
       }
     } else if (error.message) {
       if (error.message.includes('Account not found')) {
         errorMessage = 'Your Stellar account needs to be activated. Please add test funds first.';
-        errorType = 'account_not_found';
+        errorType = 'stellar';
       } else if (error.message.includes('network') || error.message.includes('connection')) {
         errorMessage = 'Network connection error. Please check your internet and try again.';
-        errorType = 'network_error';
+        errorType = 'network';
+      } else if (error.message.includes('Invalid Stellar address')) {
+        errorMessage = error.message;
+        errorType = 'validation';
       } else {
         errorMessage = error.message;
       }
+    }
+
+    // Log error to database for tracking and potential retry
+    await PaymentErrorService.logError({
+      errorType,
+      errorMessage,
+      errorDetails: {
+        destination: destinationAddress,
+        amount,
+        assetCode,
+        stellarError: error.response?.data?.extras?.result_codes,
+        rawError: error.message
+      }
+    });
+
+    // For network errors, queue transaction for retry
+    if (errorType === 'network' && parseFloat(amount) > 0) {
+      console.log('Network error detected, queueing transaction for retry...');
+      await TransactionQueueService.queueTransaction({
+        recipientAddress: destinationAddress,
+        amount: parseFloat(amount),
+        memo,
+        metadata,
+        priority: 1 // Higher priority for retries
+      });
+      toast.info('Transaction queued for automatic retry');
     }
 
     // Show user-friendly error message

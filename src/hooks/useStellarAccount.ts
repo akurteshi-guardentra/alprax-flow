@@ -45,7 +45,7 @@ export function useStellarAccount() {
   const queryClient = useQueryClient();
 
   const { data: stellarAccounts } = useQuery({
-    queryKey: ['stellar-accounts'],
+    queryKey: ['stellar', 'accounts'],
     queryFn: async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('No user found');
@@ -65,7 +65,7 @@ export function useStellarAccount() {
   const primaryAccount = stellarAccounts?.[0];
 
   const { data: accountData, isLoading } = useQuery({
-    queryKey: ['stellar-account-data', primaryAccount?.public_key],
+    queryKey: ['stellar', 'account', primaryAccount?.public_key, 'balance'],
     queryFn: async () => {
       if (!primaryAccount?.public_key) return null;
       

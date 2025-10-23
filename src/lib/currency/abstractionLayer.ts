@@ -80,16 +80,19 @@ export async function convertXLMToFiat(
 
 /**
  * Get user's preferred currency from profile
- * TODO: Phase 3 - Add preferred_currency column to profiles table
  */
 export async function getUserPreferredCurrency(): Promise<SupportedCurrency> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return 'USD';
     
-    // TODO: Phase 3 - Query preferred_currency from profiles
-    // For now, default to USD
-    return 'USD';
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('preferred_currency')
+      .eq('id', user.id)
+      .maybeSingle();
+    
+    return (profile?.preferred_currency as SupportedCurrency) || 'USD';
   } catch (error) {
     return 'USD';
   }

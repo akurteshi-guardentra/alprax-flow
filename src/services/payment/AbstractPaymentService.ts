@@ -93,13 +93,23 @@ export class AbstractPaymentService {
         throw new Error(stellarResult.error || 'Payment failed');
       }
       
-      // 7. Generate confirmation ID (Phase 3 will store in database)
+      // 7. Get current exchange rate for record
+      const exchangeRate = amount / xlmAmount;
+      
+      // 8. Update transaction record with fiat details
       const confirmationId = generateConfirmationId();
       
-      // TODO: Phase 3 - Update transaction record with fiat details once columns are added:
-      // fiat_amount, fiat_currency, exchange_rate_at_time, confirmation_id
+      await supabase
+        .from('stellar_transactions')
+        .update({
+          fiat_amount: amount,
+          fiat_currency: userCurrency,
+          exchange_rate_at_time: exchangeRate,
+          confirmation_id: confirmationId,
+        })
+        .eq('stellar_tx_hash', stellarResult.txHash);
       
-      // 8. Return user-friendly result (no blockchain details)
+      // 9. Return user-friendly result (no blockchain details)
       return {
         success: true,
         confirmationId,

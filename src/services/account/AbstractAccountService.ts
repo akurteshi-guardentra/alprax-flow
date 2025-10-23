@@ -34,8 +34,11 @@ export class AbstractAccountService {
       // 2. Generate user-friendly account ID
       const accountId = generateAccountId();
       
-      // TODO: Phase 3 - Store accountId in profiles table once user_account_id column is added
-      // For now, we'll generate it on-demand
+      // 3. Update profile with account ID
+      await supabase
+        .from('profiles')
+        .update({ user_account_id: accountId })
+        .eq('id', userId);
       
       // 4. Get initial balance (should be ~10,000 XLM from friendbot)
       const { getBalance } = await import('@/lib/stellar/utils');
@@ -71,9 +74,12 @@ export class AbstractAccountService {
       
       if (!targetUserId) return null;
       
-      // TODO: Phase 3 - Get account ID and preferred currency from profiles
-      // For now, generate account ID on-demand
-      const accountId = generateAccountId();
+      // Get profile with account ID and preferred currency
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('user_account_id, preferred_currency')
+        .eq('id', targetUserId)
+        .maybeSingle();
       
       // Get Stellar account (hidden)
       const { data: stellarAccount } = await supabase
@@ -91,13 +97,13 @@ export class AbstractAccountService {
       const balances = await getBalance(stellarAccount.public_key);
       const xlmBalance = balances.find(b => b.asset === 'XLM');
       
-      const userCurrency = await getUserPreferredCurrency();
+      const userCurrency = (profile?.preferred_currency as SupportedCurrency) || 'USD';
       const fiatBalance = xlmBalance 
         ? await convertXLMToFiat(parseFloat(xlmBalance.balance), userCurrency)
         : 0;
       
       return {
-        accountId: accountId,
+        accountId: profile?.user_account_id || 'N/A',
         balance: fiatBalance,
         currency: userCurrency,
         createdAt: stellarAccount.created_at,
@@ -111,14 +117,21 @@ export class AbstractAccountService {
   
   /**
    * Update user's preferred currency
-   * TODO: Phase 3 - Implement once preferred_currency column is added to profiles
    */
   static async updatePreferredCurrency(
     userId: string, 
     currency: SupportedCurrency
   ): Promise<boolean> {
-    console.log(`[TODO Phase 3] Update preferred currency to ${currency} for user ${userId}`);
-    // TODO: Phase 3 - Implement database update
-    return true;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ preferred_currency: currency })
+        .eq('id', userId);
+      
+      return !error;
+    } catch (error) {
+      console.error('Error updating preferred currency:', error);
+      return false;
+    }
   }
 }

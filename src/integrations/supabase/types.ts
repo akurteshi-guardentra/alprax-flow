@@ -831,9 +831,12 @@ export type Database = {
           onboarding_completed: boolean | null
           onboarding_step: string | null
           phone_number: string | null
+          preferred_currency: string | null
           preferred_language: string | null
           reward_tier_id: number | null
+          show_crypto_details: boolean | null
           updated_at: string | null
+          user_account_id: string | null
           username: string | null
         }
         Insert: {
@@ -848,9 +851,12 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: string | null
           phone_number?: string | null
+          preferred_currency?: string | null
           preferred_language?: string | null
           reward_tier_id?: number | null
+          show_crypto_details?: boolean | null
           updated_at?: string | null
+          user_account_id?: string | null
           username?: string | null
         }
         Update: {
@@ -865,9 +871,12 @@ export type Database = {
           onboarding_completed?: boolean | null
           onboarding_step?: string | null
           phone_number?: string | null
+          preferred_currency?: string | null
           preferred_language?: string | null
           reward_tier_id?: number | null
+          show_crypto_details?: boolean | null
           updated_at?: string | null
+          user_account_id?: string | null
           username?: string | null
         }
         Relationships: [
@@ -921,7 +930,7 @@ export type Database = {
           converted_at: string | null
           country: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           referral_code_id: string
           user_agent: string | null
         }
@@ -932,7 +941,7 @@ export type Database = {
           converted_at?: string | null
           country?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referral_code_id: string
           user_agent?: string | null
         }
@@ -943,7 +952,7 @@ export type Database = {
           converted_at?: string | null
           country?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           referral_code_id?: string
           user_agent?: string | null
         }
@@ -1159,10 +1168,14 @@ export type Database = {
         Row: {
           amount: number
           completed_at: string | null
+          confirmation_id: string | null
           created_at: string
           error_message: string | null
+          exchange_rate_at_time: number | null
           fee: number
           fees_saved: number | null
+          fiat_amount: number | null
+          fiat_currency: string | null
           from_asset: string
           id: string
           memo: string | null
@@ -1179,10 +1192,14 @@ export type Database = {
         Insert: {
           amount: number
           completed_at?: string | null
+          confirmation_id?: string | null
           created_at?: string
           error_message?: string | null
+          exchange_rate_at_time?: number | null
           fee: number
           fees_saved?: number | null
+          fiat_amount?: number | null
+          fiat_currency?: string | null
           from_asset: string
           id?: string
           memo?: string | null
@@ -1199,10 +1216,14 @@ export type Database = {
         Update: {
           amount?: number
           completed_at?: string | null
+          confirmation_id?: string | null
           created_at?: string
           error_message?: string | null
+          exchange_rate_at_time?: number | null
           fee?: number
           fees_saved?: number | null
+          fiat_amount?: number | null
+          fiat_currency?: string | null
           from_asset?: string
           id?: string
           memo?: string | null
@@ -1850,10 +1871,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      cleanup_old_completed_orders: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_completed_orders: { Args: never; Returns: undefined }
       find_user_by_email: {
         Args: { search_email: string }
         Returns: {

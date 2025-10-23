@@ -105,7 +105,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
     }
     
     if (xlmBalance <= 0) {
-      return { valid: false, message: "Your account needs to be funded with XLM" };
+      return { valid: false, message: "Your account needs funds to send payments" };
     }
     
     return { valid: true, message: "" };
@@ -219,7 +219,7 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
 
   const handleFundAccount = async () => {
     if (!publicKey) {
-      toast.error('No Stellar account found');
+      toast.error('No account found');
       return;
     }
     
@@ -373,13 +373,10 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                 <div className="text-2xl font-bold text-white">
                   {ratesLoading ? '...' : `${fiatBalance.toFixed(2)} EUR`}
                 </div>
-                <div className="text-sm text-white/60">
-                  {xlmBalance.toFixed(7)} XLM
-                </div>
                 {xlmBalance === 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="text-xs text-red-400">
-                      ⚠️ Account needs funding to send payments
+                      ⚠️ Add funds to start sending payments
                     </div>
                     <Button
                       onClick={handleFundAccount}
@@ -486,11 +483,6 @@ export const SimplifiedPaymentForm = memo(function SimplifiedPaymentForm() {
                       onChange={(e) => updateFormField('amount', e.target.value)}
                       className="input-mobile"
                     />
-                    {formData.amount && currentRate > 0 && (
-                      <div className="text-xs text-white/60">
-                        ≈ {getXlmAmount()} XLM
-                      </div>
-                    )}
                   </div>
 
                   {/* Purpose */}

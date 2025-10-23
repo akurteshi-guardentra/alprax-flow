@@ -158,13 +158,13 @@ export function RecipientSelector({ onSelectRecipient }: RecipientSelectorProps)
               />
             </div>
             
-            <div>              <Label htmlFor="stellar_address" className="text-white">Recipient ID</Label>
+            <div>              <Label htmlFor="stellar_address" className="text-white">Account ID</Label>
               <Input
                 id="stellar_address"
                 value={newRecipient.stellar_address}
                 onChange={(e) => handleInputChange("stellar_address", e.target.value)}
                 className="bg-white/10 border-white/10 text-white"
-                placeholder="Enter recipient's payment ID"
+                placeholder="Enter recipient's account ID"
               />
             </div>
             

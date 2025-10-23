@@ -33,11 +33,12 @@ export function EnhancedTransactionList() {
   };
 
   const formatAmount = (amount: number, currency: string) => {
-    if (currency === 'XLM' && fiatRate > 0) {
+    // Always display in fiat currency for user
+    if (fiatRate > 0) {
       const fiatAmount = amount * fiatRate;
-      return `${amount.toFixed(4)} XLM (~${fiatAmount.toFixed(2)} ${defaultFiat})`;
+      return `${fiatAmount.toFixed(2)} ${defaultFiat}`;
     }
-    return `${amount.toFixed(4)} ${currency}`;
+    return `${amount.toFixed(2)} ${defaultFiat}`;
   };
 
   if (isLoading) {

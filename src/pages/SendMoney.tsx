@@ -50,7 +50,7 @@ const SendMoney = () => {
 
       if (!account) {
         toast.dismiss(toastId);
-        toast.error("No Stellar account found. Please create one first.");
+        toast.error("No account found. Please create one first.");
         return;
       }
 
@@ -73,7 +73,7 @@ const SendMoney = () => {
 
       if (result.success) {
         toast.success(
-          `Payment sent! ${result.txHash ? `TX: ${result.txHash.substring(0, 8)}...` : ''}`,
+          "Payment sent successfully!",
           { duration: 5000 }
         );
         
@@ -159,7 +159,7 @@ const SendMoney = () => {
 
               {/* Amount Input */}
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-white">Amount (XLM)</Label>
+                <Label htmlFor="amount" className="text-white">Amount</Label>
                 <Input
                   id="amount"
                   type="number"

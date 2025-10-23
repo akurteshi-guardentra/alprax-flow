@@ -98,7 +98,7 @@ export function UnifiedPaymentForm() {
     
     if (!formData.recipient.stellar_address?.startsWith('G') || 
         formData.recipient.stellar_address.length !== 56) {
-      return { valid: false, message: "Invalid recipient Stellar address" };
+      return { valid: false, message: "Invalid recipient account ID" };
     }
     
     if (!formData.amount || parseFloat(formData.amount) <= 0) {
@@ -119,7 +119,7 @@ export function UnifiedPaymentForm() {
     }
     
     if (xlmBalance <= 0) {
-      return { valid: false, message: "Your account needs to be funded with XLM" };
+      return { valid: false, message: "Your account needs funds to send payments" };
     }
     
     return { valid: true, message: "" };
@@ -219,7 +219,7 @@ export function UnifiedPaymentForm() {
 
   const handleFundAccount = async () => {
     if (!publicKey) {
-      toast.error('No Stellar account found');
+      toast.error('No account found');
       return;
     }
     
@@ -306,13 +306,10 @@ export function UnifiedPaymentForm() {
                 <div className="text-2xl font-bold text-white">
                   {ratesLoading ? '...' : `${fiatBalance.toFixed(2)} ${formData.currency}`}
                 </div>
-                <div className="text-sm text-white/60">
-                  {xlmBalance.toFixed(7)} XLM
-                </div>
                 {xlmBalance === 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="text-xs text-red-400">
-                      ⚠️ Account needs funding to send payments
+                      ⚠️ Add funds to start sending payments
                     </div>
                     <Button
                       onClick={handleFundAccount}
@@ -409,11 +406,6 @@ export function UnifiedPaymentForm() {
                       onChange={(e) => updateFormField('amount', e.target.value)}
                       className="bg-white/10 border-white/20 text-white placeholder:text-white/50"
                     />
-                    {formData.amount && currentRate > 0 && (
-                      <div className="text-xs text-white/60">
-                        ≈ {getXlmAmount()} XLM
-                      </div>
-                    )}
                   </div>
 
                   {/* Purpose */}

@@ -122,7 +122,7 @@ export function AccountBalance() {
           )}
         </Button>
         <p className="text-xs text-white/40 text-center mt-2">
-          This adds test funds to your account. Fast, low-cost transfers powered by blockchain technology.
+          Add test funds to your account for instant transfers.
         </p>
       </div>
     </div>

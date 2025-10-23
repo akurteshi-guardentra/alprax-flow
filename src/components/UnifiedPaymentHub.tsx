@@ -1,11 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { AbstractAccountService } from '@/services/account/AbstractAccountService';
+import { AbstractPaymentService } from '@/services/payment/AbstractPaymentService';
 import { ActionSelectionStep } from './payment-hub/ActionSelectionStep';
 import { AmountSelectionStep } from './payment-hub/AmountSelectionStep';
 import { RecipientSelectionStep } from './payment-hub/RecipientSelectionStep';
@@ -29,9 +30,14 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
     action: defaultAction
   });
   const [isProcessing, setIsProcessing] = useState(false);
-  const { balance } = useStellarAccount();
+  const [userAccount, setUserAccount] = useState<any>(null);
 
-  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
+  // Load user account on mount
+  useEffect(() => {
+    AbstractAccountService.getAccount().then(setUserAccount);
+  }, []);
+
+  const accountBalance = userAccount?.balance?.toString() || "0";
 
   const handleNext = (stepData?: any) => {
     if (stepData) {
@@ -78,13 +84,36 @@ export function UnifiedPaymentHub({ open, onOpenChange, defaultAction = 'send' }
     }
   };
 
-  const simulateTransaction = () => {
+  const simulateTransaction = async () => {
     setIsProcessing(true);
-    setTimeout(() => {
+    try {
+      // Use AbstractPaymentService for actual payment
+      const result = await AbstractPaymentService.sendPayment({
+        recipientId: wizardData.recipient?.id,
+        amount: parseFloat(wizardData.amount),
+        currency: userAccount?.currency || 'USD',
+        memo: wizardData.description
+      });
+
+      if (result.success) {
+        setWizardData(prev => ({ 
+          ...prev, 
+          confirmationId: result.confirmationId,
+          timestamp: result.timestamp 
+        }));
+        setStep('success');
+        toast.success('Payment sent successfully!');
+      } else {
+        toast.error(result.error || 'Payment failed');
+        setStep('amount');
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed');
+      setStep('amount');
+    } finally {
       setIsProcessing(false);
-      setStep('success');
-      toast.success(`Payment sent successfully!`);
-    }, 2000);
+    }
   };
 
   const handleClose = () => {

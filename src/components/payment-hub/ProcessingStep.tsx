@@ -69,10 +69,10 @@ export const ProcessingStep = memo(function ProcessingStep({
       {isProcessing && (
         <div className="space-y-2">
           <div className="text-sm text-white/60">
-            Sending {data.amount} EUR to {data.recipient?.recipient_name}
+            Sending ${data.amount} to {data.recipient?.name || data.recipient?.recipient_name}
           </div>
           <div className="text-xs text-white/50">
-            Using {data.paymentMethod === 'stellar' ? 'Stellar Network' : 'Card Payment'}
+            Processing securely...
           </div>
         </div>
       )}

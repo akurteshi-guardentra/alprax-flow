@@ -30,19 +30,19 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
   };
 
   const handleQRScan = (result: string) => {
-    // Parse QR result - could be Stellar address or payment URL
-    let stellarAddress = result;
+    // Parse QR result - could be payment identifier or URL
+    let identifier = result;
     let amount;
     
-    // Check if it's a Stellar payment URL
-    if (result.startsWith('web+stellar:pay') || result.includes('stellar:')) {
+    // Check if it's a payment URL
+    if (result.includes('://') || result.includes('pay')) {
       try {
         const url = new URL(result.replace('web+stellar:', 'https://'));
-        stellarAddress = url.searchParams.get('destination') || url.pathname.split('/').pop() || result;
+        identifier = url.searchParams.get('recipient') || url.searchParams.get('destination') || url.pathname.split('/').pop() || result;
         amount = url.searchParams.get('amount');
       } catch {
-        // If URL parsing fails, treat as plain address
-        stellarAddress = result;
+        // If URL parsing fails, treat as plain identifier
+        identifier = result;
       }
     }
 
@@ -50,7 +50,7 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
       recipient: {
         id: `qr_${Date.now()}`,
         name: 'QR Recipient',
-        stellar_address: stellarAddress,
+        stellar_address: identifier, // Internal use only
         country: 'Unknown',
         relationship: 'Other'
       },
@@ -67,7 +67,7 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
         className="p-6"
       >
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-white">Scan QR Code</h3>
+          <h3 className="text-lg font-semibold text-white">Scan Payment Code</h3>
           <Button
             variant="ghost"
             size="sm"

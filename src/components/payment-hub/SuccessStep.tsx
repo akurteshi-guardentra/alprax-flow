@@ -43,9 +43,14 @@ export const SuccessStep = memo(function SuccessStep({
       </motion.div>
 
       <div className="space-y-2">
-        <h3 className="text-2xl font-bold text-white">Payment Successful!</h3>
+        <h3 className="text-2xl font-bold text-white">
+          {data.action === 'fund' ? 'Funds Added!' : 'Payment Successful!'}
+        </h3>
         <p className="text-white/70">
-          Your payment has been sent successfully to {data.recipient?.recipient_name}
+          {data.action === 'fund' 
+            ? 'Your account has been funded successfully'
+            : `Your payment has been sent successfully to ${data.recipient?.name || data.recipient?.recipient_name}`
+          }
         </p>
       </div>
 
@@ -57,15 +62,17 @@ export const SuccessStep = memo(function SuccessStep({
       >
         <div className="flex justify-between text-sm">
           <span className="text-white/70">Amount:</span>
-          <span className="text-white font-medium">{data.amount} EUR</span>
+          <span className="text-white font-medium">${data.amount}</span>
         </div>
+        {data.recipient && (
+          <div className="flex justify-between text-sm">
+            <span className="text-white/70">Recipient:</span>
+            <span className="text-white font-medium">{data.recipient?.name || data.recipient?.recipient_name}</span>
+          </div>
+        )}
         <div className="flex justify-between text-sm">
-          <span className="text-white/70">Recipient:</span>
-          <span className="text-white font-medium">{data.recipient?.recipient_name}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-white/70">Transaction ID:</span>
-          <span className="text-white font-mono text-xs">{data.transactionId}</span>
+          <span className="text-white/70">Confirmation ID:</span>
+          <span className="text-white font-mono text-xs">{data.confirmationId || data.transactionId || 'N/A'}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-white/70">Status:</span>

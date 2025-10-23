@@ -37,18 +37,20 @@ export const AmountSelectionStep = memo(function AmountSelectionStep({
       className="p-6 space-y-6"
     >
       <div className="text-center">
-        <h3 className="text-xl font-semibold text-white mb-2">How much are you sending?</h3>
+        <h3 className="text-xl font-semibold text-white mb-2">
+          {data.action === 'request' ? 'How much are you requesting?' : 'How much are you sending?'}
+        </h3>
         <p className="text-white/70">Choose an amount or enter a custom value</p>
       </div>
 
       <PaymentSuggestions
         onSelectAmount={handleAmountSelect}
-        currency="EUR"
+        currency="USD"
       />
 
       <div className="space-y-4">
         <div>
-          <Label htmlFor="custom-amount" className="text-white">Custom Amount (EUR)</Label>
+          <Label htmlFor="custom-amount" className="text-white">Custom Amount (USD)</Label>
           <Input
             id="custom-amount"
             type="number"

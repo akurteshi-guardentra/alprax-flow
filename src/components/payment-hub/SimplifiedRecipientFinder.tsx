@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Search, User, Plus, QrCode, ExternalLink } from 'lucide-react';
+import { Search, User, Plus, QrCode } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -8,8 +8,6 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { useAccountValidation } from '@/hooks/useAccountValidation';
-import { RecipientAccountValidator } from '../payment/RecipientAccountValidator';
 
 interface Recipient {
   id: string;
@@ -41,8 +39,6 @@ export function SimplifiedRecipientFinder({
     relationship: ''
   });
 
-  const { validateAccount } = useAccountValidation();
-
   // Fetch favorite recipients
   const { data: favoriteRecipients, isLoading } = useQuery({
     queryKey: ['favorite-recipients', searchQuery],
@@ -71,12 +67,6 @@ export function SimplifiedRecipientFinder({
 
   const handleRecipientClick = async (recipient: Recipient) => {
     setSelectedRecipient(recipient);
-    
-    // Background validation on select
-    if (showValidation && recipient.stellar_address) {
-      await validateAccount(recipient.stellar_address);
-    }
-    
     onSelectRecipient(recipient);
   };
 
@@ -135,7 +125,7 @@ export function SimplifiedRecipientFinder({
       console.error('Error adding recipient:', error);
       toast.error('Failed to add recipient');
     }
-  }, [newRecipient, onSelectRecipient, showValidation, validateAccount]);
+  }, [newRecipient, onSelectRecipient]);
 
   if (isAddingNew) {
     return (
@@ -168,13 +158,14 @@ export function SimplifiedRecipientFinder({
           </div>
 
           <div>
-            <label className="block text-sm text-white/70 mb-1">Stellar Address *</label>
+            <label className="block text-sm text-white/70 mb-1">Email or Phone *</label>
             <Input
               value={newRecipient.stellarAddress}
               onChange={(e) => setNewRecipient(prev => ({ ...prev, stellarAddress: e.target.value }))}
-              placeholder="GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-              className="bg-white/10 border-white/20 text-white font-mono text-xs"
+              placeholder="email@example.com or +1234567890"
+              className="bg-white/10 border-white/20 text-white"
             />
+            <p className="text-xs text-white/40 mt-1">Enter recipient's email or phone number</p>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -221,7 +212,7 @@ export function SimplifiedRecipientFinder({
           <Input
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search recipients or paste Stellar address..."
+            placeholder="Search recipients by name or email..."
             className="pl-10 bg-white/10 border-white/20 text-white"
           />
         </div>
@@ -272,37 +263,15 @@ export function SimplifiedRecipientFinder({
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs text-white/50 font-mono truncate">
-                      {recipient.stellar_address}
-                    </p>
-                    <div className="flex items-center justify-between">
-                      <p className="text-xs text-white/40">{recipient.country}</p>
-                      <Button
-                        variant="link"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          window.open(`https://stellar.expert/explorer/testnet/account/${recipient.stellar_address}`, '_blank');
-                        }}
-                        className="text-xs text-primary hover:text-primary/80 p-0 h-auto"
-                      >
-                        <ExternalLink className="w-3 h-3 mr-1" />
-                        Explorer
-                      </Button>
-                    </div>
+                    {recipient.stellar_address && (
+                      <p className="text-xs text-white/50 truncate">
+                        {recipient.stellar_address.includes('@') ? recipient.stellar_address : 'Verified account'}
+                      </p>
+                    )}
+                    <p className="text-xs text-white/40">{recipient.country}</p>
                   </div>
                 </div>
               </Card>
-              
-              {/* Show validation for selected recipient */}
-              {showValidation && selectedRecipient?.id === recipient.id && (
-                <RecipientAccountValidator
-                  stellarAddress={recipient.stellar_address}
-                  onValidationChange={(isValid, needsFunding) => {
-                    // Could emit this info to parent if needed
-                  }}
-                />
-              )}
             </div>
           ))
         ) : searchQuery.trim() ? (

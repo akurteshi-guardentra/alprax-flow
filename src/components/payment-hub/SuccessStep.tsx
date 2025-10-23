@@ -49,7 +49,7 @@ export const SuccessStep = memo(function SuccessStep({
         <p className="text-white/70">
           {data.action === 'fund' 
             ? 'Your account has been funded successfully'
-            : `Your payment has been sent successfully to ${data.recipient?.name || data.recipient?.recipient_name}`
+            : `Your payment has been sent successfully to ${data.recipient?.name}`
           }
         </p>
       </div>
@@ -65,10 +65,16 @@ export const SuccessStep = memo(function SuccessStep({
           <span className="text-white font-medium">${data.amount}</span>
         </div>
         {data.recipient && (
-          <div className="flex justify-between text-sm">
-            <span className="text-white/70">Recipient:</span>
-            <span className="text-white font-medium">{data.recipient?.name || data.recipient?.recipient_name}</span>
-          </div>
+          <>
+            <div className="flex justify-between text-sm">
+              <span className="text-white/70">Recipient:</span>
+              <span className="text-white font-medium">{data.recipient?.name}</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span className="text-white/70">Sent to:</span>
+              <span className="text-white/60 text-xs">{data.recipient?.identifier}</span>
+            </div>
+          </>
         )}
         <div className="flex justify-between text-sm">
           <span className="text-white/70">Confirmation ID:</span>

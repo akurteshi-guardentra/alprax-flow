@@ -21,10 +21,10 @@ export const RecipientSelectionStep = memo(function RecipientSelectionStep({
     onNext({ 
       recipient: {
         id: recipient.id,
-        name: recipient.recipient_name,
-        stellar_address: recipient.stellar_address,
-        country: recipient.country,
-        relationship: recipient.relationship
+        name: recipient.name,
+        identifier: recipient.identifier,
+        identifierType: recipient.identifierType,
+        country: recipient.country
       }
     });
   };

@@ -69,7 +69,10 @@ export const ProcessingStep = memo(function ProcessingStep({
       {isProcessing && (
         <div className="space-y-2">
           <div className="text-sm text-white/60">
-            Sending ${data.amount} to {data.recipient?.name || data.recipient?.recipient_name}
+            Sending ${data.amount} to {data.recipient?.name}
+          </div>
+          <div className="text-xs text-white/50">
+            {data.recipient?.identifier && `To: ${data.recipient.identifier}`}
           </div>
           <div className="text-xs text-white/50">
             Processing securely...

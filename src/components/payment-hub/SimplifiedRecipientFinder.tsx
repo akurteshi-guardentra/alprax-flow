@@ -5,21 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { toast } from 'sonner';
-
-interface Recipient {
-  id: string;
-  recipient_name: string;
-  stellar_address: string;
-  country: string;
-  relationship?: string;
-  last_sent_at?: string;
-}
+import { AbstractRecipientService, UserRecipient } from '@/services/recipient/AbstractRecipientService';
 
 interface SimplifiedRecipientFinderProps {
-  onSelectRecipient: (recipient: Recipient) => void;
+  onSelectRecipient: (recipient: UserRecipient) => void;
   onShowQRScanner?: () => void;
   showValidation?: boolean;
 }
@@ -31,101 +22,79 @@ export function SimplifiedRecipientFinder({
 }: SimplifiedRecipientFinderProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [isAddingNew, setIsAddingNew] = useState(false);
-  const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+  const [selectedRecipient, setSelectedRecipient] = useState<UserRecipient | null>(null);
   const [newRecipient, setNewRecipient] = useState({
     name: '',
-    stellarAddress: '',
-    country: '',
-    relationship: ''
+    identifier: '', // email or phone
+    country: ''
   });
 
-  // Fetch favorite recipients
-  const { data: favoriteRecipients, isLoading } = useQuery({
-    queryKey: ['favorite-recipients', searchQuery],
+  // Fetch recipients using AbstractRecipientService
+  const { data: favoriteRecipients, isLoading, refetch } = useQuery({
+    queryKey: ['user-recipients'],
     queryFn: async () => {
-      let query = supabase
-        .from('favorite_recipients')
-        .select('*')
-        .order('last_sent_at', { ascending: false, nullsFirst: false });
-
-      if (searchQuery.trim()) {
-        query = query.or(`recipient_name.ilike.%${searchQuery}%,stellar_address.ilike.%${searchQuery}%`);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Recipient[];
+      const recipients = await AbstractRecipientService.getRecipients();
+      return recipients;
     },
     enabled: !isAddingNew
   });
 
-  // Validate Stellar address format
-  const validateStellarAddress = (address: string): boolean => {
-    // Basic Stellar address validation
-    return /^G[0-9A-Z]{55}$/.test(address);
+  // Filter recipients based on search query
+  const filteredRecipients = favoriteRecipients?.filter(recipient => {
+    if (!searchQuery.trim()) return true;
+    const query = searchQuery.toLowerCase();
+    return (
+      recipient.name.toLowerCase().includes(query) ||
+      recipient.identifier.toLowerCase().includes(query) ||
+      recipient.country.toLowerCase().includes(query)
+    );
+  });
+
+  // Validate email or phone format
+  const validateIdentifier = (identifier: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^\+?[1-9]\d{1,14}$/;
+    return emailRegex.test(identifier) || phoneRegex.test(identifier);
   };
 
-  const handleRecipientClick = async (recipient: Recipient) => {
+  const handleRecipientClick = async (recipient: UserRecipient) => {
     setSelectedRecipient(recipient);
     onSelectRecipient(recipient);
   };
 
   const handleAddRecipient = useCallback(async () => {
-    if (!newRecipient.name || !newRecipient.stellarAddress) {
+    if (!newRecipient.name || !newRecipient.identifier) {
       toast.error('Please fill in required fields');
       return;
     }
 
-    // Validate Stellar address format
-    if (!validateStellarAddress(newRecipient.stellarAddress)) {
-      toast.error('Invalid Stellar address format. Address should start with G and be 56 characters long.');
+    // Validate identifier format
+    if (!validateIdentifier(newRecipient.identifier)) {
+      toast.error('Please enter a valid email address or phone number (with country code)');
       return;
     }
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
+      const recipient = await AbstractRecipientService.addRecipient(
+        newRecipient.identifier,
+        newRecipient.name,
+        newRecipient.country || 'Unknown'
+      );
 
-      // Check if recipient already exists
-      const { data: existing } = await supabase
-        .from('favorite_recipients')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('stellar_address', newRecipient.stellarAddress)
-        .maybeSingle();
-
-      if (existing) {
-        toast.success('Recipient already exists, selecting...');
-        handleRecipientClick(existing);
+      if (recipient) {
+        toast.success('Recipient added successfully');
+        handleRecipientClick(recipient);
         setIsAddingNew(false);
-        setNewRecipient({ name: '', stellarAddress: '', country: '', relationship: '' });
-        return;
+        setNewRecipient({ name: '', identifier: '', country: '' });
+        refetch(); // Refresh the recipients list
+      } else {
+        toast.error('Failed to add recipient. Please check the email/phone is registered.');
       }
-
-      const { data, error } = await supabase
-        .from('favorite_recipients')
-        .insert([{
-          user_id: user.id,
-          recipient_name: newRecipient.name,
-          stellar_address: newRecipient.stellarAddress,
-          country: newRecipient.country || 'Unknown',
-          currency: 'XLM',
-          relationship: newRecipient.relationship
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success('Recipient added successfully');
-      handleRecipientClick(data);
-      setIsAddingNew(false);
-      setNewRecipient({ name: '', stellarAddress: '', country: '', relationship: '' });
     } catch (error) {
       console.error('Error adding recipient:', error);
       toast.error('Failed to add recipient');
     }
-  }, [newRecipient, onSelectRecipient]);
+  }, [newRecipient, refetch]);
 
   if (isAddingNew) {
     return (
@@ -160,33 +129,22 @@ export function SimplifiedRecipientFinder({
           <div>
             <label className="block text-sm text-white/70 mb-1">Email or Phone *</label>
             <Input
-              value={newRecipient.stellarAddress}
-              onChange={(e) => setNewRecipient(prev => ({ ...prev, stellarAddress: e.target.value }))}
+              value={newRecipient.identifier}
+              onChange={(e) => setNewRecipient(prev => ({ ...prev, identifier: e.target.value }))}
               placeholder="email@example.com or +1234567890"
               className="bg-white/10 border-white/20 text-white"
             />
-            <p className="text-xs text-white/40 mt-1">Enter recipient's email or phone number</p>
+            <p className="text-xs text-white/40 mt-1">Recipient must be registered with us</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm text-white/70 mb-1">Country</label>
-              <Input
-                value={newRecipient.country}
-                onChange={(e) => setNewRecipient(prev => ({ ...prev, country: e.target.value }))}
-                placeholder="Country"
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-white/70 mb-1">Relationship</label>
-              <Input
-                value={newRecipient.relationship}
-                onChange={(e) => setNewRecipient(prev => ({ ...prev, relationship: e.target.value }))}
-                placeholder="Family, Friend, etc."
-                className="bg-white/10 border-white/20 text-white"
-              />
-            </div>
+          <div>
+            <label className="block text-sm text-white/70 mb-1">Country (Optional)</label>
+            <Input
+              value={newRecipient.country}
+              onChange={(e) => setNewRecipient(prev => ({ ...prev, country: e.target.value }))}
+              placeholder="United States"
+              className="bg-white/10 border-white/20 text-white"
+            />
           </div>
         </div>
 
@@ -243,62 +201,48 @@ export function SimplifiedRecipientFinder({
       <div className="space-y-2 max-h-64 overflow-y-auto">
         {isLoading ? (
           <div className="text-center py-4 text-white/50">Loading recipients...</div>
-        ) : favoriteRecipients && favoriteRecipients.length > 0 ? (
-          favoriteRecipients.map((recipient) => (
-            <div key={recipient.id} className="space-y-2">
-              <Card
-                className="p-3 bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
-                onClick={() => handleRecipientClick(recipient)}
-              >
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
-                    <User className="w-4 h-4 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-white text-sm">{recipient.recipient_name}</p>
-                      {recipient.relationship && (
-                        <Badge variant="secondary" className="text-xs">
-                          {recipient.relationship}
-                        </Badge>
-                      )}
-                    </div>
-                    {recipient.stellar_address && (
-                      <p className="text-xs text-white/50 truncate">
-                        {recipient.stellar_address.includes('@') ? recipient.stellar_address : 'Verified account'}
-                      </p>
-                    )}
-                    <p className="text-xs text-white/40">{recipient.country}</p>
-                  </div>
+        ) : filteredRecipients && filteredRecipients.length > 0 ? (
+          filteredRecipients.map((recipient) => (
+            <Card
+              key={recipient.id}
+              className="p-3 bg-white/5 border-white/10 hover:bg-white/10 cursor-pointer transition-colors"
+              onClick={() => handleRecipientClick(recipient)}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                  <User className="w-4 h-4 text-primary" />
                 </div>
-              </Card>
-            </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-white text-sm">{recipient.name}</p>
+                    <Badge variant="secondary" className="text-xs">
+                      {recipient.identifierType === 'email' ? '📧' : '📱'}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-white/50 truncate">
+                    {recipient.identifier}
+                  </p>
+                  <p className="text-xs text-white/40">{recipient.country}</p>
+                </div>
+              </div>
+            </Card>
           ))
         ) : searchQuery.trim() ? (
           <div className="text-center py-8 text-white/50">
             <p>No recipients found for "{searchQuery}"</p>
-            {/^G[0-9A-Z]{55}$/.test(searchQuery.trim()) ? (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => {
-                  setNewRecipient(prev => ({ ...prev, stellarAddress: searchQuery.trim() }));
-                  setIsAddingNew(true);
-                }}
-                className="text-primary hover:text-primary/80 mt-2"
-              >
-                Add "{searchQuery.slice(0, 10)}..." as new recipient
-              </Button>
-            ) : (
-              <Button
-                variant="link"
-                size="sm"
-                onClick={() => setIsAddingNew(true)}
-                className="text-primary hover:text-primary/80 mt-2"
-              >
-                Add as new recipient
-              </Button>
-            )}
+            <Button
+              variant="link"
+              size="sm"
+              onClick={() => {
+                if (validateIdentifier(searchQuery.trim())) {
+                  setNewRecipient(prev => ({ ...prev, identifier: searchQuery.trim() }));
+                }
+                setIsAddingNew(true);
+              }}
+              className="text-primary hover:text-primary/80 mt-2"
+            >
+              Add as new recipient
+            </Button>
           </div>
         ) : (
           <div className="text-center py-8 text-white/50">

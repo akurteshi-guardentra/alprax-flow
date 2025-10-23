@@ -80,11 +80,14 @@ export class AbstractPaymentService {
       
       // 6. Execute Stellar payment (hidden)
       const { sendPayment: sendPaymentLegacy } = await import('@/lib/stellar/payment');
-      const stellarResult = await sendPaymentLegacy({
-        destinationAddress: recipientAddress,
-        amount: xlmAmount.toString(),
-        memo: memo || '',
-      });
+      const stellarResult = await sendPaymentLegacy(
+        recipientAddress,
+        xlmAmount.toString(),
+        'XLM',
+        undefined, // recipientName
+        undefined, // recipientId
+        memo || ''
+      );
       
       if (!stellarResult.success) {
         throw new Error(stellarResult.error || 'Payment failed');

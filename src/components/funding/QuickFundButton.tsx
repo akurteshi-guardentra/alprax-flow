@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Plus, DollarSign, ArrowRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { useUserAccount } from '@/hooks/useUserAccount';
 import { FiatDisplay } from '@/components/currency/FiatDisplay';
 
 interface QuickFundButtonProps {
@@ -15,11 +15,11 @@ interface QuickFundButtonProps {
 
 export function QuickFundButton({ variant = 'default', showBalance = true }: QuickFundButtonProps) {
   const navigate = useNavigate();
-  const { balance } = useStellarAccount();
+  const { balance } = useUserAccount();
   const [isHovered, setIsHovered] = useState(false);
 
-  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
-  const isLowBalance = parseFloat(accountBalance) < 10;
+  const accountBalance = balance || 0;
+  const isLowBalance = accountBalance < 10;
 
   const handleFundAccount = () => {
     navigate('/fund-account');
@@ -70,7 +70,7 @@ export function QuickFundButton({ variant = 'default', showBalance = true }: Qui
           <div>
             <p className="text-white/60 text-sm">Available Balance</p>
             <div className="text-xl font-bold text-white">
-              <FiatDisplay xlmAmount={accountBalance} currency="USD" />
+              ${accountBalance.toFixed(2)}
             </div>
           </div>
           {isLowBalance && (

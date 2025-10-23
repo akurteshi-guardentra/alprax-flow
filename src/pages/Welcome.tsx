@@ -20,7 +20,7 @@ const Welcome = () => {
     {
       icon: Zap,
       title: "Lightning Fast Transfers",
-      description: "Instant cross-border payments powered by Stellar blockchain technology",
+      description: "Instant cross-border payments with advanced security",
       gradient: "from-blue-500/20 to-cyan-500/20",
       border: "border-blue-500/30"
     },
@@ -41,7 +41,7 @@ const Welcome = () => {
   ];
 
   const techStack = [
-    { name: "Stellar", description: "Blockchain Network" },
+    { name: "Global Network", description: "Secure Infrastructure" },
     { name: "AI Security", description: "Fraud Detection" },
     { name: "256-bit", description: "Encryption" },
     { name: "ISO 27001", description: "Certified" }
@@ -106,7 +106,7 @@ const Welcome = () => {
           </h1>
           
           <p className="text-xl md:text-2xl text-white/80 mb-12 max-w-3xl mx-auto leading-relaxed text-center">
-            Experience the next generation of global payments with blockchain technology. 
+            Experience the next generation of global payments with advanced technology. 
             Lower fees, faster transfers, and complete transparency.
           </p>
           

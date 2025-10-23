@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { useUserAccount } from '@/hooks/useUserAccount';
 import { AmountInputStep } from './steps/AmountInputStep';
 import { PaymentSelectionStep } from './steps/PaymentSelectionStep';
 import { FundingSuccessStep } from './steps/FundingSuccessStep';
@@ -22,9 +22,9 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
   const [step, setStep] = useState<Step>('amount');
   const [amount, setAmount] = useState('');
   const [selectedMethod, setSelectedMethod] = useState('');
-  const { balance, refreshBalance } = useStellarAccount();
+  const { balance, refreshAccount } = useUserAccount();
 
-  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
+  const accountBalance = balance || 0;
 
   const handleAmountSelect = (value: number) => {
     setAmount(value.toString());
@@ -40,7 +40,7 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
     setStep('success');
     toast.success('Funds added successfully!');
     // Refresh the balance after successful payment
-    await refreshBalance();
+    await refreshAccount();
   };
 
   const handleClose = () => {
@@ -71,13 +71,13 @@ export function SimpleFundingModal({ open, onOpenChange }: SimpleFundingModalPro
 
         <AnimatePresence mode="wait">
           {step === 'amount' && (
-            <AmountInputStep
-              accountBalance={accountBalance}
-              amount={amount}
-              onAmountChange={setAmount}
-              onAmountSelect={handleAmountSelect}
-              onContinue={handleNextStep}
-            />
+          <AmountInputStep
+            accountBalance={accountBalance.toString()}
+            amount={amount}
+            onAmountChange={setAmount}
+            onAmountSelect={handleAmountSelect}
+            onContinue={handleNextStep}
+          />
           )}
 
           {step === 'method' && (

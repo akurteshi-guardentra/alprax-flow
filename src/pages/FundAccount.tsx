@@ -19,18 +19,18 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { PaymentMethodSelector } from '@/components/payment/PaymentMethodSelector';
-import { useStellarAccount } from '@/hooks/useStellarAccount';
+import { useUserAccount } from '@/hooks/useUserAccount';
 import { FiatDisplay } from '@/components/currency/FiatDisplay';
 import { toast } from 'sonner';
 
 const FundAccount = () => {
   const navigate = useNavigate();
-  const { balance } = useStellarAccount();
+  const { balance, currency } = useUserAccount();
   const [selectedMethod, setSelectedMethod] = useState('');
   const [amount, setAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
+  const accountBalance = balance || 0;
   const quickAmounts = [25, 50, 100, 500];
 
   const handleBack = () => {
@@ -68,8 +68,8 @@ const FundAccount = () => {
       color: 'from-green-600 to-green-400'
     },
     {
-      id: 'crypto',
-      name: 'Crypto Wallet',
+      id: 'digital_wallet',
+      name: 'Digital Wallet',
       icon: Wallet,
       description: 'Fund with Bitcoin, Ethereum, or USDC',
       processingTime: '10-30 minutes',
@@ -122,7 +122,7 @@ const FundAccount = () => {
                 <div>
                   <p className="text-white/70 text-sm">Current Balance</p>
                   <div className="text-2xl font-bold text-white">
-                    <FiatDisplay xlmAmount={accountBalance} currency="USD" />
+                    {currency === 'USD' && '$'}{currency === 'EUR' && '€'}{currency === 'GBP' && '£'}{balance.toFixed(2)}
                   </div>
                 </div>
                 <Badge variant="outline" className="bg-white/10 text-white border-white/30">

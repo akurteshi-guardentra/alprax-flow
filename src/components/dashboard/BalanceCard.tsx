@@ -5,17 +5,16 @@ import { Plus, TrendingUp, AlertCircle, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ModernCard, ModernCardContent } from "@/components/ui/modern-card";
 import { FiatDisplay } from "@/components/currency/FiatDisplay";
-import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useUserAccount } from "@/hooks/useUserAccount";
 import { useState } from "react";
 
 export function BalanceCard() {
   const navigate = useNavigate();
-  const { balance } = useStellarAccount();
+  const { balance, currency } = useUserAccount();
   const [showBalance, setShowBalance] = useState(true);
 
-  // Get the first balance entry (typically XLM) or default to "0"
-  const accountBalance = balance && balance.length > 0 ? balance[0].balance : "0";
-  const balanceValue = parseFloat(accountBalance);
+  // Get balance value
+  const balanceValue = balance || 0;
   
   // Determine balance status for better UX
   const getBalanceStatus = () => {
@@ -57,10 +56,7 @@ export function BalanceCard() {
                 <div className="flex items-baseline gap-2 mb-2">
                   <div className="text-3xl font-bold text-white">
                     {showBalance ? (
-                      <FiatDisplay 
-                        xlmAmount={accountBalance} 
-                        currency="USD"
-                      />
+                      <span>{currency === 'USD' ? '$' : currency === 'EUR' ? '€' : '£'}{balanceValue.toFixed(2)}</span>
                     ) : (
                       <span className="text-white/60">••••••</span>
                     )}

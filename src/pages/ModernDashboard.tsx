@@ -1,5 +1,5 @@
 
-import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useUserAccount } from "@/hooks/useUserAccount";
 import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { BalanceCard } from "@/components/dashboard/BalanceCard";
 import { QuickActionsGrid } from "@/components/dashboard/QuickActionsGrid";
@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, Users, DollarSign, Globe, Zap } from "lucide-react";
 
 export default function ModernDashboard() {
-  const { isLoading } = useStellarAccount();
+  const { isLoading } = useUserAccount();
 
   if (isLoading) {
     return (

@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Send, ArrowDownLeft, CreditCard, Users, TrendingUp, Clock, Shield } from "lucide-react";
 import { ModernCard, ModernCardContent } from "@/components/ui/modern-card";
-import { useStellarAccount } from "@/hooks/useStellarAccount";
+import { useUserAccount } from "@/hooks/useUserAccount";
 
 const quickActions = [
   {
@@ -46,9 +46,9 @@ const quickActions = [
 
 export function QuickActionsGrid() {
   const navigate = useNavigate();
-  const { balance } = useStellarAccount();
+  const { balance } = useUserAccount();
   
-  const accountBalance = balance && balance.length > 0 ? parseFloat(balance[0].balance) : 0;
+  const accountBalance = balance || 0;
   const hasLowBalance = accountBalance < 10;
 
   const handleActionClick = (action: typeof quickActions[0]) => {

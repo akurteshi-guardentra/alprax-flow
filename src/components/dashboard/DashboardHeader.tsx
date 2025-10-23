@@ -5,9 +5,9 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AlpraxBrandHeader } from "@/components/brand/AlpraxLogo";
 import { useAuth } from "@/contexts/AuthContext";
-import { LogOut, User, Bell, Settings, HelpCircle } from "lucide-react";
+import { Bell, HelpCircle, Settings } from "lucide-react";
 import { toast } from "sonner";
-import { signOut } from "@/lib/auth";
+import { UserMenu } from "./UserMenu";
 
 export function DashboardHeader() {
   const navigate = useNavigate();
@@ -29,13 +29,6 @@ export function DashboardHeader() {
     }
   }, []);
 
-  const handleLogout = async () => {
-    const success = await signOut();
-    if (success) {
-      toast.success("Logged out successfully - See you soon!");
-      navigate("/welcome");
-    }
-  };
 
   const getUserName = () => {
     if (user?.user_metadata?.first_name) {
@@ -65,47 +58,35 @@ export function DashboardHeader() {
         <div className="flex items-center justify-between">
           <AlpraxBrandHeader size="sm" />
           
-          {/* Mobile-first action buttons */}
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3"
-              onClick={() => toast.info("Help center coming soon!")}
-            >
-              <HelpCircle className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Help</span>
-            </Button>
+          {/* Action buttons with improved grouping */}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Info actions group */}
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3"
+                onClick={() => toast.info("Help center coming soon!")}
+              >
+                <HelpCircle className="w-4 h-4" />
+                <span className="hidden sm:inline sm:ml-2">Help</span>
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3 relative"
+                onClick={() => toast.info("Notifications coming soon!")}
+              >
+                <Bell className="w-4 h-4" />
+                <span className="hidden sm:inline sm:ml-2">Alerts</span>
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+              </Button>
+            </div>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3"
-              onClick={() => toast.info("Notifications coming soon!")}
-            >
-              <Bell className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Alerts</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-white/20 text-white hover:bg-white/10 bg-white/5 transition-all duration-300 hover:scale-105 px-2 sm:px-3"
-              onClick={() => navigate("/profile")}
-            >
-              <User className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Profile</span>
-            </Button>
-            
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-red-500/30 text-red-300 hover:bg-red-500/10 bg-red-500/5 transition-all duration-300 hover:scale-105 px-2 sm:px-3"
-              onClick={handleLogout}
-            >
-              <LogOut className="w-4 h-4 sm:mr-2" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
+            {/* User menu */}
+            <div className="h-6 w-px bg-white/10 hidden sm:block"></div>
+            <UserMenu />
           </div>
         </div>
         

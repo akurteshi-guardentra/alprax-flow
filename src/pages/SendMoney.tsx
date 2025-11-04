@@ -7,13 +7,14 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Send, Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-import { sendPayment } from "@/lib/stellar/payment";
 import { SimplifiedRecipientFinder } from "@/components/transaction/SimplifiedRecipientFinder";
 import { FavoriteRecipient } from "@/types/favoriteRecipient";
+import { AbstractPaymentService } from "@/services/payment/AbstractPaymentService";
+import { useUserAccount } from "@/hooks/useUserAccount";
 
 const SendMoney = () => {
   const navigate = useNavigate();
+  const { currency } = useUserAccount();
   const [selectedRecipient, setSelectedRecipient] = useState<FavoriteRecipient | null>(null);
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
@@ -35,45 +36,19 @@ const SendMoney = () => {
     const toastId = toast.loading("Processing payment...");
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        throw new Error("Not authenticated");
-      }
-
-      // Get user's stellar account
-      const { data: account } = await supabase
-        .from('stellar_accounts')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('is_primary', { ascending: false })
-        .maybeSingle();
-
-      if (!account) {
-        toast.dismiss(toastId);
-        toast.error("No account found. Please create one first.");
-        return;
-      }
-
-      // Send payment
-      const result = await sendPayment(
-        selectedRecipient.stellar_address,
-        amount,
-        'XLM',
-        selectedRecipient.recipient_name,
-        selectedRecipient.id,
-        memo,
-        {
-          recipient_country: selectedRecipient.country,
-          transfer_purpose: 'personal',
-          transfer_category: 'money_transfer'
-        }
-      );
+      // Send payment using abstraction layer
+      const result = await AbstractPaymentService.sendPayment({
+        recipientId: selectedRecipient.id,
+        amount: parseFloat(amount),
+        currency: currency,
+        memo: memo,
+      });
 
       toast.dismiss(toastId);
 
       if (result.success) {
         toast.success(
-          "Payment sent successfully!",
+          `Payment sent successfully! Confirmation: ${result.confirmationId}`,
           { duration: 5000 }
         );
         
@@ -82,16 +57,7 @@ const SendMoney = () => {
           navigate('/dashboard');
         }, 1500);
       } else {
-        // Show specific error messages
-        if (result.errorType === 'insufficient_balance') {
-          toast.error("Insufficient balance. Please add funds to your account.");
-        } else if (result.errorType === 'account_not_found') {
-          toast.error("Recipient account not found.");
-        } else if (result.errorType === 'network_error') {
-          toast.error("Network error. Please check your connection and try again.");
-        } else {
-          toast.error(result.error || "Payment failed");
-        }
+        toast.error(result.error || "Payment failed. Please try again.");
       }
     } catch (error: any) {
       console.error('Send error:', error);
@@ -159,7 +125,7 @@ const SendMoney = () => {
 
               {/* Amount Input */}
               <div className="space-y-2">
-                <Label htmlFor="amount" className="text-white">Amount</Label>
+                <Label htmlFor="amount" className="text-white">Amount ({currency})</Label>
                 <Input
                   id="amount"
                   type="number"
@@ -168,8 +134,11 @@ const SendMoney = () => {
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="bg-white/10 border-white/20 text-white"
+                  className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
                 />
+                <p className="text-xs text-white/60">
+                  Enter the amount in your preferred currency
+                </p>
               </div>
 
               {/* Memo Input */}

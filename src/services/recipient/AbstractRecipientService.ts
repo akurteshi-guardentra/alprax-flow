@@ -62,8 +62,6 @@ export class AbstractRecipientService {
       }
       
       // 2. Store recipient with hidden Stellar address
-      // TODO: Phase 3 - Add recipient_email and recipient_phone columns
-      // For now, we store identifier info in relationship field temporarily
       const { data: recipient, error } = await supabase
         .from('favorite_recipients')
         .insert({
@@ -72,7 +70,9 @@ export class AbstractRecipientService {
           stellar_address: stellarAddress, // Hidden field
           country: country,
           currency: 'USD', // Required field
-          relationship: `${identifierType}:${identifier}`, // Temporary storage
+          recipient_identifier_type: identifierType,
+          recipient_email: identifierType === 'email' ? identifier : null,
+          recipient_phone: identifierType === 'phone' ? identifier : null,
         })
         .select()
         .single();
@@ -112,14 +112,15 @@ export class AbstractRecipientService {
       if (!recipients) return [];
       
       // Return without Stellar addresses
-      // TODO: Phase 3 - Parse from recipient_email/recipient_phone columns once added
       return recipients.map(r => {
-        const relationshipParts = r.relationship?.split(':') || ['email', ''];
+        const identifier = r.recipient_email || r.recipient_phone || '';
+        const identifierType = (r.recipient_identifier_type || 'email') as 'email' | 'phone';
+        
         return {
           id: r.id,
           name: r.recipient_name,
-          identifier: relationshipParts[1] || '',
-          identifierType: (relationshipParts[0] || 'email') as 'email' | 'phone',
+          identifier: identifier,
+          identifierType: identifierType,
           country: r.country,
           createdAt: r.created_at,
         };

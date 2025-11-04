@@ -369,7 +369,10 @@ export type Database = {
           currency: string
           id: string
           last_sent_at: string | null
+          recipient_email: string | null
+          recipient_identifier_type: string | null
           recipient_name: string
+          recipient_phone: string | null
           relationship: string | null
           stellar_address: string
           user_id: string
@@ -380,7 +383,10 @@ export type Database = {
           currency: string
           id?: string
           last_sent_at?: string | null
+          recipient_email?: string | null
+          recipient_identifier_type?: string | null
           recipient_name: string
+          recipient_phone?: string | null
           relationship?: string | null
           stellar_address: string
           user_id: string
@@ -391,7 +397,10 @@ export type Database = {
           currency?: string
           id?: string
           last_sent_at?: string | null
+          recipient_email?: string | null
+          recipient_identifier_type?: string | null
           recipient_name?: string
+          recipient_phone?: string | null
           relationship?: string | null
           stellar_address?: string
           user_id?: string

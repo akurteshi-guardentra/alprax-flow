@@ -36,11 +36,11 @@ export function ResetRecoveryDialog({
           </div>
           <AlertDialogDescription className="space-y-2">
             <p>
-              The Stellar testnet has been reset for Protocol 23 upgrade. 
+              The Stellar testnet has been reset. 
               All previous test accounts and balances have been cleared.
             </p>
             <p className="text-sm text-muted-foreground">
-              This is normal and expected as part of the Protocol 23 upgrade process. 
+              This is normal and expected as part of testnet maintenance. 
               You can create new test accounts to continue using the app.
             </p>
           </AlertDialogDescription>

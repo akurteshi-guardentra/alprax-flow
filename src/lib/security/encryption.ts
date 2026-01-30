@@ -12,8 +12,19 @@ const SALT_LENGTH = 32; // 256 bits
 const IV_LENGTH = 12; // 96 bits for GCM
 const KEY_LENGTH = 256; // 256 bits
 
+// Application-level secret pepper - adds defense in depth
+// In production, this should be loaded from environment/secrets
+const APP_ENCRYPTION_PEPPER = 'alprax-stellar-v1-2024';
+
 /**
- * Generate a secure user-specific encryption key
+ * Generate a deterministic user-specific encryption key
+ * Uses PBKDF2-style key stretching from user metadata
+ * 
+ * SECURITY NOTE: This is client-side encryption which has inherent limitations.
+ * For production financial applications, consider:
+ * - Server-side encryption with HSM
+ * - Supabase Vault for secret storage
+ * - Key splitting between client and server
  */
 async function getUserEncryptionKey(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
@@ -21,11 +32,19 @@ async function getUserEncryptionKey(): Promise<string> {
     throw new Error('User not authenticated');
   }
   
-  // Generate a secure user-specific key with additional entropy
-  const userEntropy = `${user.id}_${user.email}_${user.created_at}`;
-  const additionalEntropy = crypto.getRandomValues(new Uint8Array(32));
+  // Deterministic key derivation from user metadata
+  // Uses multiple user attributes to create unique key per user
+  // The key is consistent across sessions for the same user
+  const keyMaterial = [
+    APP_ENCRYPTION_PEPPER,
+    user.id,
+    user.email || '',
+    user.created_at,
+    // Add user metadata if available for additional uniqueness
+    user.user_metadata?.sub || ''
+  ].join(':');
   
-  return `${userEntropy}_${Array.from(additionalEntropy).join('')}`;
+  return keyMaterial;
 }
 
 /**

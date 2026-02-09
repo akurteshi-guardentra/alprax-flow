@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { AlpraxBrandHeader } from "@/components/brand/AlpraxLogo";
 import { useAuth } from "@/contexts/AuthContext";
 import { Bell, HelpCircle, Settings } from "lucide-react";
-import { toast } from "sonner";
 import { UserMenu } from "./UserMenu";
 
 export function DashboardHeader() {
@@ -66,7 +65,7 @@ export function DashboardHeader() {
                 variant="ghost"
                 size="sm"
                 className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3"
-                onClick={() => toast.info("Help center coming soon!")}
+                onClick={() => navigate('/help')}
               >
                 <HelpCircle className="w-4 h-4" />
                 <span className="hidden sm:inline sm:ml-2">Help</span>
@@ -76,7 +75,7 @@ export function DashboardHeader() {
                 variant="ghost"
                 size="sm"
                 className="text-white/70 hover:text-white hover:bg-white/10 transition-all duration-300 px-2 sm:px-3 relative"
-                onClick={() => toast.info("Notifications coming soon!")}
+                onClick={() => navigate('/notifications')}
               >
                 <Bell className="w-4 h-4" />
                 <span className="hidden sm:inline sm:ml-2">Alerts</span>

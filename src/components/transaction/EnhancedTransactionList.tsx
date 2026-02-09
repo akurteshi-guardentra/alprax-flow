@@ -84,8 +84,18 @@ export function EnhancedTransactionList() {
       <CardContent className="p-6">
         {transactions.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-white/70 mb-4">No transactions yet</p>
-            <p className="text-white/50 text-sm">Your transaction history will appear here</p>
+            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <ArrowUpRight className="h-8 w-8 text-white/30" />
+            </div>
+            <p className="text-white/70 mb-2">No transactions yet</p>
+            <p className="text-white/50 text-sm mb-5">Send your first payment to get started</p>
+            <Button 
+              onClick={() => window.location.href = '/send-money'} 
+              className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+            >
+              <ArrowUpRight className="w-4 h-4 mr-2" />
+              Send Money
+            </Button>
           </div>
         ) : (
           <div className="space-y-4">

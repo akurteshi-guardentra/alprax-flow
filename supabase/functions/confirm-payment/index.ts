@@ -7,10 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface ConfirmPaymentRequest {
-  paymentIntentId: string;
-  orderId: string;
-}
+// Stripe payment intent IDs start with "pi_"
+const STRIPE_PI_REGEX = /^pi_[a-zA-Z0-9]{10,100}$/;
+// UUID v4 format
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -27,48 +27,70 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not configured");
+      throw new Error("Payment service not configured");
     }
 
-    // Create Supabase client using service role key
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
       { auth: { persistSession: false } }
     );
 
-    // Get authenticated user
+    // Authenticate user
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      throw new Error("No authorization header provided");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) {
-      throw new Error(`Authentication error: ${userError.message}`);
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Authentication failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const user = userData.user;
-    if (!user) {
-      throw new Error("User not authenticated");
-    }
-
     logStep("User authenticated", { userId: user.id });
 
-    // Parse request body
-    const { paymentIntentId, orderId }: ConfirmPaymentRequest = await req.json();
+    // Parse and validate request body
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
 
-    if (!paymentIntentId || !orderId) {
-      throw new Error("Missing required parameters");
+    const { paymentIntentId, orderId } = body as Record<string, unknown>;
+
+    // Validate paymentIntentId format
+    if (typeof paymentIntentId !== 'string' || !STRIPE_PI_REGEX.test(paymentIntentId)) {
+      return new Response(JSON.stringify({ error: "Invalid payment intent ID format" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate orderId format (UUID)
+    if (typeof orderId !== 'string' || !UUID_REGEX.test(orderId)) {
+      return new Response(JSON.stringify({ error: "Invalid order ID format" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
     logStep("Confirming payment", { paymentIntentId, orderId });
 
-    // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    // Retrieve payment intent to check status
+    // Retrieve payment intent
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
     
     logStep("Payment intent retrieved", { 
@@ -76,7 +98,7 @@ serve(async (req) => {
       amount: paymentIntent.amount 
     });
 
-    // Update order status based on payment intent status
+    // Determine order status
     let orderStatus = 'pending';
     if (paymentIntent.status === 'succeeded') {
       orderStatus = 'paid';
@@ -88,7 +110,7 @@ serve(async (req) => {
       orderStatus = 'payment_failed';
     }
 
-    // Update order in database
+    // Update order - scoped to user_id for security
     const { data: updatedOrder, error: updateError } = await supabaseClient
       .from('orders')
       .update({
@@ -102,35 +124,26 @@ serve(async (req) => {
       .single();
 
     if (updateError) {
-      logStep("Error updating order", { error: updateError });
-      throw new Error(`Failed to update order: ${updateError.message}`);
+      logStep("Error updating order", { error: updateError.message });
+      throw new Error("Failed to update order");
     }
 
-    logStep("Order updated successfully", { 
-      orderId: updatedOrder.id,
-      status: updatedOrder.status 
-    });
+    logStep("Order updated successfully", { orderId: updatedOrder.id, status: updatedOrder.status });
 
-    // If payment succeeded, create funding transaction
+    // Create funding transaction on success
     if (paymentIntent.status === 'succeeded') {
-      logStep("Creating funding transaction");
-      
-      // Create funding transaction for successful payment
       const { error: fundingError } = await supabaseClient
         .from('funding_transactions')
         .insert({
           user_id: user.id,
           payment_intent_id: orderId,
-          amount_usd: paymentIntent.amount / 100, // Convert from cents
+          amount_usd: paymentIntent.amount / 100,
           status: 'completed',
           completed_at: new Date().toISOString(),
         });
 
       if (fundingError) {
-        logStep("Error creating funding transaction", { error: fundingError });
-        // Don't throw here as the main payment already succeeded
-      } else {
-        logStep("Funding transaction created successfully");
+        logStep("Error creating funding transaction", { error: fundingError.message });
       }
     }
 
@@ -146,10 +159,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     logStep("ERROR", { message: errorMessage });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "Payment confirmation failed. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

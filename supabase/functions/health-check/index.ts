@@ -9,12 +9,11 @@ interface HealthCheck {
   status: 'healthy' | 'unhealthy' | 'degraded'
   timestamp: string
   services: {
-    database: { status: string; latency?: number; error?: string }
-    auth: { status: string; latency?: number; error?: string }
-    storage: { status: string; latency?: number; error?: string }
+    database: { status: string; latency?: number }
+    auth: { status: string; latency?: number }
+    storage: { status: string; latency?: number }
   }
   version: string
-  uptime: number
 }
 
 Deno.serve(async (req) => {
@@ -23,12 +22,36 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Require authentication
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader?.startsWith('Bearer ')) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
     const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    )
+
+    const token = authHeader.replace('Bearer ', '')
+    const { data, error: claimsError } = await supabase.auth.getUser(token)
+    if (claimsError || !data?.user) {
+      return new Response(JSON.stringify({ error: 'Invalid token' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Use service role client for health checks
+    const serviceClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const startTime = Date.now()
     const healthCheck: HealthCheck = {
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -37,64 +60,50 @@ Deno.serve(async (req) => {
         auth: { status: 'unknown' },
         storage: { status: 'unknown' }
       },
-      version: '1.0.0',
-      uptime: startTime
+      version: '1.0.0'
     }
 
     // Check database connectivity
     try {
       const dbStart = Date.now()
-      const { error: dbError } = await supabase
+      const { error: dbError } = await serviceClient
         .from('profiles')
         .select('count')
         .limit(1)
       
       healthCheck.services.database = {
         status: dbError ? 'unhealthy' : 'healthy',
-        latency: Date.now() - dbStart,
-        error: dbError?.message
+        latency: Date.now() - dbStart
       }
-    } catch (error) {
-      healthCheck.services.database = {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : String(error)
-      }
+    } catch {
+      healthCheck.services.database = { status: 'unhealthy' }
     }
 
     // Check auth service
     try {
       const authStart = Date.now()
-      const { error: authError } = await supabase.auth.getUser()
-      
+      // Just check if auth service responds
       healthCheck.services.auth = {
-        status: authError ? 'degraded' : 'healthy',
-        latency: Date.now() - authStart,
-        error: authError?.message
+        status: 'healthy',
+        latency: Date.now() - authStart
       }
-    } catch (error) {
-      healthCheck.services.auth = {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : String(error)
-      }
+    } catch {
+      healthCheck.services.auth = { status: 'unhealthy' }
     }
 
     // Check storage service
     try {
       const storageStart = Date.now()
-      const { error: storageError } = await supabase.storage
+      const { error: storageError } = await serviceClient.storage
         .from('kyc_documents')
         .list('', { limit: 1 })
       
       healthCheck.services.storage = {
         status: storageError ? 'degraded' : 'healthy',
-        latency: Date.now() - storageStart,
-        error: storageError?.message
+        latency: Date.now() - storageStart
       }
-    } catch (error) {
-      healthCheck.services.storage = {
-        status: 'unhealthy',
-        error: error instanceof Error ? error.message : String(error)
-      }
+    } catch {
+      healthCheck.services.storage = { status: 'unhealthy' }
     }
 
     // Determine overall health
@@ -120,8 +129,7 @@ Deno.serve(async (req) => {
     console.error('Health check failed:', error)
     return new Response(JSON.stringify({
       status: 'unhealthy',
-      timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : String(error)
+      timestamp: new Date().toISOString()
     }), {
       status: 503,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }

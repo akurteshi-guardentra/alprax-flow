@@ -69,13 +69,16 @@ shadow_port = 54324
 major_version = 15
 
 [functions]
-verify_jwt = true
+verify_jwt = false
 
 [functions.create-payment-intent]
-verify_jwt = true
+verify_jwt = false
 
 [functions.confirm-payment]
-verify_jwt = true
+verify_jwt = false
+
+[functions.health-check]
+verify_jwt = false
 
 [storage]
 enabled = true

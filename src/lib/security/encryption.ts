@@ -21,11 +21,9 @@ async function getUserEncryptionKey(): Promise<string> {
     throw new Error('User not authenticated');
   }
   
-  // Generate a secure user-specific key with additional entropy
-  const userEntropy = `${user.id}_${user.email}_${user.created_at}`;
-  const additionalEntropy = crypto.getRandomValues(new Uint8Array(32));
-  
-  return `${userEntropy}_${Array.from(additionalEntropy).join('')}`;
+  // Use ONLY deterministic user metadata - no random entropy
+  // Random entropy would produce different keys on each call, making decryption impossible
+  return `${user.id}_${user.email}_${user.created_at}`;
 }
 
 /**

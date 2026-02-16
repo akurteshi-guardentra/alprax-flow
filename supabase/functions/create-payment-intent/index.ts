@@ -7,12 +7,10 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-interface CreatePaymentIntentRequest {
-  amount: number;
-  currency: string;
-  description?: string;
-  metadata?: Record<string, string>;
-}
+const ALLOWED_CURRENCIES = ['usd', 'eur', 'gbp', 'cad', 'aud', 'jpy', 'chf', 'zar', 'ngn', 'kes', 'ghs'];
+const MAX_AMOUNT = 1000000; // $1M max
+const MAX_DESCRIPTION_LENGTH = 500;
+const MAX_METADATA_SIZE = 2000;
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
@@ -29,10 +27,9 @@ serve(async (req) => {
 
     const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
     if (!stripeKey) {
-      throw new Error("STRIPE_SECRET_KEY is not configured");
+      throw new Error("Payment service not configured");
     }
 
-    // Create Supabase client using service role key for database operations
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -42,30 +39,85 @@ serve(async (req) => {
     // Get authenticated user
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
-      throw new Error("No authorization header provided");
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const token = authHeader.replace("Bearer ", "");
     const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) {
-      throw new Error(`Authentication error: ${userError.message}`);
+    if (userError || !userData?.user) {
+      return new Response(JSON.stringify({ error: "Authentication failed" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401,
+      });
     }
 
     const user = userData.user;
     if (!user?.email) {
-      throw new Error("User not authenticated or email not available");
+      return new Response(JSON.stringify({ error: "User email not available" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
-    logStep("User authenticated", { userId: user.id, email: user.email });
+    logStep("User authenticated", { userId: user.id });
 
-    // Parse request body
-    const { amount, currency, description, metadata }: CreatePaymentIntentRequest = await req.json();
-
-    if (!amount || amount <= 0) {
-      throw new Error("Invalid amount provided");
+    // Parse and validate request body
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid JSON body" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
     }
 
-    logStep("Creating Stripe payment intent", { amount, currency, description });
+    const { amount, currency, description, metadata } = body as Record<string, unknown>;
+
+    // Validate amount
+    if (typeof amount !== 'number' || !Number.isFinite(amount) || amount <= 0 || amount > MAX_AMOUNT) {
+      return new Response(JSON.stringify({ error: `Amount must be between 0 and ${MAX_AMOUNT}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate currency
+    const normalizedCurrency = typeof currency === 'string' ? currency.toLowerCase().trim() : 'usd';
+    if (!ALLOWED_CURRENCIES.includes(normalizedCurrency)) {
+      return new Response(JSON.stringify({ error: `Unsupported currency. Allowed: ${ALLOWED_CURRENCIES.join(', ')}` }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 400,
+      });
+    }
+
+    // Validate description
+    const sanitizedDescription = typeof description === 'string' 
+      ? description.slice(0, MAX_DESCRIPTION_LENGTH).trim() 
+      : 'Payment via Alprax Flow';
+
+    // Validate metadata
+    let sanitizedMetadata: Record<string, string> = {};
+    if (metadata && typeof metadata === 'object' && !Array.isArray(metadata)) {
+      const metadataStr = JSON.stringify(metadata);
+      if (metadataStr.length > MAX_METADATA_SIZE) {
+        return new Response(JSON.stringify({ error: "Metadata too large" }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 400,
+        });
+      }
+      // Only allow string values in metadata
+      for (const [key, value] of Object.entries(metadata as Record<string, unknown>)) {
+        if (typeof key === 'string' && typeof value === 'string') {
+          sanitizedMetadata[key.slice(0, 100)] = (value as string).slice(0, 500);
+        }
+      }
+    }
+
+    logStep("Input validated", { amount, currency: normalizedCurrency });
 
     // Initialize Stripe
     const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
@@ -76,57 +128,49 @@ serve(async (req) => {
     
     if (customers.data.length > 0) {
       customerId = customers.data[0].id;
-      logStep("Found existing customer", { customerId });
     } else {
-      // Create new customer
       const customer = await stripe.customers.create({
         email: user.email,
         name: user.user_metadata?.full_name || user.email,
       });
       customerId = customer.id;
-      logStep("Created new customer", { customerId });
     }
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to cents
-      currency: currency || 'usd',
+      amount: Math.round(amount * 100),
+      currency: normalizedCurrency,
       customer: customerId,
-      description: description || 'Payment via Alprax Flow',
+      description: sanitizedDescription,
       metadata: {
         user_id: user.id,
-        ...metadata,
+        ...sanitizedMetadata,
       },
       automatic_payment_methods: {
         enabled: true,
       },
     });
 
-    logStep("Payment intent created", { 
-      paymentIntentId: paymentIntent.id,
-      clientSecret: paymentIntent.client_secret 
-    });
+    logStep("Payment intent created", { paymentIntentId: paymentIntent.id });
 
-    // Create order record in database
+    // Create order record
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .insert({
         user_id: user.id,
         stripe_session_id: paymentIntent.id,
         amount: Math.round(amount * 100),
-        currency: currency || 'usd',
+        currency: normalizedCurrency,
         status: 'pending',
-        description: description || 'Payment via Alprax Flow',
+        description: sanitizedDescription,
       })
       .select()
       .single();
 
     if (orderError) {
-      logStep("Error creating order", { error: orderError });
-      throw new Error(`Failed to create order: ${orderError.message}`);
+      logStep("Error creating order", { error: orderError.message });
+      throw new Error("Failed to create order record");
     }
-
-    logStep("Order created successfully", { orderId: order.id });
 
     return new Response(JSON.stringify({
       clientSecret: paymentIntent.client_secret,
@@ -138,10 +182,10 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
     logStep("ERROR", { message: errorMessage });
     
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    return new Response(JSON.stringify({ error: "Payment processing failed. Please try again." }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 500,
     });

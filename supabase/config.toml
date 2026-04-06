@@ -80,6 +80,12 @@ verify_jwt = false
 [functions.health-check]
 verify_jwt = false
 
+[functions.ai-agent]
+verify_jwt = false
+
+[functions.evaluate-rules]
+verify_jwt = false
+
 [storage]
 enabled = true
 port = 54325

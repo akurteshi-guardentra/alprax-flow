@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Send, ArrowDownLeft, CreditCard, Users, TrendingUp, Clock, Shield } from "lucide-react";
+import { Send, ArrowDownLeft, CreditCard, Users, TrendingUp, Clock, Shield, Bot } from "lucide-react";
 import { ModernCard, ModernCardContent } from "@/components/ui/modern-card";
 import { useUserAccount } from "@/hooks/useUserAccount";
 
@@ -41,6 +41,15 @@ const quickActions = [
     route: "/contacts",
     benefits: ["Quick access", "Favorite recipients", "Payment history"],
     popular: false
+  },
+  {
+    icon: Bot,
+    title: "AI Agent",
+    description: "Smart autopayments",
+    color: "from-violet-500 to-fuchsia-600",
+    route: "/autopay",
+    benefits: ["Natural language", "Auto-rules", "Smart transfers"],
+    popular: true
   }
 ];
 
@@ -77,7 +86,7 @@ export function QuickActionsGrid() {
       </div>
       
       {/* Centered 2x2 grid with improved spacing */}
-      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.title}

@@ -138,6 +138,36 @@ export type Database = {
         }
         Relationships: []
       }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          role: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       contacts: {
         Row: {
           contact_type: string
@@ -769,6 +799,51 @@ export type Database = {
           provider?: string
           status?: string | null
           type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      payment_rules: {
+        Row: {
+          action_config: Json
+          created_at: string
+          execution_count: number
+          id: string
+          is_active: boolean
+          last_triggered_at: string | null
+          next_trigger_at: string | null
+          rule_name: string
+          rule_type: string
+          trigger_config: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          action_config?: Json
+          created_at?: string
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          next_trigger_at?: string | null
+          rule_name: string
+          rule_type: string
+          trigger_config?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          action_config?: Json
+          created_at?: string
+          execution_count?: number
+          id?: string
+          is_active?: boolean
+          last_triggered_at?: string | null
+          next_trigger_at?: string | null
+          rule_name?: string
+          rule_type?: string
+          trigger_config?: Json
+          updated_at?: string
           user_id?: string
         }
         Relationships: []

@@ -86,7 +86,7 @@ export function QuickActionsGrid() {
       </div>
       
       {/* Centered 2x2 grid with improved spacing */}
-      <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-w-lg mx-auto">
         {quickActions.map((action, index) => (
           <motion.div
             key={action.title}

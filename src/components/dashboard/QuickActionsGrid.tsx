@@ -1,7 +1,7 @@
 
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Send, ArrowDownLeft, CreditCard, Users, TrendingUp, Clock, Shield } from "lucide-react";
+import { Send, ArrowDownLeft, CreditCard, Users, TrendingUp, Clock, Shield, Bot } from "lucide-react";
 import { ModernCard, ModernCardContent } from "@/components/ui/modern-card";
 import { useUserAccount } from "@/hooks/useUserAccount";
 
@@ -41,6 +41,15 @@ const quickActions = [
     route: "/contacts",
     benefits: ["Quick access", "Favorite recipients", "Payment history"],
     popular: false
+  },
+  {
+    icon: Bot,
+    title: "AI Agent",
+    description: "Smart autopayments",
+    color: "from-violet-500 to-fuchsia-600",
+    route: "/autopay",
+    benefits: ["Natural language", "Auto-rules", "Smart transfers"],
+    popular: true
   }
 ];
 

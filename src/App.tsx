@@ -44,6 +44,7 @@ import Analytics from "./pages/Analytics";
 import SystemHealth from "./pages/SystemHealth";
 import TestDashboard from "./pages/TestDashboard";
 import MultiUserTesting from "./pages/MultiUserTesting";
+import AutoPay from "./pages/AutoPay";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -211,6 +212,11 @@ const AppContent = () => {
                   <Route path="/multi-user-testing" element={
                     <AuthGuard requireAuth={true}>
                       <MultiUserTesting />
+                    </AuthGuard>
+                  } />
+                  <Route path="/autopay" element={
+                    <AuthGuard requireAuth={true}>
+                      <AutoPay />
                     </AuthGuard>
                   } />
                   <Route path="*" element={<NotFound />} />

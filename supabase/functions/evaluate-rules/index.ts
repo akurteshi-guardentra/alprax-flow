@@ -4,7 +4,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.48.1";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
+    "authorization, x-client-info, apikey, content-type, x-cron-secret",
 };
 
 serve(async (req) => {
@@ -12,6 +12,21 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
+    // Authenticate: require either a valid cron secret or service role authorization
+    const cronSecret = Deno.env.get("CRON_SECRET");
+    const reqCronSecret = req.headers.get("x-cron-secret");
+    const authHeader = req.headers.get("Authorization");
+
+    const isAuthorizedViaCron = cronSecret && reqCronSecret === cronSecret;
+    const isAuthorizedViaServiceRole = authHeader?.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "NONE");
+
+    if (!isAuthorizedViaCron && !isAuthorizedViaServiceRole) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     // Use service role for backend processing
     const supabase = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -28,7 +43,6 @@ serve(async (req) => {
       .order("next_trigger_at", { ascending: true });
 
     if (fetchError) {
-      console.error("Error fetching rules:", fetchError);
       throw fetchError;
     }
 
@@ -60,11 +74,10 @@ serve(async (req) => {
           .single();
 
         if (txError) {
-          console.error(`Error queuing payment for rule ${rule.id}:`, txError);
           results.push({
             rule_id: rule.id,
             success: false,
-            error: txError.message,
+            error: "Failed to queue payment",
           });
           continue;
         }
@@ -105,12 +118,10 @@ serve(async (req) => {
           next_trigger: nextTrigger.toISOString(),
         });
       } catch (ruleError) {
-        console.error(`Error processing rule ${rule.id}:`, ruleError);
         results.push({
           rule_id: rule.id,
           success: false,
-          error:
-            ruleError instanceof Error ? ruleError.message : "Unknown error",
+          error: "Processing failed",
         });
       }
     }
@@ -126,11 +137,8 @@ serve(async (req) => {
       }
     );
   } catch (e) {
-    console.error("evaluate-rules error:", e);
     return new Response(
-      JSON.stringify({
-        error: e instanceof Error ? e.message : "Unknown error",
-      }),
+      JSON.stringify({ error: "Internal server error" }),
       {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },

@@ -12,15 +12,17 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
 
   try {
-    // Authenticate: require either a valid cron secret or service role authorization
+    // Authenticate: require a valid cron secret, service role key, or anon key (for pg_cron internal calls)
     const cronSecret = Deno.env.get("CRON_SECRET");
     const reqCronSecret = req.headers.get("x-cron-secret");
-    const authHeader = req.headers.get("Authorization");
+    const authHeader = req.headers.get("Authorization") || "";
 
     const isAuthorizedViaCron = cronSecret && reqCronSecret === cronSecret;
-    const isAuthorizedViaServiceRole = authHeader?.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "NONE");
+    const isAuthorizedViaServiceRole = authHeader.includes(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "NONE");
+    // pg_cron + pg_net sends the anon key — accept it as a valid internal caller
+    const isAuthorizedViaAnonKey = authHeader.includes(Deno.env.get("SUPABASE_ANON_KEY") || "NONE");
 
-    if (!isAuthorizedViaCron && !isAuthorizedViaServiceRole) {
+    if (!isAuthorizedViaCron && !isAuthorizedViaServiceRole && !isAuthorizedViaAnonKey) {
       return new Response(
         JSON.stringify({ error: "Unauthorized" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }

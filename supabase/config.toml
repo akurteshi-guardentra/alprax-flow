@@ -89,6 +89,9 @@ verify_jwt = false
 [functions.verify-totp]
 verify_jwt = false
 
+[functions.x402-payment]
+verify_jwt = false
+
 [storage]
 enabled = true
 port = 54325

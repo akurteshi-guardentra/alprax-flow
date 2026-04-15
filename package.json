@@ -17,6 +17,9 @@
     "deploy": "gh-pages -d dist -r https://github.com/atdheekurteshi/alprax-flow.git --verbose",
     "deploy:advanced": "node deploy-github-pages.js",
     "deploy:ci": "cross-env CI=true npm run deploy",
+    "test": "node_modules/.bin/vitest run",
+    "test:watch": "node_modules/.bin/vitest",
+    "test:coverage": "node_modules/.bin/vitest run --coverage",
     "check": "npm run lint && npm run build"
   },
   "dependencies": {
@@ -72,6 +75,7 @@
     "framer-motion": "^12.0.11",
     "i18next": "^24.2.2",
     "input-otp": "^1.2.4",
+    "jsdom": "^29.0.2",
     "jsqr": "^1.4.0",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.462.0",

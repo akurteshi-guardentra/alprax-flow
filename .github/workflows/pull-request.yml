@@ -30,6 +30,9 @@ jobs:
         run: npm run lint || echo "Linting warnings found, but continuing"
         continue-on-error: true
       
+      - name: Test
+        run: npm test
+      
       - name: Build
         run: npm run build
       

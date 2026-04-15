@@ -3,7 +3,6 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { authenticator } from "otplib";
 
 export function useLogin() {
   const navigate = useNavigate();
@@ -13,7 +12,6 @@ export function useLogin() {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const [showNumberAuth, setShowNumberAuth] = useState(false);
   const [twoFactorCode, setTwoFactorCode] = useState('');
-  const [twoFactorSecret, setTwoFactorSecret] = useState('');
 
   const handleFingerprint = async () => {
     if (!window.PublicKeyCredential) {
@@ -25,7 +23,6 @@ export function useLogin() {
       setIsLoading(true);
       toast.error('Fingerprint authentication coming soon');
     } catch (error) {
-      console.error('Fingerprint auth error:', error);
       toast.error('Failed to authenticate with fingerprint');
     } finally {
       setIsLoading(false);
@@ -56,7 +53,6 @@ export function useLogin() {
       toast.success('Authentication successful!');
       navigate("/dashboard");
     } catch (error) {
-      console.error('Number auth error:', error);
       toast.error('Failed to authenticate with number');
     } finally {
       setIsLoading(false);
@@ -76,9 +72,10 @@ export function useLogin() {
       if (error) throw error;
 
       if (data.user) {
+        // Check if 2FA is enabled (only check status, never fetch secret)
         const { data: twoFactorData, error: twoFactorError } = await supabase
           .from('two_factor_auth')
-          .select('secret, status')
+          .select('status')
           .eq('user_id', data.user.id)
           .eq('type', 'app')
           .maybeSingle();
@@ -86,7 +83,6 @@ export function useLogin() {
         if (twoFactorError) throw twoFactorError;
 
         if (twoFactorData?.status === 'verified') {
-          setTwoFactorSecret(twoFactorData.secret);
           setShowTwoFactor(true);
           setIsLoading(false);
           return;
@@ -96,7 +92,6 @@ export function useLogin() {
         navigate("/dashboard");
       }
     } catch (error) {
-      console.error('Login error:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to login');
     } finally {
       setIsLoading(false);
@@ -108,12 +103,21 @@ export function useLogin() {
     setIsLoading(true);
 
     try {
-      const isValid = authenticator.verify({
-        token: twoFactorCode,
-        secret: twoFactorSecret
+      // Verify TOTP server-side via edge function
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData?.session?.access_token;
+      
+      if (!token) {
+        toast.error('Session expired. Please log in again.');
+        setShowTwoFactor(false);
+        return;
+      }
+
+      const response = await supabase.functions.invoke('verify-totp', {
+        body: { code: twoFactorCode },
       });
 
-      if (!isValid) {
+      if (response.error || !response.data?.verified) {
         toast.error('Invalid 2FA code');
         return;
       }
@@ -121,7 +125,6 @@ export function useLogin() {
       toast.success('Logged in successfully!');
       navigate("/dashboard");
     } catch (error) {
-      console.error('2FA verification error:', error);
       toast.error('Failed to verify 2FA code');
     } finally {
       setIsLoading(false);

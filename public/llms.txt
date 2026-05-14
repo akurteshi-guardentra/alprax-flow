@@ -1,0 +1,16 @@
+# Alprax Flow
+
+> Secure, fast cross-border payments with competitive exchange rates and low fees. Send money worldwide with an AI-powered autonomous payment agent built on Stellar.
+
+Alprax Flow is a global remittance and payments platform that abstracts blockchain infrastructure to deliver a fiat-first user experience. Users can send money across borders, set up automated payment rules in natural language, and pay with familiar currencies — all powered by Stellar under the hood.
+
+## Pages
+
+- [Home](/): Landing page introducing Alprax Flow.
+- [Welcome](/welcome): Onboarding tour for new users.
+- [Sign up](/signup): Create an Alprax Flow account.
+- [Login](/login): Sign in to your account.
+
+## Optional
+
+- [AutoPay Agent](/autopay): AI-powered payment automation chat (requires login).

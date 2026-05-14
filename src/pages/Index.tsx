@@ -33,7 +33,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen modern-gradient relative overflow-hidden">
+    <main className="min-h-screen modern-gradient relative overflow-hidden">
       {/* Enhanced premium background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/25 rounded-full blur-3xl animate-modern-float"></div>
@@ -79,7 +79,7 @@ const Index = () => {
           </motion.div>
         </div>
       </div>
-    </div>
+    </main>
   );
 };
 

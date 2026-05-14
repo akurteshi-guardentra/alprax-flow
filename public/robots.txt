@@ -1,8 +1,5 @@
-# robots.txt for Alprax Flow GitHub Pages site
-# https://atdheekurteshi.github.io/alprax-flow/
-
+# robots.txt for Alprax Flow
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://atdheekurteshi.github.io/alprax-flow/sitemap.xml
+Sitemap: https://alprax-flow.lovable.app/sitemap.xml

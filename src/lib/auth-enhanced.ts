@@ -107,7 +107,6 @@ async function fundStellarAccount(publicKey: string): Promise<void> {
       created_at: timestamp,
       completed_at: timestamp,
       memo: 'Initial account funding',
-      recipient_address: publicKey,
       recipient_name: 'My Account'
     });
   }

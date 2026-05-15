@@ -55,8 +55,7 @@ const Profile = () => {
             country: null,
             preferred_language: null,
             kyc_level: 'basic' as const,
-            username: null,
-            email: null
+            username: null
           }])
           .select()
           .single();

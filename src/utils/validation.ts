@@ -137,7 +137,7 @@ export const formRateLimiter = new FormRateLimiter();
 export const formatValidationErrors = (error: z.ZodError): Record<string, string> => {
   const formattedErrors: Record<string, string> = {};
   
-  error.errors.forEach((err) => {
+  error.issues.forEach((err) => {
     const path = err.path.join('.');
     formattedErrors[path] = err.message;
   });

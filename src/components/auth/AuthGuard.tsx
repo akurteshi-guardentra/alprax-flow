@@ -1,8 +1,9 @@
 
 import { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { consumeNextOr, withNext } from '@/lib/next-redirect';
 
 interface AuthGuardProps {
   children: React.ReactNode;
@@ -10,23 +11,25 @@ interface AuthGuardProps {
   redirectTo?: string;
 }
 
-export function AuthGuard({ 
-  children, 
-  requireAuth = true, 
-  redirectTo = '/login' 
+export function AuthGuard({
+  children,
+  requireAuth = true,
+  redirectTo = '/login'
 }: AuthGuardProps) {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (!loading) {
       if (requireAuth && !user) {
-        navigate(redirectTo);
+        const here = location.pathname + location.search;
+        navigate(withNext(redirectTo, here));
       } else if (!requireAuth && user) {
-        navigate('/dashboard');
+        navigate(consumeNextOr('/dashboard'));
       }
     }
-  }, [user, loading, requireAuth, navigate, redirectTo]);
+  }, [user, loading, requireAuth, navigate, redirectTo, location]);
 
   if (loading) {
     return (

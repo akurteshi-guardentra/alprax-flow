@@ -51,7 +51,7 @@ export function useLogin() {
       }
 
       toast.success('Authentication successful!');
-      navigate("/dashboard");
+      navigate((await import("@/lib/next-redirect")).consumeNextOr("/dashboard"));
     } catch (error) {
       toast.error('Failed to authenticate with number');
     } finally {
@@ -89,7 +89,7 @@ export function useLogin() {
         }
 
         toast.success('Logged in successfully!');
-        navigate("/dashboard");
+        navigate((await import("@/lib/next-redirect")).consumeNextOr("/dashboard"));
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to login');
@@ -123,7 +123,7 @@ export function useLogin() {
       }
 
       toast.success('Logged in successfully!');
-      navigate("/dashboard");
+      navigate((await import("@/lib/next-redirect")).consumeNextOr("/dashboard"));
     } catch (error) {
       toast.error('Failed to verify 2FA code');
     } finally {

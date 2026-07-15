@@ -46,6 +46,7 @@ import TestDashboard from "./pages/TestDashboard";
 import MultiUserTesting from "./pages/MultiUserTesting";
 import AutoPay from "./pages/AutoPay";
 import NotFound from "./pages/NotFound";
+import OAuthConsent from "./pages/OAuthConsent";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -219,6 +220,7 @@ const AppContent = () => {
                       <AutoPay />
                     </AuthGuard>
                   } />
+                  <Route path="/.lovable/oauth/consent" element={<OAuthConsent />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
                 <InstallPrompt />

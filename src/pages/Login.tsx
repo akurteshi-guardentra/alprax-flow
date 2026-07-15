@@ -18,7 +18,8 @@ const Login = () => {
 
   const handleLoginSuccess = async () => {
     await refreshSession();
-    navigate('/dashboard');
+    const { consumeNextOr } = await import('@/lib/next-redirect');
+    navigate(consumeNextOr('/dashboard'));
   };
 
   const handleForgotPassword = async () => {

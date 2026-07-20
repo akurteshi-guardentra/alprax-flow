@@ -160,13 +160,23 @@ const Contacts = () => {
                   <User className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">No contacts yet</h3>
                   <p className="text-white/60 mb-4">Add your first contact to get started</p>
-                  <Button
-                    onClick={() => navigate('/add-contact')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Contact
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button
+                      onClick={() => navigate('/add-contact')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Contact
+                    </Button>
+                    <Button
+                      onClick={addSampleRecipients}
+                      disabled={isSeeding}
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      {isSeeding ? 'Adding…' : 'Add 2 sample recipients'}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">

@@ -10,10 +10,52 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
 
+const SAMPLE_RECIPIENTS = [
+  {
+    recipient_name: 'Alice Johnson',
+    stellar_address: 'GDQNY3PBOJOKYZSRMK2S7LHHGWZIUISD4QORETLMXEWXBI7KFZZMKTL3',
+    country: 'US',
+    currency: 'USD',
+    relationship: 'Friend',
+  },
+  {
+    recipient_name: 'Bob Smith',
+    stellar_address: 'GCKFBEIYTKP5RDBQMUAOXBJUYJ6NNYJ4OQXQZM7SZLCUQHGWL2MRZQKE',
+    country: 'GB',
+    currency: 'GBP',
+    relationship: 'Family',
+  },
+];
+
 const Contacts = () => {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState<FavoriteRecipient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const addSampleRecipients = async () => {
+    try {
+      setIsSeeding(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please log in first');
+        return;
+      }
+      const rows = SAMPLE_RECIPIENTS.map((r) => ({ ...r, user_id: user.id }));
+      const { data, error } = await supabase
+        .from('favorite_recipients')
+        .insert(rows)
+        .select();
+      if (error) throw error;
+      setContacts((prev) => [...prev, ...(data || [])].sort((a, b) => a.recipient_name.localeCompare(b.recipient_name)));
+      toast.success(`Added ${data?.length ?? 0} sample recipients`);
+    } catch (err: any) {
+      console.error('Seed error', err);
+      toast.error(err?.message || 'Failed to add sample recipients');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   useEffect(() => {
     loadContacts();
@@ -86,13 +128,23 @@ const Contacts = () => {
               <p className="text-white/70">Manage your favorite recipients</p>
             </div>
           </div>
-          <Button
-            onClick={() => navigate('/add-contact')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Contact
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={addSampleRecipients}
+              disabled={isSeeding}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              {isSeeding ? 'Adding…' : 'Add samples'}
+            </Button>
+            <Button
+              onClick={() => navigate('/add-contact')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </Button>
+          </div>
         </motion.div>
 
         {/* Contacts List */}
@@ -118,13 +170,23 @@ const Contacts = () => {
                   <User className="w-12 h-12 text-white/40 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-white mb-2">No contacts yet</h3>
                   <p className="text-white/60 mb-4">Add your first contact to get started</p>
-                  <Button
-                    onClick={() => navigate('/add-contact')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Contact
-                  </Button>
+                  <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                    <Button
+                      onClick={() => navigate('/add-contact')}
+                      className="bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Contact
+                    </Button>
+                    <Button
+                      onClick={addSampleRecipients}
+                      disabled={isSeeding}
+                      variant="outline"
+                      className="border-white/20 text-white hover:bg-white/10"
+                    >
+                      {isSeeding ? 'Adding…' : 'Add 2 sample recipients'}
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="space-y-3">

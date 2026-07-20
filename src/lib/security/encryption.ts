@@ -13,18 +13,43 @@ const IV_LENGTH = 12; // 96 bits for GCM
 const KEY_LENGTH = 256; // 256 bits
 
 /**
- * Generate a secure user-specific encryption key
+ * Fetch a per-user encryption key material from the server. The key is
+ * derived server-side via HKDF from a secret master key that is never
+ * exposed to the client, so leaking the encrypted_secret column plus a
+ * user's public metadata (id, email, created_at) is no longer enough
+ * to decrypt wallet secrets.
+ */
+let cachedServerKey: string | null = null;
+async function fetchServerEncryptionKey(): Promise<string> {
+  if (cachedServerKey) return cachedServerKey;
+  const { data, error } = await supabase.functions.invoke('wallet-encryption-key');
+  if (error || !data?.key) {
+    throw new Error('Unable to obtain wallet encryption key');
+  }
+  cachedServerKey = data.key as string;
+  return cachedServerKey;
+}
+
+/**
+ * Build the password fed into PBKDF2. We combine the server-issued
+ * per-user key with the caller's user id so that even if the server
+ * key were ever leaked, ciphertexts remain bound to a specific user.
+ * Legacy ciphertexts (encrypted with the old user-metadata-only
+ * password) are still readable via getLegacyUserEncryptionKey below.
  */
 async function getUserEncryptionKey(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  
-  // Use ONLY deterministic user metadata - no random entropy
-  // Random entropy would produce different keys on each call, making decryption impossible
+  if (!user) throw new Error('User not authenticated');
+  const serverKey = await fetchServerEncryptionKey();
+  return `${serverKey}:${user.id}`;
+}
+
+async function getLegacyUserEncryptionKey(): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
   return `${user.id}_${user.email}_${user.created_at}`;
 }
+
 
 /**
  * Derive a cryptographic key from a password using PBKDF2

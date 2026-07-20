@@ -195,7 +195,7 @@ export async function decryptStellarSecret(encryptedData: string): Promise<strin
   throw new Error('Decryption failed - invalid password or corrupted data');
 }
 
-}
+
 
 /**
  * Migrate legacy Base64-encoded secrets to proper encryption

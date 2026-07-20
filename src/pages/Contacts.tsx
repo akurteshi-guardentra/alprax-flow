@@ -10,6 +10,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
 
+const SAMPLE_RECIPIENTS = [
+  {
+    recipient_name: 'Alice Johnson',
+    stellar_address: 'GDQNY3PBOJOKYZSRMK2S7LHHGWZIUISD4QORETLMXEWXBI7KFZZMKTL3',
+    country: 'US',
+    currency: 'USD',
+    relationship: 'Friend',
+  },
+  {
+    recipient_name: 'Bob Smith',
+    stellar_address: 'GCKFBEIYTKP5RDBQMUAOXBJUYJ6NNYJ4OQXQZM7SZLCUQHGWL2MRZQKE',
+    country: 'GB',
+    currency: 'GBP',
+    relationship: 'Family',
+  },
+];
+
 const Contacts = () => {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState<FavoriteRecipient[]>([]);

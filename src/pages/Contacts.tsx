@@ -128,13 +128,23 @@ const Contacts = () => {
               <p className="text-white/70">Manage your favorite recipients</p>
             </div>
           </div>
-          <Button
-            onClick={() => navigate('/add-contact')}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Contact
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              onClick={addSampleRecipients}
+              disabled={isSeeding}
+              variant="outline"
+              className="border-white/20 text-white hover:bg-white/10"
+            >
+              {isSeeding ? 'Adding…' : 'Add samples'}
+            </Button>
+            <Button
+              onClick={() => navigate('/add-contact')}
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Contact
+            </Button>
+          </div>
         </motion.div>
 
         {/* Contacts List */}

@@ -31,6 +31,31 @@ const Contacts = () => {
   const navigate = useNavigate();
   const [contacts, setContacts] = useState<FavoriteRecipient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSeeding, setIsSeeding] = useState(false);
+
+  const addSampleRecipients = async () => {
+    try {
+      setIsSeeding(true);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('Please log in first');
+        return;
+      }
+      const rows = SAMPLE_RECIPIENTS.map((r) => ({ ...r, user_id: user.id }));
+      const { data, error } = await supabase
+        .from('favorite_recipients')
+        .insert(rows)
+        .select();
+      if (error) throw error;
+      setContacts((prev) => [...prev, ...(data || [])].sort((a, b) => a.recipient_name.localeCompare(b.recipient_name)));
+      toast.success(`Added ${data?.length ?? 0} sample recipients`);
+    } catch (err: any) {
+      console.error('Seed error', err);
+      toast.error(err?.message || 'Failed to add sample recipients');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   useEffect(() => {
     loadContacts();

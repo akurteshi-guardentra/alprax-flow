@@ -32,18 +32,20 @@ export function UserDiscoveryModal({ open, onOpenChange, onUserSelected }: UserD
     
     setSearching(true);
     try {
-      const { data, error } = await supabase.rpc('find_user_by_email', {
-        search_email: searchEmail.trim()
+      const { data: resp, error } = await supabase.functions.invoke('find-user-by-email', {
+        body: { email: searchEmail.trim() },
       });
 
       if (error) throw error;
 
+      const data = resp?.data as any[] | undefined;
       if (data && data.length > 0) {
         setFoundUser(data[0]);
       } else {
         setFoundUser(null);
         toast.error('User not found or not available for transfers');
       }
+
     } catch (error) {
       console.error('Error searching for user:', error);
       toast.error('Failed to search for user');

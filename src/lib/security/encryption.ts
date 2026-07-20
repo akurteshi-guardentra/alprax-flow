@@ -13,18 +13,43 @@ const IV_LENGTH = 12; // 96 bits for GCM
 const KEY_LENGTH = 256; // 256 bits
 
 /**
- * Generate a secure user-specific encryption key
+ * Fetch a per-user encryption key material from the server. The key is
+ * derived server-side via HKDF from a secret master key that is never
+ * exposed to the client, so leaking the encrypted_secret column plus a
+ * user's public metadata (id, email, created_at) is no longer enough
+ * to decrypt wallet secrets.
+ */
+let cachedServerKey: string | null = null;
+async function fetchServerEncryptionKey(): Promise<string> {
+  if (cachedServerKey) return cachedServerKey;
+  const { data, error } = await supabase.functions.invoke('wallet-encryption-key');
+  if (error || !data?.key) {
+    throw new Error('Unable to obtain wallet encryption key');
+  }
+  cachedServerKey = data.key as string;
+  return cachedServerKey;
+}
+
+/**
+ * Build the password fed into PBKDF2. We combine the server-issued
+ * per-user key with the caller's user id so that even if the server
+ * key were ever leaked, ciphertexts remain bound to a specific user.
+ * Legacy ciphertexts (encrypted with the old user-metadata-only
+ * password) are still readable via getLegacyUserEncryptionKey below.
  */
 async function getUserEncryptionKey(): Promise<string> {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-  
-  // Use ONLY deterministic user metadata - no random entropy
-  // Random entropy would produce different keys on each call, making decryption impossible
+  if (!user) throw new Error('User not authenticated');
+  const serverKey = await fetchServerEncryptionKey();
+  return `${serverKey}:${user.id}`;
+}
+
+async function getLegacyUserEncryptionKey(): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('User not authenticated');
   return `${user.id}_${user.email}_${user.created_at}`;
 }
+
 
 /**
  * Derive a cryptographic key from a password using PBKDF2
@@ -126,54 +151,51 @@ export async function encryptStellarSecret(secretKey: string): Promise<string> {
  * @returns Decrypted Stellar secret key
  */
 export async function decryptStellarSecret(encryptedData: string): Promise<string> {
-  try {
-    // Decode from base64
-    const combined = new Uint8Array(
-      atob(encryptedData).split('').map(char => char.charCodeAt(0))
-    );
-    
-    // Validate minimum length
-    const minLength = SALT_LENGTH + IV_LENGTH + 1;
-    if (combined.length < minLength) {
-      throw new Error('Invalid encrypted data format');
-    }
-    
-    // Extract salt, IV, and encrypted data
-    const salt = combined.slice(0, SALT_LENGTH);
-    const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
-    const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH);
-    
-    // Get user's encryption password
-    const userPassword = await getUserEncryptionKey();
-    
-    // Derive decryption key
-    const key = await deriveKey(userPassword, salt);
-    
-    // Decrypt the data
-    const decryptedData = await crypto.subtle.decrypt(
-      {
-        name: ENCRYPTION_ALGORITHM,
-        iv
-      },
-      key,
-      encrypted
-    );
-    
-    // Convert back to string
-    const decoder = new TextDecoder();
-    const secretKey = decoder.decode(decryptedData);
-    
-    // Validate decrypted Stellar secret key
-    if (!secretKey.startsWith('S') || secretKey.length !== 56) {
-      throw new Error('Decrypted data is not a valid Stellar secret key');
-    }
-    
-    return secretKey;
-  } catch (error) {
-    console.error('Failed to decrypt Stellar secret:', error);
-    throw new Error('Decryption failed - invalid password or corrupted data');
+  const combined = new Uint8Array(
+    atob(encryptedData).split('').map(char => char.charCodeAt(0))
+  );
+
+  const minLength = SALT_LENGTH + IV_LENGTH + 1;
+  if (combined.length < minLength) {
+    throw new Error('Invalid encrypted data format');
   }
+
+  const salt = combined.slice(0, SALT_LENGTH);
+  const iv = combined.slice(SALT_LENGTH, SALT_LENGTH + IV_LENGTH);
+  const encrypted = combined.slice(SALT_LENGTH + IV_LENGTH);
+
+  const tryDecrypt = async (password: string): Promise<string | null> => {
+    try {
+      const key = await deriveKey(password, salt);
+      const decryptedData = await crypto.subtle.decrypt(
+        { name: ENCRYPTION_ALGORITHM, iv },
+        key,
+        encrypted
+      );
+      const secretKey = new TextDecoder().decode(decryptedData);
+      if (!secretKey.startsWith('S') || secretKey.length !== 56) return null;
+      return secretKey;
+    } catch {
+      return null;
+    }
+  };
+
+  // Try new server-derived key first, then fall back to legacy password
+  // so previously stored ciphertexts remain readable during migration.
+  try {
+    const modern = await tryDecrypt(await getUserEncryptionKey());
+    if (modern) return modern;
+  } catch (e) {
+    console.warn('Modern decryption path unavailable, trying legacy', e);
+  }
+
+  const legacy = await tryDecrypt(await getLegacyUserEncryptionKey());
+  if (legacy) return legacy;
+
+  throw new Error('Decryption failed - invalid password or corrupted data');
 }
+
+
 
 /**
  * Migrate legacy Base64-encoded secrets to proper encryption

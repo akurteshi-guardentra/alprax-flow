@@ -144,12 +144,14 @@ export class AbstractPaymentService {
       if (accountByUserId) return accountByUserId.public_key;
       
       // Try as email
-      const { data: userByEmail } = await supabase.rpc('find_user_by_email', {
-        search_email: identifier
+      const { data: emailResp } = await supabase.functions.invoke('find-user-by-email', {
+        body: { email: identifier },
       });
+      const userByEmail = emailResp?.data as Array<{ user_id: string }> | undefined;
       
       if (userByEmail && userByEmail.length > 0) {
         const userId = userByEmail[0].user_id;
+
         const { data: accountByEmail } = await supabase
           .from('stellar_accounts')
           .select('public_key')

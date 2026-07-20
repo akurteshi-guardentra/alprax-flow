@@ -35,9 +35,11 @@ export class AbstractRecipientService {
       let stellarAddress: string | null = null;
       
       if (identifierType === 'email') {
-        const { data: foundUser } = await supabase.rpc('find_user_by_email', {
-          search_email: identifier
+        const { data: fnData } = await supabase.functions.invoke('find-user-by-email', {
+          body: { email: identifier },
         });
+        const foundUser = fnData?.data as Array<{ user_id: string }> | undefined;
+
         
         if (foundUser && foundUser.length > 0) {
           const userId = foundUser[0].user_id;

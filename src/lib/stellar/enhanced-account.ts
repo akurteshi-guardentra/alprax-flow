@@ -35,42 +35,9 @@ export async function createStellarAccountForUser(userId: string): Promise<Stell
 
     if (error) throw error;
 
-    // Fund the account on testnet quietly in the background
-    try {
-      const response = await fetch(
-        `https://friendbot.stellar.org?addr=${publicKey}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Funding failed with status ${response.status}`);
-      }
-      
-      const responseBody = await response.json();
-      console.log('Account funded on testnet:', responseBody);
-      
-      // Record the funding transaction
-      if (responseBody && responseBody.hash) {
-        const timestamp = new Date().toISOString();
-        
-        await supabase.from('stellar_transactions').insert({
-          user_id: userId,
-          stellar_tx_hash: responseBody.hash,
-          transaction_type: 'funding',
-          from_asset: 'XLM',
-          to_asset: 'XLM',
-          amount: 10000, // Friendbot usually gives 10,000 XLM on testnet
-          fee: 0,
-          status: 'completed',
-          created_at: timestamp,
-          completed_at: timestamp,
-          memo: 'Account activation'
-        });
-      }
-    } catch (err) {
-      console.error('Error funding testnet account:', err);
-      // We don't throw here because the account was created successfully
-      // The funding can be retried later
-    }
+    // Fund the account on testnet with retries so new users always start with a balance
+    await fundWithFriendbot(publicKey, userId);
+
 
     // Return the account details
     return {

@@ -35,42 +35,9 @@ export async function createStellarAccountForUser(userId: string): Promise<Stell
 
     if (error) throw error;
 
-    // Fund the account on testnet quietly in the background
-    try {
-      const response = await fetch(
-        `https://friendbot.stellar.org?addr=${publicKey}`
-      );
-      
-      if (!response.ok) {
-        throw new Error(`Funding failed with status ${response.status}`);
-      }
-      
-      const responseBody = await response.json();
-      console.log('Account funded on testnet:', responseBody);
-      
-      // Record the funding transaction
-      if (responseBody && responseBody.hash) {
-        const timestamp = new Date().toISOString();
-        
-        await supabase.from('stellar_transactions').insert({
-          user_id: userId,
-          stellar_tx_hash: responseBody.hash,
-          transaction_type: 'funding',
-          from_asset: 'XLM',
-          to_asset: 'XLM',
-          amount: 10000, // Friendbot usually gives 10,000 XLM on testnet
-          fee: 0,
-          status: 'completed',
-          created_at: timestamp,
-          completed_at: timestamp,
-          memo: 'Account activation'
-        });
-      }
-    } catch (err) {
-      console.error('Error funding testnet account:', err);
-      // We don't throw here because the account was created successfully
-      // The funding can be retried later
-    }
+    // Fund the account on testnet with retries so new users always start with a balance
+    await fundWithFriendbot(publicKey, userId);
+
 
     // Return the account details
     return {
@@ -85,33 +52,77 @@ export async function createStellarAccountForUser(userId: string): Promise<Stell
 }
 
 /**
+ * Fund a Stellar public key via Friendbot with retries.
+ * Ensures every new user starts with a default balance even when
+ * Friendbot is rate-limited or briefly unavailable.
+ */
+async function fundWithFriendbot(publicKey: string, userId: string): Promise<boolean> {
+  const MAX_ATTEMPTS = 4;
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    try {
+      const response = await fetch(`https://friendbot.stellar.org?addr=${publicKey}`);
+      if (response.ok) {
+        const body = await response.json();
+        if (body?.hash) {
+          const timestamp = new Date().toISOString();
+          await supabase.from('stellar_transactions').insert({
+            user_id: userId,
+            stellar_tx_hash: body.hash,
+            transaction_type: 'funding',
+            from_asset: 'XLM',
+            to_asset: 'XLM',
+            amount: 10000,
+            fee: 0,
+            status: 'completed',
+            created_at: timestamp,
+            completed_at: timestamp,
+            memo: 'Welcome bonus - account activation',
+          });
+        }
+        return true;
+      }
+      // 429 or transient: backoff and retry
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    } catch (err) {
+      console.error(`[Friendbot] attempt ${attempt} failed:`, err);
+      await new Promise(r => setTimeout(r, 1000 * attempt));
+    }
+  }
+  console.error('[Friendbot] All funding attempts failed for', publicKey);
+  return false;
+}
+
+/**
  * Ensure a Stellar account has sufficient funds, funding it if necessary
  * This is used to make sure accounts can always send payments
  */
-export async function ensureSufficientFunds(stellarAccount: StellarAccount): Promise<boolean> {
+export async function ensureSufficientFunds(stellarAccount: StellarAccount, userId?: string): Promise<boolean> {
   try {
     // Check current balance
-    const account = await server.loadAccount(stellarAccount.publicKey);
-    const nativeBalance = account.balances.find(b => b.asset_type === 'native');
-    
-    if (nativeBalance && parseFloat(nativeBalance.balance) > 5) {
-      // Already has sufficient funds
-      return true;
+    let hasFunds = false;
+    try {
+      const account = await server.loadAccount(stellarAccount.publicKey);
+      const nativeBalance = account.balances.find(b => b.asset_type === 'native');
+      hasFunds = !!nativeBalance && parseFloat(nativeBalance.balance) > 5;
+    } catch {
+      // Account not found on network yet - needs funding
+      hasFunds = false;
     }
-    
-    // Need to fund the account
-    const response = await fetch(
-      `https://friendbot.stellar.org?addr=${stellarAccount.publicKey}`
-    );
-    
-    if (!response.ok) {
-      throw new Error('Failed to fund account');
+
+    if (hasFunds) return true;
+
+    // Resolve user id if not provided
+    let uid = userId;
+    if (!uid) {
+      const { data: { user } } = await supabase.auth.getUser();
+      uid = user?.id;
     }
-    
-    // Funding successful
-    return true;
+    if (!uid) return false;
+
+    return await fundWithFriendbot(stellarAccount.publicKey, uid);
   } catch (error) {
     console.error('Error ensuring sufficient funds:', error);
     return false;
   }
 }
+

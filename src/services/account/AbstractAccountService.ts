@@ -94,13 +94,28 @@ export class AbstractAccountService {
       
       // Get balance from network (hidden)
       const { getBalance } = await import('@/lib/stellar/utils');
-      const balances = await getBalance(stellarAccount.public_key);
-      const xlmBalance = balances.find(b => b.asset === 'XLM');
+      let balances = await getBalance(stellarAccount.public_key);
+      let xlmBalance = balances.find(b => b.asset === 'XLM');
+      
+      // Safety net: if the account has no XLM (friendbot failed at signup,
+      // testnet reset, etc.), auto-fund so every user always has a default balance.
+      if (!xlmBalance || parseFloat(xlmBalance.balance) <= 0) {
+        const { ensureSufficientFunds } = await import('@/lib/stellar/enhanced-account');
+        const funded = await ensureSufficientFunds(
+          { id: '', publicKey: stellarAccount.public_key, encryptedSecret: '' },
+          targetUserId
+        );
+        if (funded) {
+          balances = await getBalance(stellarAccount.public_key);
+          xlmBalance = balances.find(b => b.asset === 'XLM');
+        }
+      }
       
       const userCurrency = (profile?.preferred_currency as SupportedCurrency) || 'USD';
       const fiatBalance = xlmBalance 
         ? await convertXLMToFiat(parseFloat(xlmBalance.balance), userCurrency)
         : 0;
+
       
       return {
         accountId: profile?.user_account_id || 'N/A',

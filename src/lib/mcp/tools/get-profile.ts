@@ -1,16 +1,5 @@
-import { defineTool, type ToolContext } from "@lovable.dev/mcp-js";
-import { createClient } from "@supabase/supabase-js";
-
-function userClient(ctx: ToolContext) {
-  return createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_PUBLISHABLE_KEY!,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false },
-    },
-  );
-}
+import { defineTool } from "@lovable.dev/mcp-js";
+import { supabaseForUser } from "../supabase";
 
 export default defineTool({
   name: "get_profile",
@@ -23,10 +12,10 @@ export default defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = userClient(ctx);
+    const supabase = supabaseForUser(ctx);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, country, kyc_level, avatar_url, created_at")
+      .select("user_account_id, full_name, country, kyc_level, preferred_currency")
       .eq("id", ctx.getUserId())
       .maybeSingle();
     if (error) {

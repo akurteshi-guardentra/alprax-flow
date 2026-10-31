@@ -9,6 +9,9 @@ import { FavoriteRecipient } from '@/types/favoriteRecipient';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { hapticFeedback } from '@/lib/haptics';
+import { useWebMCP } from 'use-webmcp-tool';
+import { runWebMCPTool } from '@/lib/webmcp-telemetry';
+import { COPY } from '@/lib/constants/copy';
 
 const SAMPLE_RECIPIENTS = [
   {
@@ -32,6 +35,20 @@ const Contacts = () => {
   const [contacts, setContacts] = useState<FavoriteRecipient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSeeding, setIsSeeding] = useState(false);
+  const [contactsAvailable, setContactsAvailable] = useState(false);
+
+  useWebMCP({
+    name: 'read_visible_contacts',
+    description: 'Read the saved recipients currently shown on the Contacts page; does not send money or change the page.',
+    annotations: { readOnlyHint: true, untrustedContentHint: true },
+    execute: () => runWebMCPTool('read_visible_contacts', () => {
+      if (isLoading) return COPY.AGENT.CONTACTS_LOADING;
+      if (!contactsAvailable) throw new Error(COPY.AGENT.CONTACTS_UNAVAILABLE);
+      return contacts.length === 0 ? COPY.AGENT.CONTACTS_EMPTY : contacts.map(contact =>
+        `${contact.id}: ${contact.recipient_name} — ${contact.relationship || 'Contact'}, ${contact.country}, ${contact.currency}`
+      ).join('\n');
+    }),
+  });
 
   const addSampleRecipients = async () => {
     try {
@@ -74,6 +91,7 @@ const Contacts = () => {
 
       if (error) throw error;
       setContacts(data || []);
+      setContactsAvailable(true);
     } catch (error) {
       console.error('Error loading contacts:', error);
       toast.error('Failed to load contacts');

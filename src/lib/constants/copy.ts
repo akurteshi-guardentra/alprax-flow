@@ -4,6 +4,11 @@
  */
 
 export const COPY = {
+  AGENT: {
+    CONTACTS_LOADING: 'Contacts are still loading.',
+    CONTACTS_UNAVAILABLE: 'Contacts are unavailable. Sign in and reload this page.',
+    CONTACTS_EMPTY: 'No contacts shown.',
+  },
   // Common actions
   ACTIONS: {
     CONTINUE: 'Continue',

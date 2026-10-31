@@ -5,15 +5,16 @@
   "auth": {
     "type": "oauth",
     "issuer": "https://vixpxmvsndusngxdmjuv.supabase.co/auth/v1",
+    "require_oauth_client_claim": true,
     "accepted_audiences": [
       "authenticated"
     ]
   },
   "mcp": {
     "server": {
-      "name": "alprax-flow-mcp",
+      "name": "alprax-flow",
       "version": "0.1.0",
-      "title": "Alprax Flow"
+      "title": "alprax-flow"
     },
     "tools": [
       {
@@ -35,7 +36,7 @@
       {
         "name": "list_contacts",
         "title": "List contacts",
-        "description": "List the signed-in user's saved payment contacts / favorite recipients (Alprax account ids, names).",
+        "description": "List the signed-in user's saved payment contacts with their names, country and preferred currency.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,
@@ -51,7 +52,7 @@
       {
         "name": "list_transactions",
         "title": "List transactions",
-        "description": "List the signed-in user's most recent Stellar transactions (fiat-abstracted). Returns up to `limit` rows ordered newest first.",
+        "description": "List the signed-in user's recent payments in fiat currency with confirmation IDs, newest first.",
         "annotations": {
           "readOnlyHint": true,
           "idempotentHint": true,

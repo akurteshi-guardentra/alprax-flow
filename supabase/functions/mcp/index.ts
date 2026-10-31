@@ -7,17 +7,56 @@ import { auth, defineMcp } from "npm:@lovable.dev/mcp-js@0.22.2";
 
 // src/lib/mcp/tools/get-profile.ts
 import { defineTool } from "npm:@lovable.dev/mcp-js@0.22.2";
+
+// src/lib/mcp/supabase.ts
 import { createClient } from "npm:@supabase/supabase-js@^2.103.2";
-function userClient(ctx) {
-  return createClient(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
+function runtimeEnv(name) {
+  const runtime = globalThis;
+  return runtime.Deno?.env?.get?.(name) ?? runtime.process?.env?.[name];
 }
+function configuredEnv(names) {
+  for (const name of names) {
+    const value = runtimeEnv(name)?.trim();
+    if (value) return value;
+  }
+  return void 0;
+}
+function supabaseProjectUrl() {
+  const url = configuredEnv(["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  if (!url) throw new Error("Supabase URL is required");
+  return url;
+}
+function supabasePublishableKey() {
+  const direct = configuredEnv(["SUPABASE_PUBLISHABLE_KEY", "VITE_SUPABASE_PUBLISHABLE_KEY"]);
+  if (direct) return direct;
+  const keyset = runtimeEnv("SUPABASE_PUBLISHABLE_KEYS");
+  if (keyset) {
+    try {
+      const parsed = JSON.parse(keyset);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+        const keys = parsed;
+        const key = [keys.default, ...Object.values(keys)].find((value) => typeof value === "string" && value.trim().startsWith("sb_publishable_"))?.trim();
+        if (key) return key;
+      }
+    } catch {
+    }
+  }
+  const legacy = configuredEnv(["SUPABASE_ANON_KEY", "VITE_SUPABASE_ANON_KEY"]);
+  if (legacy) return legacy;
+  throw new Error("Supabase publishable key is required");
+}
+function supabaseForUser(ctx) {
+  const token = ctx.getToken();
+  if (!ctx.isAuthenticated() || !token || !ctx.getUserId()) {
+    throw new Error("A verified OAuth user is required");
+  }
+  return createClient(supabaseProjectUrl(), supabasePublishableKey(), {
+    global: { headers: { Authorization: `Bearer ${token}` } },
+    auth: { persistSession: false, autoRefreshToken: false }
+  });
+}
+
+// src/lib/mcp/tools/get-profile.ts
 var get_profile_default = defineTool({
   name: "get_profile",
   title: "Get profile",
@@ -28,8 +67,8 @@ var get_profile_default = defineTool({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = userClient(ctx);
-    const { data, error } = await supabase.from("profiles").select("id, full_name, country, kyc_level, avatar_url, created_at").eq("id", ctx.getUserId()).maybeSingle();
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("profiles").select("user_account_id, full_name, country, kyc_level, preferred_currency").eq("id", ctx.getUserId()).maybeSingle();
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
@@ -42,29 +81,18 @@ var get_profile_default = defineTool({
 
 // src/lib/mcp/tools/list-contacts.ts
 import { defineTool as defineTool2 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { createClient as createClient2 } from "npm:@supabase/supabase-js@^2.103.2";
-function userClient2(ctx) {
-  return createClient2(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var list_contacts_default = defineTool2({
   name: "list_contacts",
   title: "List contacts",
-  description: "List the signed-in user's saved payment contacts / favorite recipients (Alprax account ids, names).",
+  description: "List the signed-in user's saved payment contacts with their names, country and preferred currency.",
   inputSchema: {},
   annotations: { readOnlyHint: true, idempotentHint: true, openWorldHint: false },
   handler: async (_input, ctx) => {
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = userClient2(ctx);
-    const { data, error } = await supabase.from("favorite_recipients").select("*").order("created_at", { ascending: false }).limit(100);
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("favorite_recipients").select("id, recipient_name, country, currency, relationship, last_sent_at").eq("user_id", ctx.getUserId()).order("created_at", { ascending: false }).limit(100);
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
@@ -77,22 +105,11 @@ var list_contacts_default = defineTool2({
 
 // src/lib/mcp/tools/list-transactions.ts
 import { defineTool as defineTool3 } from "npm:@lovable.dev/mcp-js@0.22.2";
-import { createClient as createClient3 } from "npm:@supabase/supabase-js@^2.103.2";
 import { z } from "npm:zod@^4.4.3";
-function userClient3(ctx) {
-  return createClient3(
-    process.env.SUPABASE_URL,
-    process.env.SUPABASE_PUBLISHABLE_KEY,
-    {
-      global: { headers: { Authorization: `Bearer ${ctx.getToken()}` } },
-      auth: { persistSession: false, autoRefreshToken: false }
-    }
-  );
-}
 var list_transactions_default = defineTool3({
   name: "list_transactions",
   title: "List transactions",
-  description: "List the signed-in user's most recent Stellar transactions (fiat-abstracted). Returns up to `limit` rows ordered newest first.",
+  description: "List the signed-in user's recent payments in fiat currency with confirmation IDs, newest first.",
   inputSchema: {
     limit: z.number().int().min(1).max(100).default(20).describe("Maximum number of transactions to return (1-100).")
   },
@@ -101,8 +118,8 @@ var list_transactions_default = defineTool3({
     if (!ctx.isAuthenticated()) {
       return { content: [{ type: "text", text: "Not authenticated" }], isError: true };
     }
-    const supabase = userClient3(ctx);
-    const { data, error } = await supabase.from("stellar_transactions").select("*").order("created_at", { ascending: false }).limit(limit);
+    const supabase = supabaseForUser(ctx);
+    const { data, error } = await supabase.from("stellar_transactions").select("id, confirmation_id, fiat_amount, fiat_currency, recipient_name, recipient_country, status, transaction_type, created_at, completed_at").eq("user_id", ctx.getUserId()).order("created_at", { ascending: false }).limit(limit);
     if (error) {
       return { content: [{ type: "text", text: error.message }], isError: true };
     }
@@ -116,13 +133,14 @@ var list_transactions_default = defineTool3({
 // src/lib/mcp/index.ts
 var projectRef = "vixpxmvsndusngxdmjuv";
 var mcp_default = defineMcp({
-  name: "alprax-flow-mcp",
-  title: "Alprax Flow",
+  name: "alprax-flow",
+  title: "alprax-flow",
   version: "0.1.0",
-  instructions: "Tools for the signed-in Alprax Flow user. Read-only: view your profile, saved contacts, and recent transactions. All amounts are shown in fiat; blockchain details are hidden.",
+  instructions: "Read-only tools for the signed-in AlpraX Flow user: view your profile, saved contacts, and recent payments. Amounts use fiat currency and permissions follow your account.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
-    acceptedAudiences: "authenticated"
+    acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true
   }),
   tools: [get_profile_default, list_contacts_default, list_transactions_default]
 });

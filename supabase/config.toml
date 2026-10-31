@@ -11,7 +11,7 @@ max_rows = 1000
 enabled = true
 port = 54322
 site_url = "http://localhost:3000"
-additional_redirect_urls = ["https://localhost:3000"]
+additional_redirect_urls = ["https://localhost:3000", "https://alprax-flow.lovable.app/.lovable/oauth/consent", "http://localhost:8080/.lovable/oauth/consent"]
 jwt_expiry = 3600
 enable_signup = true
 enable_email_confirmations = false
@@ -90,6 +90,9 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.x402-payment]
+verify_jwt = false
+
+[functions.mcp]
 verify_jwt = false
 
 [storage]

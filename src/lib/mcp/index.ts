@@ -10,14 +10,15 @@ const projectRef =
   import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
-  name: "alprax-flow-mcp",
-  title: "Alprax Flow",
+  name: "alprax-flow",
+  title: "alprax-flow",
   version: "0.1.0",
   instructions:
-    "Tools for the signed-in Alprax Flow user. Read-only: view your profile, saved contacts, and recent transactions. All amounts are shown in fiat; blockchain details are hidden.",
+    "Read-only tools for the signed-in AlpraX Flow user: view your profile, saved contacts, and recent payments. Amounts use fiat currency and permissions follow your account.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
     acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true,
   }),
   tools: [getProfileTool, listContactsTool, listTransactionsTool],
 });

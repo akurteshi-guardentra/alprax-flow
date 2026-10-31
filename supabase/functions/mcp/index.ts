@@ -116,13 +116,14 @@ var list_transactions_default = defineTool3({
 // src/lib/mcp/index.ts
 var projectRef = "vixpxmvsndusngxdmjuv";
 var mcp_default = defineMcp({
-  name: "alprax-flow-mcp",
-  title: "Alprax Flow",
+  name: "alprax-flow",
+  title: "alprax-flow",
   version: "0.1.0",
-  instructions: "Tools for the signed-in Alprax Flow user. Read-only: view your profile, saved contacts, and recent transactions. All amounts are shown in fiat; blockchain details are hidden.",
+  instructions: "Read-only tools for the signed-in AlpraX Flow user: view your profile, saved contacts, and recent payments. Amounts use fiat currency and permissions follow your account.",
   auth: auth.oauth.issuer({
     issuer: `https://${projectRef}.supabase.co/auth/v1`,
-    acceptedAudiences: "authenticated"
+    acceptedAudiences: "authenticated",
+    requireOAuthClientClaim: true
   }),
   tools: [get_profile_default, list_contacts_default, list_transactions_default]
 });

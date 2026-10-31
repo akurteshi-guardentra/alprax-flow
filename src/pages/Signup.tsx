@@ -6,6 +6,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { UnifiedLayout } from "@/components/layout/UnifiedLayout";
+import { getNextParam, withNext } from "@/lib/next-redirect";
 
 const Signup = () => {
   const navigate = useNavigate();
@@ -30,6 +31,7 @@ const Signup = () => {
         email,
         password,
         options: {
+          emailRedirectTo: new URL(getNextParam() ?? "/dashboard", window.location.origin).href,
           data: {
             first_name: firstName,
             last_name: lastName,
@@ -41,7 +43,9 @@ const Signup = () => {
       
       if (data.user) {
         toast.success('Sign up successful! Please check your email for verification.');
-        navigate('/verify', { state: { email } });
+        const next = getNextParam();
+        if (data.session && next) navigate(next);
+        else navigate(next ? withNext('/verify', next) : '/verify', { state: { email } });
       }
     } catch (error) {
       console.error('Signup error:', error);
@@ -119,7 +123,10 @@ const Signup = () => {
               <div className="text-center">
                 <button 
                   type="button"
-                  onClick={() => navigate("/login")}
+                  onClick={() => {
+                    const next = getNextParam();
+                    navigate(next ? withNext("/login", next) : "/login");
+                  }}
                   className="text-sm text-white/60 hover:text-white transition-colors"
                 >
                   Already have an account? Sign in

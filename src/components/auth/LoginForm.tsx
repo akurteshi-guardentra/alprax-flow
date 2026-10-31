@@ -5,6 +5,7 @@ import { Mail, KeyRound, Fingerprint, Hash, Eye, EyeOff, LogIn } from "lucide-re
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { getNextParam, withNext } from "@/lib/next-redirect";
 
 interface LoginFormProps {
   email: string;
@@ -136,7 +137,10 @@ export const LoginForm = ({
               Don't have an account?{" "}
               <button 
                 type="button" 
-                onClick={() => navigate("/signup")} 
+                onClick={() => {
+                  const next = getNextParam();
+                  navigate(next ? withNext("/signup", next) : "/signup");
+                }}
                 className="text-primary-light hover:underline transition-colors font-medium"
               >
                 Sign up
